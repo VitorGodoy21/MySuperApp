@@ -1,4 +1,4 @@
-package com.vfdeginformatica.mysuperapp.ui.theme
+package com.vfdeginformatica.mysuperapp.presentation.common.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
