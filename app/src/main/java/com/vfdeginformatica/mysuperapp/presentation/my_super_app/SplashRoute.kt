@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.vfdeginformatica.mysuperapp.Screen
 
 @Composable
 fun SplashRoute(
@@ -26,7 +27,6 @@ fun SplashRoute(
     }
 
     if (status.isLoggedOut) {
-        //onNavigate(Screen.LoginScreen.route)
-        Text("PRECISA LOGAR")
+        onNavigate(Screen.LoginScreen.route)
     }
 }

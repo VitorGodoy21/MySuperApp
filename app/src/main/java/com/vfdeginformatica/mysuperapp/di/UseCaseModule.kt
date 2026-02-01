@@ -1,7 +1,8 @@
 package com.vfdeginformatica.mysuperapp.di
 
 import com.vfdeginformatica.mysuperapp.data.remote.repository.UserRepository
-import com.vfdeginformatica.mysuperapp.domain.use_case.IsLoggedUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.login.LoginUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,4 +21,16 @@ object UseCaseModule {
             userRepository
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideLoginUseCase(
+        userRepository: UserRepository
+    ): LoginUseCase {
+        return LoginUseCase(
+            userRepository
+        )
+    }
+
+
 }

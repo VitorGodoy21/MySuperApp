@@ -1,4 +1,4 @@
-package com.vfdeginformatica.mysuperapp.domain.use_case
+package com.vfdeginformatica.mysuperapp.domain.use_case.login
 
 import com.vfdeginformatica.mysuperapp.data.remote.repository.UserRepository
 import kotlinx.coroutines.flow.Flow

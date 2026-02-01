@@ -2,7 +2,7 @@ package com.vfdeginformatica.mysuperapp.presentation.my_super_app
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.vfdeginformatica.mysuperapp.domain.use_case.IsLoggedUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
+import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
 
 @Composable
 fun MySuperApp(
@@ -34,6 +35,19 @@ fun MySuperApp(
                         onNavigate = { route ->
                             navController.navigate(route) {
                                 popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
+
+                composable(route = Screen.LoginScreen.route) {
+                    LoginRoute(
+                        onNavigateHome = {
+                            navController.navigate(Screen.SplashScreen.route) {
+                                popUpTo(Screen.SplashScreen.route) {
+                                    inclusive = true
+                                }
                                 launchSingleTop = true
                             }
                         }
