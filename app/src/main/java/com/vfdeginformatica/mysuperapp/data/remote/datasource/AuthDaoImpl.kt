@@ -1,5 +1,6 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.vfdeginformatica.mysuperapp.common.Resource
 import kotlinx.coroutines.tasks.await
@@ -32,6 +33,7 @@ class AuthDaoImpl(
 
             return null
         } catch (e: Exception) {
+            Log.e("AuthDaoImpl", "login: ${e.message}", e)
             return null
         }
     }

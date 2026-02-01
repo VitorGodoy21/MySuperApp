@@ -31,7 +31,7 @@ class UserRemoteDaoImpl(
             }
     }
 
-    override suspend fun getUserSession(id: String): UserSession? {
+    override suspend fun getUserSession(id: String): UserSession {
         val userRef = db.collection("users").document(id)
         val userSession = UserSession(
             id = id,
