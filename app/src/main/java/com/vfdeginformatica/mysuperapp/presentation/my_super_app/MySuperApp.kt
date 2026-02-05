@@ -57,7 +57,10 @@ fun MySuperApp(
 
                 composable(route = Screen.HomeScreen.route) {
                     HomeRoute(
-                        navController = navController
+                        navController = navController,
+                        onNavigate = { route ->
+                            //navController.navigate(route)
+                        }
                     )
                 }
             }

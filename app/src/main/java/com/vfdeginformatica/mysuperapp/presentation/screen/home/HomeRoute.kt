@@ -17,7 +17,8 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEff
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
-    navController: NavHostController
+    navController: NavHostController,
+    onNavigate: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -26,6 +27,7 @@ fun HomeRoute(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is HomeEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
+                is HomeEffect.NavigateToMenuItem -> onNavigate(effect.route)
             }
         }
     }
@@ -43,7 +45,8 @@ fun HomeRoute(
         ) { padding ->
             HomeScreen(
                 uiState = state,
-                onEvent = viewModel::onEvent
+                onEvent = viewModel::onEvent,
+                innerPadding = padding
             )
         }
     }
