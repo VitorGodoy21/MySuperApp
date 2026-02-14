@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Anchor
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.HomeMenuItem
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEvent
@@ -47,7 +48,7 @@ class HomeViewModel @Inject constructor() : ViewModel() {
                 HomeMenuItem(
                     title = "Finanças",
                     icon = Icons.Default.AllInclusive,
-                    route = "Finanças",
+                    route = Screen.FinancialScreen.route,
                     backgroundColor = Color.Cyan,
                     content = {}
                 ),
@@ -55,7 +56,7 @@ class HomeViewModel @Inject constructor() : ViewModel() {
                 HomeMenuItem(
                     title = "Academia",
                     icon = Icons.Default.Anchor,
-                    route = "Academia",
+                    route = Screen.FinancialScreen.route,
                     backgroundColor = Color.Magenta,
                     content = {}
                 )

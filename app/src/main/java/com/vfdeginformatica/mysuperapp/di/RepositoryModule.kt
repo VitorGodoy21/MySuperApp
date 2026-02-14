@@ -2,9 +2,12 @@ package com.vfdeginformatica.mysuperapp.di
 
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
-import com.vfdeginformatica.mysuperapp.data.remote.repository.UserRepository
+import com.vfdeginformatica.mysuperapp.data.remote.repository.TransactionRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.UserRepositoryImpl
+import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,5 +27,13 @@ object RepositoryModule {
         useRemoteDao: UserRemoteDao
     ): UserRepository {
         return UserRepositoryImpl(userRemoteDao, authDao, userSessionSecureStorage, useRemoteDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTransactionRepository(
+        transactionDao: TransactionDao
+    ): TransactionRepository {
+        return TransactionRepositoryImpl(transactionDao)
     }
 }

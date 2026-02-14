@@ -73,7 +73,7 @@ fun AppDrawerMenuRoute(
         onEvent = viewModel::onEvent,
         onLogout = { viewModel.logout() },
         onHome = { viewModel.goHome() },
-        onFinancialManagement = {},
+        onFinancialManagement = { viewModel.navigate(Screen.FinancialScreen.route) },
         onSettings = {},
         onResume = { viewModel.onEvent(AppDrawerMenuEvent.OnResume) }
     ) {

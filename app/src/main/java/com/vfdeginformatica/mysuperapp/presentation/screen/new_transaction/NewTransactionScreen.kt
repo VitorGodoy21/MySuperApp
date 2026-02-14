@@ -1,0 +1,157 @@
+package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionUiState
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
+
+@Composable
+fun NewTransactionScreen(
+    uiState: NewTransactionUiState,
+    onEvent: (NewTransactionEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Selector de Tipo
+        Text(text = "Tipo de Transação", style = MaterialTheme.typography.labelLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = uiState.transactionType == TransactionType.INCOME,
+                onClick = { onEvent(NewTransactionEvent.TypeChanged(TransactionType.INCOME)) },
+                label = { Text("Receita (Income)") },
+                modifier = Modifier.weight(1f)
+            )
+            FilterChip(
+                selected = uiState.transactionType == TransactionType.EXPENSE,
+                onClick = { onEvent(NewTransactionEvent.TypeChanged(TransactionType.EXPENSE)) },
+                label = { Text("Despesa (Expense)") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        HorizontalDivider()
+
+        // Campos Comuns
+        OutlinedTextField(
+            value = uiState.title,
+            onValueChange = { onEvent(NewTransactionEvent.TitleChanged(it)) },
+            label = { Text("Título") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        OutlinedTextField(
+            value = uiState.amount,
+            onValueChange = { onEvent(NewTransactionEvent.AmountChanged(it)) },
+            label = { Text("Valor") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            prefix = { Text("R$ ") },
+            singleLine = true
+        )
+
+        OutlinedTextField(
+            value = uiState.description,
+            onValueChange = { onEvent(NewTransactionEvent.DescriptionChanged(it)) },
+            label = { Text("Descrição (Opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2
+        )
+
+        OutlinedTextField(
+            value = uiState.category,
+            onValueChange = { onEvent(NewTransactionEvent.CategoryChanged(it)) },
+            label = { Text("Categoria") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = uiState.paymentMethod,
+            onValueChange = { onEvent(NewTransactionEvent.PaymentMethodChanged(it)) },
+            label = { Text("Método de Pagamento") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Transação Recorrente?")
+            Switch(
+                checked = uiState.isRecurring,
+                onCheckedChange = { onEvent(NewTransactionEvent.RecurringChanged(it)) }
+            )
+        }
+
+        // Campos Específicos para Despesa (Expense)
+        if (uiState.transactionType == TransactionType.EXPENSE) {
+            Text(
+                text = "Detalhes da Despesa",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            OutlinedTextField(
+                value = uiState.cardId,
+                onValueChange = { onEvent(NewTransactionEvent.CardIdChanged(it)) },
+                label = { Text("ID do Cartão (Opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = uiState.invoiceMonth,
+                onValueChange = { onEvent(NewTransactionEvent.InvoiceMonthChanged(it)) },
+                label = { Text("Mês da Fatura") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Button(
+            onClick = { onEvent(NewTransactionEvent.SaveClicked) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !uiState.isLoading && uiState.title.isNotBlank() && uiState.amount.isNotBlank()
+        ) {
+            Text(if (uiState.isLoading) "Salvando..." else "Salvar Transação")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun NewTransactionScreenPreview() {
+    NewTransactionScreen(
+        uiState = NewTransactionUiState(transactionType = TransactionType.EXPENSE),
+        onEvent = {}
+    )
+}

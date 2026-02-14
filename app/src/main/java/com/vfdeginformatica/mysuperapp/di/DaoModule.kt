@@ -7,6 +7,8 @@ import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureSt
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorageImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDaoImpl
 import dagger.Module
@@ -41,5 +43,13 @@ object DaoModule {
     fun provideUserSessionSecureStorage(
         @ApplicationContext context: Context
     ): UserSessionSecureStorage = UserSessionSecureStorageImpl(context)
+
+    @Provides
+    @Singleton
+    fun provideTransactionDao(): TransactionDao {
+        return TransactionDaoImpl(
+            db = FirebaseFirestore.getInstance()
+        )
+    }
 
 }

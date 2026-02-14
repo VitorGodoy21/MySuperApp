@@ -5,6 +5,7 @@ import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureSt
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
 import com.vfdeginformatica.mysuperapp.domain.model.UserSession
+import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 
 class UserRepositoryImpl(

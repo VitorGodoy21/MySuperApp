@@ -1,4 +1,4 @@
-package com.vfdeginformatica.mysuperapp.data.remote.repository
+package com.vfdeginformatica.mysuperapp.domain.repository
 
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.model.UserSession

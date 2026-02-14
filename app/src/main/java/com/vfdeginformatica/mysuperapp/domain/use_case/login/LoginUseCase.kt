@@ -1,7 +1,7 @@
 package com.vfdeginformatica.mysuperapp.domain.use_case.login
 
 import com.vfdeginformatica.mysuperapp.common.Resource
-import com.vfdeginformatica.mysuperapp.data.remote.repository.UserRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject

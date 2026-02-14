@@ -13,8 +13,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
+import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.NewTransactionRoute
 
 @Composable
 fun MySuperApp(
@@ -59,7 +61,26 @@ fun MySuperApp(
                     HomeRoute(
                         navController = navController,
                         onNavigate = { route ->
-                            //navController.navigate(route)
+                            navController.navigate(route)
+                        }
+                    )
+                }
+
+                composable(route = Screen.FinancialScreen.route) {
+                    FinancialRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
+                        },
+                        onNewTransaction = {
+                            navController.navigate(Screen.NewTransactionScreen.route)
+                        }
+                    )
+                }
+
+                composable(route = Screen.NewTransactionScreen.route) {
+                    NewTransactionRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
                         }
                     )
                 }

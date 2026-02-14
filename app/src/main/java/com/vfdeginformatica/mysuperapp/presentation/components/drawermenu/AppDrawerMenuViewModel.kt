@@ -94,6 +94,10 @@ class AppDrawerMenuViewModel @Inject constructor(
         _effect.emit(AppDrawerMenuEffect.NavigateToHome)
     }
 
+    fun navigate(route: String) = viewModelScope.launch {
+        _effect.emit(AppDrawerMenuEffect.Navigate(route))
+    }
+
     private fun onClickItem(item: UiMenuItem) {
         viewModelScope.launch {
             _effect.emit(AppDrawerMenuEffect.Navigate(item.route))
