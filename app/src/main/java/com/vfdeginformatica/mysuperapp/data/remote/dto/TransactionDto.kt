@@ -8,8 +8,8 @@ data class TransactionDto(
     @DocumentId var id: String? = null,
     val title: String? = null,
     val description: String? = null,
-    val transactionType: String? = null,
-    val paymentMethod: String,
+    val transactionType: String? = null, //INCOME, EXPENSE
+    val paymentMethod: String, //CREDIT, DEBIT
     val amount: BigDecimal,
     val isRecurring: Boolean,
     val transactionDate: Timestamp? = null,
