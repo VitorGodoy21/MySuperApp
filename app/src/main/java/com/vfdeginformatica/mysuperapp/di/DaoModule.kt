@@ -7,6 +7,8 @@ import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureSt
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorageImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
@@ -48,6 +50,14 @@ object DaoModule {
     @Singleton
     fun provideTransactionDao(): TransactionDao {
         return TransactionDaoImpl(
+            db = FirebaseFirestore.getInstance()
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideCardDao(): CardDao {
+        return CardDaoImpl(
             db = FirebaseFirestore.getInstance()
         )
     }

@@ -1,8 +1,10 @@
 package com.vfdeginformatica.mysuperapp.di
 
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
+import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
+import com.vfdeginformatica.mysuperapp.domain.use_case.card.GetCardsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.NewTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LoginUseCase
@@ -64,6 +66,16 @@ object UseCaseModule {
     ): NewTransactionUseCase {
         return NewTransactionUseCase(
             transactionRepository
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetCardsUseCase(
+        repository: CardRepository
+    ): GetCardsUseCase {
+        return GetCardsUseCase(
+            repository
         )
     }
 

@@ -2,10 +2,13 @@ package com.vfdeginformatica.mysuperapp.di
 
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
+import com.vfdeginformatica.mysuperapp.data.remote.repository.CardRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.TransactionRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.UserRepositoryImpl
+import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
 import dagger.Module
@@ -35,5 +38,13 @@ object RepositoryModule {
         transactionDao: TransactionDao
     ): TransactionRepository {
         return TransactionRepositoryImpl(transactionDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCardRepository(
+        cardDao: CardDao
+    ): CardRepository {
+        return CardRepositoryImpl(cardDao)
     }
 }

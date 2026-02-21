@@ -1,9 +1,11 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract
 
+import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import java.time.LocalDate
 
 data class NewTransactionUiState(
     val isLoading: Boolean = false,
+    val isLoadingCards: Boolean = false,
     val errorMessage: String? = null,
     val transactionType: TransactionType = TransactionType.EXPENSE,
     val title: String = "",
@@ -16,6 +18,7 @@ data class NewTransactionUiState(
     // Expense specific
     val cardId: String = "",
     val invoiceMonth: String = "",
+    val availableCards: List<CardDto>? = null
 )
 
 enum class TransactionType {
