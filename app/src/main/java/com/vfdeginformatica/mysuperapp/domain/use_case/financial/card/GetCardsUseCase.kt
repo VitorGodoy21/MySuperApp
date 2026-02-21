@@ -1,4 +1,4 @@
-package com.vfdeginformatica.mysuperapp.domain.use_case.card
+package com.vfdeginformatica.mysuperapp.domain.use_case.financial.card
 
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto

@@ -1,4 +1,4 @@
-package com.vfdeginformatica.mysuperapp.domain.use_case.financial
+package com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction
 
 import com.google.firebase.Timestamp
 import com.vfdeginformatica.mysuperapp.common.Resource

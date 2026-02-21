@@ -52,7 +52,7 @@ fun NewTransactionScreen(
         uiState.availableCards?.firstOrNull() { it.id == uiState.cardId }?.bank ?: ""
     }
 
-    if (uiState.isLoadingCards) {
+    if (uiState.isLoadingCards || uiState.isLoadingCategories) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
@@ -159,12 +159,13 @@ fun NewTransactionScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    uiState.availableCategories.forEach { category ->
-                        val isSelected = uiState.selectedCategories.contains(category)
+                    uiState.availableCategories?.forEach { category ->
+                        val isSelected =
+                            uiState.selectedCategories.any { it.id == category.id }
                         FilterChip(
                             selected = isSelected,
-                            onClick = { onEvent(NewTransactionEvent.CategoryToggled(category)) },
-                            label = { Text(category) }
+                            onClick = { onEvent(NewTransactionEvent.CategoryToggled(category.id)) },
+                            label = { Text(category.title) }
                         )
                     }
                 }
@@ -223,10 +224,7 @@ fun NewTransactionScreenPreview() {
         uiState = NewTransactionUiState(
             transactionType = TransactionType.EXPENSE,
             isLoadingCards = false,
-            selectedCategories = listOf(
-                "Lazer",
-                "Alimentação"
-            ) // Exemplo de seleção múltipla no preview
+            selectedCategories = listOf() // Exemplo de seleção múltipla no preview
         ),
         onEvent = {}
     )

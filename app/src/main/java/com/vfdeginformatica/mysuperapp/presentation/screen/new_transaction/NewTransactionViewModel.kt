@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
-import com.vfdeginformatica.mysuperapp.domain.use_case.card.GetCardsUseCase
+import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_category.GetTransactionsCategoriesUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionUiState
@@ -21,7 +23,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewTransactionViewModel @Inject constructor(
-    private val getCardsUseCase: GetCardsUseCase
+    private val getCardsUseCase: GetCardsUseCase,
+    private val getTransactionsCategoriesUseCase: GetTransactionsCategoriesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NewTransactionUiState())
@@ -32,6 +35,40 @@ class NewTransactionViewModel @Inject constructor(
 
     init {
         loadCards()
+        loadCategories()
+    }
+
+    private fun loadCategories() {
+        viewModelScope.launch {
+            getTransactionsCategoriesUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        updateForm(
+                            availableCategories = result.data,
+                            isLoadingCategories = false
+                        )
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoadingCategories = false,
+                                errorMessage = result.message
+                            )
+                        }
+                        _effect.emit(
+                            NewTransactionEffect.ShowToast(
+                                result.message ?: "Erro ao cadastrar"
+                            )
+                        )
+                    }
+
+                    is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoadingCategories = true) }
+                    }
+                }
+            }
+        }
     }
 
     private fun loadCards() {
@@ -69,18 +106,24 @@ class NewTransactionViewModel @Inject constructor(
     }
 
     fun onEvent(event: NewTransactionEvent) {
-        when(event){
+        when (event) {
             is NewTransactionEvent.AmountChanged -> updateForm(amount = event.amount)
             is NewTransactionEvent.CardIdChanged -> updateForm(cardId = event.cardId)
             is NewTransactionEvent.CategoryToggled -> {
                 val currentCategories = _uiState.value.selectedCategories
-                val newCategories = if (currentCategories.contains(event.category)) {
-                    currentCategories.filter { it != event.category }
-                } else {
-                    currentCategories + event.category
+                val categoryToToggle =
+                    _uiState.value.availableCategories?.find { it.id == event.category }
+
+                categoryToToggle?.let { category ->
+                    val newCategories = if (currentCategories.any { it.id == category.id }) {
+                        currentCategories.filter { it.id != category.id }
+                    } else {
+                        currentCategories + category
+                    }
+                    updateForm(selectedCategories = newCategories)
                 }
-                updateForm(selectedCategories = newCategories)
             }
+
             is NewTransactionEvent.DateChanged -> updateForm(date = event.date)
             is NewTransactionEvent.DescriptionChanged -> updateForm(description = event.description)
             is NewTransactionEvent.InvoiceMonthChanged -> updateForm(invoiceMonth = event.month)
@@ -95,7 +138,7 @@ class NewTransactionViewModel @Inject constructor(
     private fun updateForm(
         amount: String? = null,
         cardId: String? = null,
-        selectedCategories: List<String>? = null,
+        selectedCategories: List<CategoryTransactionDto>? = null,
         date: LocalDate? = null,
         description: String? = null,
         invoiceMonth: String? = null,
@@ -104,11 +147,13 @@ class NewTransactionViewModel @Inject constructor(
         title: String? = null,
         type: TransactionType? = null,
         availableCards: List<CardDto>? = null,
-        isLoadingCards: Boolean? = null
-    ){
+        availableCategories: List<CategoryTransactionDto>? = null,
+        isLoadingCards: Boolean? = null,
+        isLoadingCategories: Boolean? = null
+    ) {
         _uiState.update { old ->
             val new = old.copy(
-                amount= amount ?: old.amount,
+                amount = amount ?: old.amount,
                 cardId = cardId ?: old.cardId,
                 selectedCategories = selectedCategories ?: old.selectedCategories,
                 date = date ?: old.date,
@@ -119,14 +164,16 @@ class NewTransactionViewModel @Inject constructor(
                 title = title ?: old.title,
                 transactionType = type ?: old.transactionType,
                 availableCards = availableCards ?: old.availableCards,
-                isLoadingCards = isLoadingCards ?: old.isLoadingCards
+                isLoadingCards = isLoadingCards ?: old.isLoadingCards,
+                availableCategories = availableCategories ?: old.availableCategories,
+                isLoadingCategories = isLoadingCategories ?: old.isLoadingCategories
             )
 
             new.copy()
         }
     }
 
-    private fun submit(){
+    private fun submit() {
 
     }
 
