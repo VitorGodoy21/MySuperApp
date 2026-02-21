@@ -3,6 +3,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,13 +73,13 @@ fun NewTransactionScreen(
                 FilterChip(
                     selected = uiState.transactionType == TransactionType.INCOME,
                     onClick = { onEvent(NewTransactionEvent.TypeChanged(TransactionType.INCOME)) },
-                    label = { Text("Receita (Income)") },
+                    label = { Text("Receita") },
                     modifier = Modifier.weight(1f)
                 )
                 FilterChip(
                     selected = uiState.transactionType == TransactionType.EXPENSE,
                     onClick = { onEvent(NewTransactionEvent.TypeChanged(TransactionType.EXPENSE)) },
-                    label = { Text("Despesa (Expense)") },
+                    label = { Text("Despesa") },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -134,13 +135,36 @@ fun NewTransactionScreen(
                     expanded = cardMenuExpanded,
                     onDismissRequest = { cardMenuExpanded = false },
                 ) {
-                    uiState.availableCards?.forEach { type ->
+                    uiState.availableCards?.forEach { card ->
                         DropdownMenuItem(
-                            text = { Text(type.bank) },
+                            text = { Text(card.bank) },
                             onClick = {
-                                onEvent(NewTransactionEvent.CardIdChanged(type.id))
+                                onEvent(NewTransactionEvent.CardIdChanged(card.id ?: ""))
                                 cardMenuExpanded = false
                             }
+                        )
+                    }
+                }
+            }
+
+            // Categorias (Visual de Tags/Chips)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "Categorias",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    uiState.availableCategories.forEach { category ->
+                        val isSelected = uiState.selectedCategories.contains(category)
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { onEvent(NewTransactionEvent.CategoryToggled(category)) },
+                            label = { Text(category) }
                         )
                     }
                 }
@@ -167,14 +191,6 @@ fun NewTransactionScreen(
                     label = { Text("Mês da Fatura") },
                     modifier = Modifier.fillMaxWidth()
                 )
-
-                OutlinedTextField(
-                    value = uiState.category,
-                    onValueChange = { onEvent(NewTransactionEvent.CategoryChanged(it)) },
-                    label = { Text("Categoria") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -205,8 +221,12 @@ fun NewTransactionScreen(
 fun NewTransactionScreenPreview() {
     NewTransactionScreen(
         uiState = NewTransactionUiState(
-            transactionType = TransactionType.INCOME,
-            isLoadingCards = false
+            transactionType = TransactionType.EXPENSE,
+            isLoadingCards = false,
+            selectedCategories = listOf(
+                "Lazer",
+                "Alimentação"
+            ) // Exemplo de seleção múltipla no preview
         ),
         onEvent = {}
     )

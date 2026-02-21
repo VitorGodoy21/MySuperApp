@@ -72,7 +72,15 @@ class NewTransactionViewModel @Inject constructor(
         when(event){
             is NewTransactionEvent.AmountChanged -> updateForm(amount = event.amount)
             is NewTransactionEvent.CardIdChanged -> updateForm(cardId = event.cardId)
-            is NewTransactionEvent.CategoryChanged -> updateForm(category = event.category)
+            is NewTransactionEvent.CategoryToggled -> {
+                val currentCategories = _uiState.value.selectedCategories
+                val newCategories = if (currentCategories.contains(event.category)) {
+                    currentCategories.filter { it != event.category }
+                } else {
+                    currentCategories + event.category
+                }
+                updateForm(selectedCategories = newCategories)
+            }
             is NewTransactionEvent.DateChanged -> updateForm(date = event.date)
             is NewTransactionEvent.DescriptionChanged -> updateForm(description = event.description)
             is NewTransactionEvent.InvoiceMonthChanged -> updateForm(invoiceMonth = event.month)
@@ -87,7 +95,7 @@ class NewTransactionViewModel @Inject constructor(
     private fun updateForm(
         amount: String? = null,
         cardId: String? = null,
-        category: String? = null,
+        selectedCategories: List<String>? = null,
         date: LocalDate? = null,
         description: String? = null,
         invoiceMonth: String? = null,
@@ -102,7 +110,7 @@ class NewTransactionViewModel @Inject constructor(
             val new = old.copy(
                 amount= amount ?: old.amount,
                 cardId = cardId ?: old.cardId,
-                category = category ?: old.category,
+                selectedCategories = selectedCategories ?: old.selectedCategories,
                 date = date ?: old.date,
                 description = description ?: old.description,
                 invoiceMonth = invoiceMonth ?: old.invoiceMonth,

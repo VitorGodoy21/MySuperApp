@@ -8,7 +8,7 @@ sealed interface NewTransactionEvent {
     data class AmountChanged(val amount: String) : NewTransactionEvent
     data class DescriptionChanged(val description: String) : NewTransactionEvent
     data class DateChanged(val date: LocalDate) : NewTransactionEvent
-    data class CategoryChanged(val category: String) : NewTransactionEvent
+    data class CategoryToggled(val category: String) : NewTransactionEvent
     data class PaymentMethodChanged(val method: String) : NewTransactionEvent
     data class RecurringChanged(val isRecurring: Boolean) : NewTransactionEvent
     data class CardIdChanged(val cardId: String) : NewTransactionEvent

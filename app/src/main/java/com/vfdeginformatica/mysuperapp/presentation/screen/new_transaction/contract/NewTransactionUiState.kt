@@ -12,7 +12,16 @@ data class NewTransactionUiState(
     val amount: String = "",
     val description: String = "",
     val date: LocalDate = LocalDate.now(),
-    val category: String = "",
+    val selectedCategories: List<String> = emptyList(),
+    val availableCategories: List<String> = listOf(
+        "Alimentação",
+        "Transporte",
+        "Lazer",
+        "Saúde",
+        "Educação",
+        "Moradia",
+        "Outros"
+    ),
     val paymentMethod: String = "",
     val isRecurring: Boolean = false,
     // Expense specific
