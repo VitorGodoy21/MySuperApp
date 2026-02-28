@@ -9,4 +9,5 @@ data class CardDto(
     var finalCode: String = "",
     var paymentMethod: String = "",
     var invoiceDueDate: Int = 0,
+    var allowsDeposit: Boolean = false
 )

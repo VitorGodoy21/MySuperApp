@@ -21,7 +21,8 @@ data class NewTransactionUiState(
     // Expense specific
     val cardId: String = "",
     val invoiceMonth: String = "",
-    val availableCards: List<CardDto>? = null
+    val availableCards: List<CardDto>? = null,
+    val isSubmitEnabled: Boolean = false
 )
 
 enum class TransactionType {

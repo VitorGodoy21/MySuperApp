@@ -2,10 +2,12 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.NewTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_category.GetTransactionsCategoriesUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
@@ -19,12 +21,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class NewTransactionViewModel @Inject constructor(
     private val getCardsUseCase: GetCardsUseCase,
-    private val getTransactionsCategoriesUseCase: GetTransactionsCategoriesUseCase
+    private val getTransactionsCategoriesUseCase: GetTransactionsCategoriesUseCase,
+    private val newTransactionUseCase: NewTransactionUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NewTransactionUiState())
@@ -151,6 +155,7 @@ class NewTransactionViewModel @Inject constructor(
         isLoadingCards: Boolean? = null,
         isLoadingCategories: Boolean? = null
     ) {
+
         _uiState.update { old ->
             val new = old.copy(
                 amount = amount ?: old.amount,
@@ -169,11 +174,56 @@ class NewTransactionViewModel @Inject constructor(
                 isLoadingCategories = isLoadingCategories ?: old.isLoadingCategories
             )
 
-            new.copy()
+            new.copy(
+                isSubmitEnabled = new.cardId.isNotBlank() && new.title.isNotBlank() && new.amount.isNotBlank()
+            )
         }
     }
 
     private fun submit() {
+        val state = _uiState.value
+        if (!state.isSubmitEnabled || state.isLoading) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            val amountValue =
+
+                newTransactionUseCase(
+                    title = state.title,
+                    description = state.description,
+                    transactionType = state.transactionType.name,
+                    paymentMethod = state.paymentMethod,
+                    amount = state.amount.toDoubleOrNull() ?: 0.0,
+                    isRecurring = state.isRecurring,
+                    transactionDate = Timestamp(Date()),
+                    category = state.selectedCategories.map { it.id },
+                    status = "pending",
+                    cardId = state.cardId,
+                    invoiceMonth = state.invoiceMonth,
+                    installmentGroupId = null
+                ).collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _effect.emit(NewTransactionEffect.ShowToast("SUCCESS"))
+                        }
+
+                        is Resource.Error -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _effect.emit(
+                                NewTransactionEffect.ShowToast(
+                                    result.message ?: "Erro ao cadastrar"
+                                )
+                            )
+                        }
+
+                        is Resource.Loading<*> -> {
+                            _uiState.update { it.copy(isLoading = true) }
+                        }
+                    }
+                }
+        }
 
     }
 

@@ -6,7 +6,6 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.TransactionDto
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import java.math.BigDecimal
 import javax.inject.Inject
 
 class NewTransactionUseCase @Inject constructor(
@@ -17,7 +16,7 @@ class NewTransactionUseCase @Inject constructor(
         description: String? = null,
         transactionType: String? = null,
         paymentMethod: String,
-        amount: BigDecimal,
+        amount: Double,
         isRecurring: Boolean,
         transactionDate: Timestamp? = null,
         category: List<String>? = null,

@@ -209,7 +209,7 @@ fun NewTransactionScreen(
             Button(
                 onClick = { onEvent(NewTransactionEvent.SaveClicked) },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isLoading && uiState.title.isNotBlank() && uiState.amount.isNotBlank()
+                enabled = uiState.isSubmitEnabled && !uiState.isLoading,
             ) {
                 Text(if (uiState.isLoading) "Salvando..." else "Salvar Transação")
             }

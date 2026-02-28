@@ -2,7 +2,6 @@ package com.vfdeginformatica.mysuperapp.data.remote.dto
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
-import java.math.BigDecimal
 
 data class TransactionDto(
     @DocumentId var id: String? = null,
@@ -10,7 +9,7 @@ data class TransactionDto(
     val description: String? = null,
     val transactionType: String? = null, //INCOME, EXPENSE
     val paymentMethod: String, //CREDIT, DEBIT
-    val amount: BigDecimal,
+    val amount: Double,
     val isRecurring: Boolean,
     val transactionDate: Timestamp? = null,
     val category: List<String>? = null,
