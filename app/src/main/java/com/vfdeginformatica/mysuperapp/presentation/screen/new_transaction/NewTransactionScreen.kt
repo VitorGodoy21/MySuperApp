@@ -3,6 +3,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,19 +39,21 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contr
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionUiState
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun NewTransactionScreen(
     uiState: NewTransactionUiState,
     onEvent: (NewTransactionEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
     var cardMenuExpanded by remember { mutableStateOf(false) }
+    var paymentMethodMenuExpanded by remember { mutableStateOf(false) }
 
-    val selectedCardLabel = remember(uiState.cardId, uiState.availableCards) {
-        uiState.availableCards?.firstOrNull() { it.id == uiState.cardId }?.bank ?: ""
+    val selectedCard = remember(uiState.cardId, uiState.availableCards) {
+        uiState.availableCards?.find { it.id == uiState.cardId }
     }
+    val selectedCardLabel = selectedCard?.bank ?: ""
+    val availablePaymentMethods = selectedCard?.paymentMethods ?: emptyList()
 
     if (uiState.isLoadingCards || uiState.isLoadingCategories) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -64,7 +67,7 @@ fun NewTransactionScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Selector de Tipo
+            // Seletor de Tipo (Receita / Despesa)
             Text(text = "Tipo de Transação", style = MaterialTheme.typography.labelLarge)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -86,7 +89,7 @@ fun NewTransactionScreen(
 
             HorizontalDivider()
 
-            // Campos Comuns
+            // 1. Campos Iniciais
             OutlinedTextField(
                 value = uiState.title,
                 onValueChange = { onEvent(NewTransactionEvent.TitleChanged(it)) },
@@ -113,19 +116,22 @@ fun NewTransactionScreen(
                 minLines = 2
             )
 
+            // 2. Seção de Cartão (Sempre visível para Despesa, ou dependendo da lógica de negócio)
+            Text(
+                text = "Cartão e Pagamento",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+
             ExposedDropdownMenuBox(
                 expanded = cardMenuExpanded,
                 onExpandedChange = { cardMenuExpanded = it },
             ) {
                 OutlinedTextField(
                     value = selectedCardLabel,
-                    onValueChange = { /* leitura apenas; seleção pelo menu */ },
+                    onValueChange = {},
                     readOnly = true,
-                    label = { Text("Cartão") },
-                    isError = uiState.errorMessage != null,
-                    supportingText = {
-                        uiState.errorMessage?.let { Text(it) }
-                    },
+                    label = { Text("Escolha o Cartão") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cardMenuExpanded) },
                     modifier = Modifier
                         .menuAnchor()
@@ -139,7 +145,7 @@ fun NewTransactionScreen(
                         DropdownMenuItem(
                             text = { Text(card.bank) },
                             onClick = {
-                                onEvent(NewTransactionEvent.CardIdChanged(card.id ?: ""))
+                                onEvent(NewTransactionEvent.CardIdChanged(card.id))
                                 cardMenuExpanded = false
                             }
                         )
@@ -147,52 +153,65 @@ fun NewTransactionScreen(
                 }
             }
 
-            // Categorias (Visual de Tags/Chips)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "Categorias",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    uiState.availableCategories?.forEach { category ->
-                        val isSelected =
-                            uiState.selectedCategories.any { it.id == category.id }
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { onEvent(NewTransactionEvent.CategoryToggled(category.id)) },
-                            label = { Text(category.title) }
+            // 3. Método de Pagamento (Condicional se o cartão for selecionado)
+            if (uiState.cardId.isNotBlank()) {
+                if (availablePaymentMethods.size > 1) {
+                    ExposedDropdownMenuBox(
+                        expanded = paymentMethodMenuExpanded,
+                        onExpandedChange = { paymentMethodMenuExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.paymentMethod,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Método de Pagamento") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = paymentMethodMenuExpanded) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
                         )
+                        ExposedDropdownMenu(
+                            expanded = paymentMethodMenuExpanded,
+                            onDismissRequest = { paymentMethodMenuExpanded = false },
+                        ) {
+                            availablePaymentMethods.forEach { method ->
+                                DropdownMenuItem(
+                                    text = { Text(method) },
+                                    onClick = {
+                                        onEvent(NewTransactionEvent.PaymentMethodChanged(method))
+                                        paymentMethodMenuExpanded = false
+                                    }
+                                )
+                            }
+                        }
                     }
+                } else if (availablePaymentMethods.size == 1) {
+                    // Se só tem um, exibe como campo informativo (já selecionado na ViewModel)
+                    OutlinedTextField(
+                        value = uiState.paymentMethod,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Método de Pagamento") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false
+                    )
+                }
+
+                // 4. Campo de Parcelas (Se o método for Crédito)
+                if (uiState.paymentMethod == "CREDIT") {
+                    OutlinedTextField(
+                        value = uiState.installments,
+                        onValueChange = { onEvent(NewTransactionEvent.InstallmentsChanged(it)) },
+                        label = { Text("Número de Parcelas") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
                 }
             }
 
-            // Campos Específicos para Despesa (Expense)
+            // Campos Adicionais
             if (uiState.transactionType == TransactionType.EXPENSE) {
-                Text(
-                    text = "Detalhes da Despesa",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                OutlinedTextField(
-                    value = uiState.paymentMethod,
-                    onValueChange = { onEvent(NewTransactionEvent.PaymentMethodChanged(it)) },
-                    label = { Text("Método de Pagamento") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                OutlinedTextField(
-                    value = uiState.invoiceMonth,
-                    onValueChange = { onEvent(NewTransactionEvent.InvoiceMonthChanged(it)) },
-                    label = { Text("Mês da Fatura") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -203,6 +222,29 @@ fun NewTransactionScreen(
                         checked = uiState.isRecurring,
                         onCheckedChange = { onEvent(NewTransactionEvent.RecurringChanged(it)) }
                     )
+                }
+
+                // Categorias
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Categorias",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        uiState.availableCategories?.forEach { category ->
+                            val isSelected = uiState.selectedCategories.any { it.id == category.id }
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { onEvent(NewTransactionEvent.CategoryToggled(category.id)) },
+                                label = { Text(category.title) }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -224,7 +266,7 @@ fun NewTransactionScreenPreview() {
         uiState = NewTransactionUiState(
             transactionType = TransactionType.EXPENSE,
             isLoadingCards = false,
-            selectedCategories = listOf() // Exemplo de seleção múltipla no preview
+            selectedCategories = listOf()
         ),
         onEvent = {}
     )

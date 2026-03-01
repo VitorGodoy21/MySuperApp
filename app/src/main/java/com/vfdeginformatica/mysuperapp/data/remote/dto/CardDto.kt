@@ -7,7 +7,7 @@ data class CardDto(
     var id: String = "",
     var bank: String = "",
     var finalCode: String = "",
-    var paymentMethod: String = "",
+    var paymentMethods: List<String> = listOf(),
     var invoiceDueDate: Int = 0,
     var allowsDeposit: Boolean = false
 )

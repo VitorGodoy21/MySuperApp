@@ -21,6 +21,7 @@ data class NewTransactionUiState(
     // Expense specific
     val cardId: String = "",
     val invoiceMonth: String = "",
+    val installments: String = "1",
     val availableCards: List<CardDto>? = null,
     val isSubmitEnabled: Boolean = false
 )

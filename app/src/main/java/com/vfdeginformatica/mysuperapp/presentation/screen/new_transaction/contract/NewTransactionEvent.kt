@@ -13,5 +13,6 @@ sealed interface NewTransactionEvent {
     data class RecurringChanged(val isRecurring: Boolean) : NewTransactionEvent
     data class CardIdChanged(val cardId: String) : NewTransactionEvent
     data class InvoiceMonthChanged(val month: String) : NewTransactionEvent
+    data class InstallmentsChanged(val installments: String) : NewTransactionEvent
     data object SaveClicked : NewTransactionEvent
 }
