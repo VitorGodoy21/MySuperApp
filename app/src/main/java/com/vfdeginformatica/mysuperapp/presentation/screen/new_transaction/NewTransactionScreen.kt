@@ -22,7 +22,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,6 +47,7 @@ fun NewTransactionScreen(
 ) {
     var cardMenuExpanded by remember { mutableStateOf(false) }
     var paymentMethodMenuExpanded by remember { mutableStateOf(false) }
+    var installmentsMenuExpanded by remember { mutableStateOf(false) }
 
     val selectedCard = remember(uiState.cardId, uiState.availableCards) {
         uiState.availableCards?.find { it.id == uiState.cardId }
@@ -116,7 +116,7 @@ fun NewTransactionScreen(
                 minLines = 2
             )
 
-            // 2. Seção de Cartão (Sempre visível para Despesa, ou dependendo da lógica de negócio)
+            // 2. Seção de Cartão e Pagamento
             Text(
                 text = "Cartão e Pagamento",
                 style = MaterialTheme.typography.titleSmall,
@@ -153,7 +153,7 @@ fun NewTransactionScreen(
                 }
             }
 
-            // 3. Método de Pagamento (Condicional se o cartão for selecionado)
+            // 3. Método de Pagamento
             if (uiState.cardId.isNotBlank()) {
                 if (availablePaymentMethods.size > 1) {
                     ExposedDropdownMenuBox(
@@ -186,7 +186,6 @@ fun NewTransactionScreen(
                         }
                     }
                 } else if (availablePaymentMethods.size == 1) {
-                    // Se só tem um, exibe como campo informativo (já selecionado na ViewModel)
                     OutlinedTextField(
                         value = uiState.paymentMethod,
                         onValueChange = {},
@@ -196,32 +195,49 @@ fun NewTransactionScreen(
                         enabled = false
                     )
                 }
-
-                // 4. Campo de Parcelas (Se o método for Crédito)
-                if (uiState.paymentMethod == "CREDIT") {
-                    OutlinedTextField(
-                        value = uiState.installments,
-                        onValueChange = { onEvent(NewTransactionEvent.InstallmentsChanged(it)) },
-                        label = { Text("Número de Parcelas") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true
-                    )
-                }
             }
 
-            // Campos Adicionais
+            // Campos Adicionais (Apenas para Despesas)
             if (uiState.transactionType == TransactionType.EXPENSE) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Transação Recorrente?")
-                    Switch(
-                        checked = uiState.isRecurring,
-                        onCheckedChange = { onEvent(NewTransactionEvent.RecurringChanged(it)) }
-                    )
+                // 4. Campo de Parcelas e Recorrência (Apenas para CRÉDITO)
+                if (uiState.paymentMethod == "CREDIT") {
+                    val installmentOptions = listOf("Compra Recorrente") + (1..12).map { it.toString() } + listOf("24")
+
+                    ExposedDropdownMenuBox(
+                        expanded = installmentsMenuExpanded,
+                        onExpandedChange = { installmentsMenuExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = if (uiState.isRecurring) "Compra Recorrente" else uiState.installments,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Número de Parcelas / Recorrência") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = installmentsMenuExpanded) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = installmentsMenuExpanded,
+                            onDismissRequest = { installmentsMenuExpanded = false },
+                        ) {
+                            installmentOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        if (option == "Compra Recorrente") {
+                                            onEvent(NewTransactionEvent.RecurringChanged(true))
+                                            onEvent(NewTransactionEvent.InstallmentsChanged("1"))
+                                        } else {
+                                            onEvent(NewTransactionEvent.RecurringChanged(false))
+                                            onEvent(NewTransactionEvent.InstallmentsChanged(option))
+                                        }
+                                        installmentsMenuExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
 
                 // Categorias
