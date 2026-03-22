@@ -84,7 +84,7 @@ class HomeViewModel @Inject constructor(
                 HomeMenuItem(
                     title = "QRCode",
                     icon = Icons.Default.QrCode2,
-                    route = Screen.FinancialScreen.route,
+                    route = Screen.QrCodeListScreen.route,
                     backgroundColor = Color.DarkGray,
                     passwordRequired = true,
                     content = {}

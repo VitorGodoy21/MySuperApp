@@ -19,6 +19,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRo
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.NewTransactionRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListRoute
 
 @Composable
 fun MySuperApp(
@@ -84,6 +85,14 @@ fun MySuperApp(
 
                 composable(route = Screen.NewTransactionScreen.route) {
                     NewTransactionRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
+                        }
+                    )
+                }
+
+                composable(route = Screen.QrCodeListScreen.route) {
+                    QrCodeListRoute(
                         onNavigateUp = {
                             navController.navigateUp()
                         }
