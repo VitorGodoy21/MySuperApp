@@ -18,9 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import com.vfdeginformatica.mysuperapp.domain.model.HomeMenuItem
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.components.HomeMenuCardItem
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEvent
@@ -30,8 +32,8 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeUiS
 fun HomeScreen(
     uiState: HomeUiState,
     onEvent: (HomeEvent) -> Unit,
-    modifier: Modifier = Modifier,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    activity: FragmentActivity? = null
 ) {
     Box(
         modifier = Modifier
@@ -50,7 +52,13 @@ fun HomeScreen(
                 HomeMenuCardItem(
                     item = item,
                     onItemClick = {
-                        onEvent(HomeEvent.OnMenuItemNavigate(item.route))
+                        onEvent(
+                            HomeEvent.OnMenuItemNavigate(
+                                item.route,
+                                item.passwordRequired,
+                                activity
+                            )
+                        )
                     })
             }
         }
@@ -65,13 +73,11 @@ fun HomeScreen(
                     .align(Alignment.Center)
             )
         }
-
         if (uiState.isLoading) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
@@ -81,10 +87,10 @@ fun HomeScreenPreview() {
             errorMessage = "",
             items = listOf(
                 HomeMenuItem(
-                    title = "Finanças",
+                    title = "Finan�as",
                     icon = Icons.Default.AllInclusive,
                     route = "teste",
-                    backgroundColor = MaterialTheme.colorScheme.primary,
+                    backgroundColor = Color.DarkGray,
                     content = {}
                 ),
                 HomeMenuItem(
@@ -97,6 +103,7 @@ fun HomeScreenPreview() {
             )
         ),
         onEvent = {},
-        innerPadding = PaddingValues(0.dp)
+        innerPadding = PaddingValues(0.dp),
+        activity = null
     )
 }

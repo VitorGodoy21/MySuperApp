@@ -1,10 +1,12 @@
 package com.vfdeginformatica.mysuperapp.di
 
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
+import com.vfdeginformatica.mysuperapp.domain.repository.BiometricRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CategoryTransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
+import com.vfdeginformatica.mysuperapp.domain.use_case.AuthenticateWithBiometricUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.NewTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_category.GetTransactionsCategoriesUseCase
@@ -89,6 +91,14 @@ object UseCaseModule {
         return GetTransactionsCategoriesUseCase(
             repository
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuthenticateWithBiometricUseCase(
+        biometricRepository: BiometricRepository
+    ): AuthenticateWithBiometricUseCase {
+        return AuthenticateWithBiometricUseCase(biometricRepository)
     }
 
 }

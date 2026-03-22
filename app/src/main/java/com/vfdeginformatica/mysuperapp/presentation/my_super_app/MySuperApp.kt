@@ -6,12 +6,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.vfdeginformatica.mysuperapp.Screen
+import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
@@ -23,6 +25,8 @@ fun MySuperApp(
     sessionViewModel: SessionViewModel = hiltViewModel()
 ) {
     val state by sessionViewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val activity = (context.getFragmentActivity())
 
     MySuperAppTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -60,6 +64,7 @@ fun MySuperApp(
                 composable(route = Screen.HomeScreen.route) {
                     HomeRoute(
                         navController = navController,
+                        activity = activity,
                         onNavigate = { route ->
                             navController.navigate(route)
                         }

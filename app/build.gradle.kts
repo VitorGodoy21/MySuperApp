@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.ui.tooling)
+    implementation(libs.androidx.appcompat)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -113,4 +114,7 @@ dependencies {
 
     //Data Store Preferences
     implementation(libs.androidx.datastore.preferences)
+
+    //Biometric
+    implementation(libs.androidx.biometric)
 }

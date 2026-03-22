@@ -6,7 +6,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -17,11 +19,13 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEff
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
+    activity: FragmentActivity? = null,
     navController: NavHostController,
     onNavigate: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
+    val activityState = remember { mutableStateOf(activity) }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -46,7 +50,8 @@ fun HomeRoute(
             HomeScreen(
                 uiState = state,
                 onEvent = viewModel::onEvent,
-                innerPadding = padding
+                innerPadding = padding,
+                activity = activityState.value
             )
         }
     }

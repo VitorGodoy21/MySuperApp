@@ -9,5 +9,6 @@ data class HomeMenuItem(
     val icon: ImageVector,
     val backgroundColor: Color,
     val route: String,
+    val passwordRequired: Boolean = false,
     val content: @Composable () -> Unit
 )

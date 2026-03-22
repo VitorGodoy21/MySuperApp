@@ -1,5 +1,7 @@
 package com.vfdeginformatica.mysuperapp.di
 
+import android.content.Context
+import com.vfdeginformatica.mysuperapp.data.local.BiometricRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDao
@@ -10,6 +12,7 @@ import com.vfdeginformatica.mysuperapp.data.remote.repository.CardRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.CategoryTransactionRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.TransactionRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.UserRepositoryImpl
+import com.vfdeginformatica.mysuperapp.domain.repository.BiometricRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CategoryTransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
@@ -17,6 +20,7 @@ import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -57,5 +61,13 @@ object RepositoryModule {
         categoryTransactionDao: CategoryTransactionDao
     ): CategoryTransactionRepository {
         return CategoryTransactionRepositoryImpl(categoryTransactionDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBiometricRepository(
+        @ApplicationContext context: Context
+    ): BiometricRepository {
+        return BiometricRepositoryImpl(context)
     }
 }
