@@ -9,3 +9,5 @@
 local.properties
 **/google-services.json
 /.idea/
+/firebase-tools-instant-win.exe
+/.firebase/hosting.d2Vi.cache
