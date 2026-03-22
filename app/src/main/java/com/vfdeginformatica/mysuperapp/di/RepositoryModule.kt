@@ -6,15 +6,18 @@ import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureSt
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CategoryTransactionDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrCodeDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
 import com.vfdeginformatica.mysuperapp.data.remote.repository.CardRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.CategoryTransactionRepositoryImpl
+import com.vfdeginformatica.mysuperapp.data.remote.repository.QrCodeRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.TransactionRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.UserRepositoryImpl
 import com.vfdeginformatica.mysuperapp.domain.repository.BiometricRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CategoryTransactionRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.QrCodeRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
 import dagger.Module
@@ -69,5 +72,13 @@ object RepositoryModule {
         @ApplicationContext context: Context
     ): BiometricRepository {
         return BiometricRepositoryImpl(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideQrcodeRepository(
+        qrCodeDao: QrCodeDao
+    ): QrCodeRepository {
+        return QrCodeRepositoryImpl(qrCodeDao)
     }
 }

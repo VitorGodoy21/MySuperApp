@@ -1,4 +1,4 @@
-package com.vfdeginformatica.mysuperapp.domain.use_case
+package com.vfdeginformatica.mysuperapp.domain.use_case.user
 
 import androidx.fragment.app.FragmentActivity
 import com.vfdeginformatica.mysuperapp.domain.repository.BiometricRepository
@@ -17,4 +17,3 @@ class AuthenticateWithBiometricUseCase @Inject constructor(
         return biometricRepository.authenticateWithBiometric(activity)
     }
 }
-

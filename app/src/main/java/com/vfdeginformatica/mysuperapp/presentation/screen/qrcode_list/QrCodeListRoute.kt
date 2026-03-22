@@ -29,7 +29,7 @@ fun QrCodeListRoute(
     }
 
     AppScaffold(
-        title = "Lista de QR Codes",
+        title = "QR Codes",
         canNavigateUp = true,
         onNavigateUp = onNavigateUp,
         snackBarHostState = snackBarHost
@@ -37,7 +37,8 @@ fun QrCodeListRoute(
         QrCodeListScreen(
             uiState = state,
             onEvent = viewModel::onEvent,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            padding
         )
     }
 }

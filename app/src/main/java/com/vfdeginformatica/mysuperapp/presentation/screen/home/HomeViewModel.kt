@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.HomeMenuItem
-import com.vfdeginformatica.mysuperapp.domain.use_case.AuthenticateWithBiometricUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.AuthenticateWithBiometricUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeUiState
