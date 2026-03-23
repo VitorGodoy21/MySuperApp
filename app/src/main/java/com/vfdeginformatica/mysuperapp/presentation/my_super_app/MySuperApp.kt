@@ -9,9 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
@@ -19,6 +21,8 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRo
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.NewTransactionRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListRoute
 
 @Composable
@@ -93,9 +97,28 @@ fun MySuperApp(
 
                 composable(route = Screen.QrCodeListScreen.route) {
                     QrCodeListRoute(
-                        onNavigateUp = {
-                            navController.navigateUp()
+                        navController = navController,
+                        onNavigateQrCode = { id ->
+                            navController.navigate(Screen.QrCodeScreen.createRoute(id))
                         }
+                    )
+                }
+
+                composable(
+                    route = Screen.QrCodeScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.QrCodeScreen.QR_CODE_ID) {
+                            type = NavType.StringType
+                        }
+                    )
+                ) { parentEntry ->
+                    val qrCodeId =
+                        parentEntry.arguments!!.getString(Screen.QrCodeScreen.QR_CODE_ID)!!
+                    val viewModel: QrCodeViewModel = hiltViewModel(parentEntry)
+                    QrCodeRoute(
+                        viewModel = viewModel,
+                        navController = navController,
+                        qrCodeId = qrCodeId
                     )
                 }
             }

@@ -9,13 +9,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.AppDrawerMenuRoute
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEffect
 
 @Composable
 fun QrCodeListRoute(
     viewModel: QrCodeListViewModel = hiltViewModel(),
-    onNavigateUp: () -> Unit
+    navController: NavHostController,
+    onNavigateQrCode: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -24,21 +27,27 @@ fun QrCodeListRoute(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is QrCodeListEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
+                is QrCodeListEffect.NavigateToQrCode -> onNavigateQrCode.invoke(effect.id)
             }
         }
     }
 
-    AppScaffold(
-        title = "QR Codes",
-        canNavigateUp = true,
-        onNavigateUp = onNavigateUp,
-        snackBarHostState = snackBarHost
-    ) { padding ->
-        QrCodeListScreen(
-            uiState = state,
-            onEvent = viewModel::onEvent,
-            modifier = Modifier.padding(padding),
-            padding
-        )
+    AppDrawerMenuRoute(
+        navController = navController
+    ) { onToggleDrawer ->
+        AppScaffold(
+            title = "QR Codes",
+            canNavigateUp = true,
+            onNavigateUp = { onToggleDrawer.invoke() },
+            snackBarHostState = snackBarHost
+        ) { padding ->
+            QrCodeListScreen(
+                uiState = state,
+                onEvent = viewModel::onEvent,
+                modifier = Modifier.padding(padding),
+                padding
+            )
+        }
     }
+
 }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,7 +37,9 @@ class QrCodeListViewModel @Inject constructor(
     fun onEvent(event: QrCodeListEvent) {
         when (event) {
             is QrCodeListEvent.OnSelectQrCode -> {
-
+                viewModelScope.launch {
+                    _effect.emit(QrCodeListEffect.NavigateToQrCode(event.id))
+                }
             }
         }
     }
