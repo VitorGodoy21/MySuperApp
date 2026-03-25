@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.vfdeginformatica.mysuperapp.Screen
+import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.AppDrawerMenuRoute
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEffect
@@ -18,7 +20,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.
 fun QrCodeListRoute(
     viewModel: QrCodeListViewModel = hiltViewModel(),
     navController: NavHostController,
-    onNavigateQrCode: (String) -> Unit
+    onNavigateQrCode: (QrCode) -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -27,7 +29,9 @@ fun QrCodeListRoute(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is QrCodeListEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
-                is QrCodeListEffect.NavigateToQrCode -> onNavigateQrCode.invoke(effect.id)
+                is QrCodeListEffect.NavigateToQrCode -> {
+                    navController.navigate(Screen.QrCodeScreen.createRoute(effect.qrCode))
+                }
             }
         }
     }

@@ -17,4 +17,13 @@ class QrCodeDaoImpl(
             null
         }
     }
+
+    override suspend fun updateQrCode(id: String, qrCodeDto: QrCodeDto): Boolean {
+        return try {
+            db.collection("qrcodes").document(id).set(qrCodeDto).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

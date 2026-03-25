@@ -38,7 +38,7 @@ class QrCodeListViewModel @Inject constructor(
         when (event) {
             is QrCodeListEvent.OnSelectQrCode -> {
                 viewModelScope.launch {
-                    _effect.emit(QrCodeListEffect.NavigateToQrCode(event.id))
+                    _effect.emit(QrCodeListEffect.NavigateToQrCode(event.qrCode))
                 }
             }
         }

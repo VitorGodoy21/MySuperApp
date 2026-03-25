@@ -14,8 +14,10 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LoginUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LogoutUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.AuthenticateWithBiometricUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetUserSessionUseCase
+import com.vfdeginformatica.mysuperapp.domain.util.QrCodeGenerator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -106,9 +108,18 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideGetQrCodesUseCase(
-        qrCodeRepository: QrCodeRepository
+        qrCodeRepository: QrCodeRepository,
+        qrCodeGenerator: QrCodeGenerator
     ): GetQrCodesUseCase {
-        return GetQrCodesUseCase(qrCodeRepository)
+        return GetQrCodesUseCase(qrCodeRepository, qrCodeGenerator)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateQrCodeUseCase(
+        qrCodeRepository: QrCodeRepository
+    ): UpdateQrCodeUseCase {
+        return UpdateQrCodeUseCase(qrCodeRepository)
     }
 
 }

@@ -22,6 +22,8 @@ lifecycleRuntimeKtxVersion = "2.8.4"
 uiTooling = "1.9.0"
 biometric = "1.1.0"
 appcompat = "1.7.1"
+zxing = "3.5.3"
+gson = "2.10.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -56,6 +58,8 @@ ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref =
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

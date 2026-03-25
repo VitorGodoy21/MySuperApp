@@ -21,13 +21,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
+import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 
 @Composable
 fun QrCodeListItem(
-    qrCode: QrCodeDto,
+    qrCode: QrCode,
     modifier: Modifier = Modifier,
-    onItemClick: (QrCodeDto) -> Unit = {}
+    onItemClick: (QrCode) -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -97,7 +97,7 @@ fun QrCodeListItem(
 fun QrCodeListItemPreview() {
     MaterialTheme {
         QrCodeListItem(
-            qrCode = QrCodeDto(
+            qrCode = QrCode(
                 id = "qr_001",
                 redirectUrl = "https://www.example.com/qrcode/details?id=12345&type=campaign"
             ),
@@ -113,7 +113,7 @@ fun QrCodeListItemPreview() {
 fun QrCodeListItemPreviewEmpty() {
     MaterialTheme {
         QrCodeListItem(
-            qrCode = QrCodeDto(
+            qrCode = QrCode(
                 id = "qr_002",
                 redirectUrl = ""
             ),

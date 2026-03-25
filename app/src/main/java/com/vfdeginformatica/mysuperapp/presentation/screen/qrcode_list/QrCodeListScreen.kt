@@ -42,7 +42,7 @@ fun QrCodeListScreen(
                 QrCodeListItem(
                     qrCode = qrCode,
                     onItemClick = {
-                        onEvent(QrCodeListEvent.OnSelectQrCode(qrCode.id))
+                        onEvent(QrCodeListEvent.OnSelectQrCode(qrCode))
                     }
                 )
             }

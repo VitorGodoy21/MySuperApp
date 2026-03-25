@@ -9,28 +9,39 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEffect
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEvent
 
 @Composable
 fun QrCodeRoute(
     viewModel: QrCodeViewModel,
     navController: NavHostController,
-    qrCodeId: String
+    qrCode: QrCode
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(qrCode) {
+        viewModel.onEvent(QrCodeEvent.OnQrCodeLoaded(qrCode))
+    }
+
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is QrCodeEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
+                is QrCodeEffect.ShowToast -> {
+                    snackBarHost.showSnackbar(effect.message)
+                    if (effect.message.contains("sucesso", ignoreCase = true)) {
+                        navController.popBackStack()
+                    }
+                }
             }
         }
     }
 
     AppScaffold(
-        title = "QR Code",
+        title = "Editar QR Code",
         canNavigateUp = true,
         onNavigateUp = { navController.popBackStack() },
         snackBarHostState = snackBarHost

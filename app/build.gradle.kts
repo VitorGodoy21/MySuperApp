@@ -117,4 +117,10 @@ dependencies {
 
     //Biometric
     implementation(libs.androidx.biometric)
+
+    //ZXing for QR Code generation
+    implementation(libs.zxing.core)
+
+    //Gson for JSON serialization
+    implementation(libs.gson)
 }

@@ -4,5 +4,6 @@ import com.google.firebase.firestore.DocumentId
 
 data class QrCodeDto(
     @DocumentId var id: String = "",
-    val redirectUrl: String = ""
+    val redirectUrl: String = "",
+    val staticUrl: String = ""
 )

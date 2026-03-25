@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.vfdeginformatica.mysuperapp.Screen
+import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
@@ -98,8 +99,8 @@ fun MySuperApp(
                 composable(route = Screen.QrCodeListScreen.route) {
                     QrCodeListRoute(
                         navController = navController,
-                        onNavigateQrCode = { id ->
-                            navController.navigate(Screen.QrCodeScreen.createRoute(id))
+                        onNavigateQrCode = { qrCode ->
+                            navController.navigate(Screen.QrCodeScreen.createRoute(qrCode))
                         }
                     )
                 }
@@ -107,18 +108,19 @@ fun MySuperApp(
                 composable(
                     route = Screen.QrCodeScreen.route,
                     arguments = listOf(
-                        navArgument(Screen.QrCodeScreen.QR_CODE_ID) {
+                        navArgument(Screen.QrCodeScreen.QR_CODE_DATA) {
                             type = NavType.StringType
                         }
                     )
                 ) { parentEntry ->
-                    val qrCodeId =
-                        parentEntry.arguments!!.getString(Screen.QrCodeScreen.QR_CODE_ID)!!
+                    val qrCodeDataJson =
+                        parentEntry.arguments!!.getString(Screen.QrCodeScreen.QR_CODE_DATA)!!
+                    val qrCode = com.google.gson.Gson().fromJson(qrCodeDataJson, QrCode::class.java)
                     val viewModel: QrCodeViewModel = hiltViewModel(parentEntry)
                     QrCodeRoute(
                         viewModel = viewModel,
                         navController = navController,
-                        qrCodeId = qrCodeId
+                        qrCode = qrCode
                     )
                 }
             }
