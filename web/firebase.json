@@ -1,6 +1,16 @@
 {
+  "functions": {
+    "source": "functions"
+  },
   "hosting": {
-    "public": "web",
+    "public": "public",
+    "rewrites": [
+      {
+        "source": "/api/log-qr-scan",
+        "function": "logQrScan",
+        "region": "us-central1"
+      }
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
