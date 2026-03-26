@@ -1,0 +1,263 @@
+package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
+import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
+import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.NewTransactionUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_category.GetTransactionsCategoriesUseCase
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEffect
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionUiState
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.util.Date
+import javax.inject.Inject
+
+@HiltViewModel
+class NewTransactionViewModel @Inject constructor(
+    private val getCardsUseCase: GetCardsUseCase,
+    private val getTransactionsCategoriesUseCase: GetTransactionsCategoriesUseCase,
+    private val newTransactionUseCase: NewTransactionUseCase
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(NewTransactionUiState())
+    val uiState: StateFlow<NewTransactionUiState> = _uiState
+
+    private val _effect = MutableSharedFlow<NewTransactionEffect>()
+    val effect: SharedFlow<NewTransactionEffect> = _effect
+
+    init {
+        loadCards()
+        loadCategories()
+    }
+
+    private fun loadCategories() {
+        viewModelScope.launch {
+            getTransactionsCategoriesUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        updateForm(
+                            availableCategories = result.data,
+                            isLoadingCategories = false
+                        )
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoadingCategories = false,
+                                errorMessage = result.message
+                            )
+                        }
+                        _effect.emit(
+                            NewTransactionEffect.ShowToast(
+                                result.message ?: "Erro ao carregar categorias"
+                            )
+                        )
+                    }
+
+                    is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoadingCategories = true) }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadCards() {
+        viewModelScope.launch {
+            getCardsUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        updateForm(
+                            availableCards = result.data,
+                            isLoadingCards = false
+                        )
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoadingCards = false,
+                                errorMessage = result.message
+                            )
+                        }
+                        _effect.emit(
+                            NewTransactionEffect.ShowToast(
+                                result.message ?: "Erro ao carregar cartões"
+                            )
+                        )
+                    }
+
+                    is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoadingCards = true) }
+                    }
+
+                }
+            }
+        }
+    }
+
+    fun onEvent(event: NewTransactionEvent) {
+        when (event) {
+            is NewTransactionEvent.AmountChanged -> updateForm(amount = event.amount)
+            is NewTransactionEvent.CardIdChanged -> {
+                val selectedCard = _uiState.value.availableCards?.find { it.id == event.cardId }
+                val methods = selectedCard?.paymentMethods ?: emptyList()
+
+                val defaultMethod = when {
+                    methods.size == 1 -> methods.first()
+                    methods.contains("DEBIT") -> "DEBIT"
+                    methods.isNotEmpty() -> methods.first()
+                    else -> ""
+                }
+
+                updateForm(
+                    cardId = event.cardId,
+                    paymentMethod = defaultMethod,
+                    installments = if (defaultMethod == "CREDIT") "1" else ""
+                )
+            }
+
+            is NewTransactionEvent.CategoryToggled -> {
+                val currentCategories = _uiState.value.selectedCategories
+                val categoryToToggle =
+                    _uiState.value.availableCategories?.find { it.id == event.category }
+
+                categoryToToggle?.let { category ->
+                    val newCategories = if (currentCategories.any { it.id == category.id }) {
+                        currentCategories.filter { it.id != category.id }
+                    } else {
+                        currentCategories + category
+                    }
+                    updateForm(selectedCategories = newCategories)
+                }
+            }
+
+            is NewTransactionEvent.DateChanged -> updateForm(date = event.date)
+            is NewTransactionEvent.DescriptionChanged -> updateForm(description = event.description)
+            is NewTransactionEvent.InvoiceMonthChanged -> updateForm(invoiceMonth = event.month)
+            is NewTransactionEvent.PaymentMethodChanged -> {
+                updateForm(
+                    paymentMethod = event.method,
+                    installments = if (event.method == "CREDIT") "1" else ""
+                )
+            }
+
+            is NewTransactionEvent.RecurringChanged -> updateForm(recurring = event.isRecurring)
+            NewTransactionEvent.SaveClicked -> submit()
+            is NewTransactionEvent.TitleChanged -> updateForm(title = event.title)
+            is NewTransactionEvent.TypeChanged -> {
+                updateForm(type = event.type, cardId = "", paymentMethod = "", installments = "")
+                loadCards()
+            }
+
+            is NewTransactionEvent.InstallmentsChanged -> updateForm(installments = event.installments)
+        }
+    }
+
+    private fun updateForm(
+        amount: String? = null,
+        cardId: String? = null,
+        selectedCategories: List<CategoryTransactionDto>? = null,
+        date: LocalDate? = null,
+        description: String? = null,
+        invoiceMonth: String? = null,
+        paymentMethod: String? = null,
+        recurring: Boolean? = null,
+        title: String? = null,
+        type: TransactionType? = null,
+        installments: String? = null,
+        availableCards: List<CardDto>? = null,
+        availableCategories: List<CategoryTransactionDto>? = null,
+        isLoadingCards: Boolean? = null,
+        isLoadingCategories: Boolean? = null
+    ) {
+
+        _uiState.update { old ->
+            val new = old.copy(
+                amount = amount ?: old.amount,
+                cardId = cardId ?: old.cardId,
+                selectedCategories = selectedCategories ?: old.selectedCategories,
+                date = date ?: old.date,
+                description = description ?: old.description,
+                invoiceMonth = invoiceMonth ?: old.invoiceMonth,
+                paymentMethod = paymentMethod ?: old.paymentMethod,
+                isRecurring = recurring ?: old.isRecurring,
+                title = title ?: old.title,
+                transactionType = type ?: old.transactionType,
+                installments = installments ?: old.installments,
+                availableCards = availableCards ?: old.availableCards,
+                isLoadingCards = isLoadingCards ?: old.isLoadingCards,
+                availableCategories = availableCategories ?: old.availableCategories,
+                isLoadingCategories = isLoadingCategories ?: old.isLoadingCategories
+            )
+
+            val isCardRequired = new.transactionType == TransactionType.EXPENSE
+            val isPaymentMethodValid = new.paymentMethod.isNotBlank()
+            val isInstallmentsValid =
+                if (new.paymentMethod == "CREDIT") new.installments.toIntOrNull() != null else true
+
+            new.copy(
+                isSubmitEnabled = new.title.isNotBlank() &&
+                        new.amount.isNotBlank() &&
+                        (!isCardRequired || (new.cardId.isNotBlank() && isPaymentMethodValid && isInstallmentsValid))
+            )
+        }
+    }
+
+    private fun submit() {
+        val state = _uiState.value
+        if (!state.isSubmitEnabled || state.isLoading) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            newTransactionUseCase(
+                title = state.title,
+                description = state.description,
+                transactionType = state.transactionType.name,
+                paymentMethod = state.paymentMethod,
+                amount = state.amount.toDoubleOrNull() ?: 0.0,
+                isRecurring = state.isRecurring,
+                transactionDate = Timestamp(Date()),
+                category = state.selectedCategories.map { it.id },
+                status = "pending",
+                cardId = state.cardId,
+                invoiceMonth = state.invoiceMonth,
+                installmentGroupId = null
+            ).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _effect.emit(NewTransactionEffect.ShowToast("Transação salva com sucesso!"))
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _effect.emit(
+                            NewTransactionEffect.ShowToast(
+                                result.message ?: "Erro ao salvar transação"
+                            )
+                        )
+                    }
+
+                    is Resource.Loading<*> -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                }
+            }
+        }
+    }
+}
