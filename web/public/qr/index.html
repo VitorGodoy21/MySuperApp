@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>MySuperApp - QR Code</title>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            margin: 30px auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .status-text {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .security-badge {
+            display: inline-block;
+            background: #f0f9ff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin-top: 25px;
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .error-container {
+            background: #fee;
+            border-left: 4px solid #f44;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .error-title {
+            font-weight: bold;
+            color: #c33;
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .success-container {
+            background: #efe;
+            border-left: 4px solid #4a4;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .success-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .qr-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 35px 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .status-text {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">QR</div>
+    <h1>baila.space</h1>
+    <div class="spinner"></div>
+    <p class="status-text">Verificando código QR...</p>
+    <div class="security-badge">🔒 Conectado com segurança</div>
+    <div class="qr-info">Você será redirecionado em instantes</div>
+</div>
+
+<script>
+    console.log('🚀 Página carregada, iniciando...');
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyABFQMxeK9BohIfDdDyX-1gJkvML9xxl-o",
+        authDomain: "baila-675c6.firebaseapp.com",
+        projectId: "baila-675c6",
+        // Configure this in Firebase Console > Analytics > Data Stream
+        // It must start with "G-" for GA4.
+        measurementId: "G-REPLACE_ME"
+    };
+
+    // Verificar se a API Key ainda está como placeholder "SUA_KEY"
+    if (firebaseConfig.apiKey === "SUA_KEY") {
+        console.error('❌ CRÍTICO: Firebase API Key ainda não foi configurada!');
+        console.error('Substitua "SUA_KEY" pela chave real em web/qr/index.html');
+        document.body.innerHTML = `
+            <div style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                background: #fee;
+                font-family: Arial;
+            ">
+                <div style="
+                    background: white;
+                    padding: 40px;
+                    border-radius: 10px;
+                    max-width: 500px;
+                    text-align: center;
+                    border-left: 4px solid #f44;
+                ">
+                    <h2 style="color: #c33; margin-top: 0;">⚠️ Configuração Incompleta</h2>
+                    <p>A Firebase API Key ainda não foi configurada.</p>
+                </div>
+            </div>
+        `;
+        throw new Error('Firebase não configurado');
+    }
+
+    console.log('⚙️  Firebase Config:', {
+        authDomain: firebaseConfig.authDomain,
+        projectId: firebaseConfig.projectId,
+        apiKeyPresent: firebaseConfig.apiKey !== "SUA_KEY"
+    });
+
+    // Declarar db no escopo global (fora do try/catch)
+    let db;
+    let analytics;
+
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        console.log('✅ Firebase inicializado com sucesso');
+    } catch (e) {
+        console.error('❌ Erro ao inicializar Firebase:', e);
+    }
+
+    if (firebaseConfig.measurementId && firebaseConfig.measurementId !== "G-REPLACE_ME") {
+        try {
+            analytics = firebase.analytics();
+        } catch (error) {
+            console.warn('⚠️ Analytics não inicializado. Verifique measurementId/appId no firebaseConfig.', error);
+        }
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const sessionStorageKey = 'qr_monitoring_session_id';
+
+    console.log('🔍 QR Code ID obtido:', id);
+    console.log('📱 URL completa:', window.location.href);
+
+    function getOrCreateSessionId() {
+        try {
+            let sessionId = sessionStorage.getItem(sessionStorageKey);
+            if (!sessionId) {
+                sessionId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+                sessionStorage.setItem(sessionStorageKey, sessionId);
+            }
+            return sessionId;
+        } catch (error) {
+            return `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+        }
+    }
+
+    function collectTrackingContext() {
+        return {
+            pageUrl: window.location.href,
+            pagePath: window.location.pathname,
+            referrer: document.referrer || null,
+            language: navigator.language || null,
+            platform: navigator.platform || null,
+            screenWidth: window.screen ? window.screen.width : null,
+            screenHeight: window.screen ? window.screen.height : null,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+            utmSource: params.get('utm_source'),
+            utmMedium: params.get('utm_medium'),
+            utmCampaign: params.get('utm_campaign')
+        };
+    }
+
+    function showError(title, message) {
+        document.querySelector('.spinner').style.display = 'none';
+        document.querySelector('.status-text').innerHTML = '';
+        document.querySelector('.qr-info').innerHTML = '';
+
+        const errorHTML = `
+            <div class="error-container">
+                <div class="error-title">⚠️ ${title}</div>
+                <div class="error-message">${message}</div>
+            </div>
+        `;
+        document.querySelector('.container').innerHTML += errorHTML;
+    }
+
+    if (!id) {
+        showError('QR Code inválido', 'O código QR não contém um identificador válido. Verifique se o código está legível e tente novamente.');
+    } else {
+        const sessionId = getOrCreateSessionId();
+        const scanId = `scan_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+        const trackingContext = collectTrackingContext();
+
+        function trackScanInBackground(qrCodeId) {
+            try {
+                if (analytics) {
+                    analytics.logEvent('qr_scan', {
+                        qr_code_id: qrCodeId,
+                        scan_id: scanId,
+                        page_path: trackingContext.pagePath,
+                        page_referrer: trackingContext.referrer || 'direct',
+                        utm_source: trackingContext.utmSource || 'none',
+                        utm_medium: trackingContext.utmMedium || 'none',
+                        utm_campaign: trackingContext.utmCampaign || 'none'
+                    });
+                }
+            } catch (error) {
+                console.warn('⚠️ Falha ao registrar evento no GA4:', error);
+            }
+
+            const payload = JSON.stringify({
+                scanId: scanId,
+                sessionId: sessionId,
+                qrCodeId: qrCodeId,
+                pageUrl: trackingContext.pageUrl,
+                pagePath: trackingContext.pagePath,
+                referrer: trackingContext.referrer,
+                userAgent: navigator.userAgent,
+                language: trackingContext.language,
+                platform: trackingContext.platform,
+                screenWidth: trackingContext.screenWidth,
+                screenHeight: trackingContext.screenHeight,
+                timeZone: trackingContext.timeZone,
+                utmSource: trackingContext.utmSource,
+                utmMedium: trackingContext.utmMedium,
+                utmCampaign: trackingContext.utmCampaign,
+                loggedAt: new Date().toISOString()
+            });
+
+            try {
+                if (navigator.sendBeacon) {
+                    // text/plain evita preflight CORS, essencial para não ser cancelado no redirect
+                    const blob = new Blob([payload], { type: 'text/plain' });
+                    navigator.sendBeacon('/api/log-qr-scan', blob);
+                    return;
+                }
+            } catch (error) {
+                console.warn('⚠️ sendBeacon indisponivel, usando fallback:', error);
+            }
+
+            fetch('/api/log-qr-scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: payload,
+                keepalive: true
+            }).catch((error) => {
+                console.warn('⚠️ Falha no tracking em background:', error);
+            });
+        }
+
+        // ⚡ REDIRECT INSTANTÂNEO - Não espera por nada
+        db.collection("qrcodes").doc(id).get()
+            .then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.redirectUrl) {
+                        trackScanInBackground(id);
+
+                        // 🚀 REDIRECT IMEDIATO
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        showError('Erro no QR Code', 'O código QR não contém um destino válido. Contate o suporte.');
+                    }
+                } else {
+                    showError('QR Code não encontrado', 'Este código QR não existe ou foi removido. Por favor, tente outro código.');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showError('Erro de conexão', 'Não foi possível verificar o código QR. Verifique sua conexão com a internet e tente novamente.');
+            });
+    }
+</script>
+</body>
+</html>
