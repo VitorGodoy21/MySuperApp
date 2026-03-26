@@ -4,6 +4,7 @@ import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureSt
 import com.vfdeginformatica.mysuperapp.domain.repository.BiometricRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CategoryTransactionRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.QrCodeAccessLogRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.QrCodeRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
@@ -13,7 +14,9 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_cat
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LoginUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LogoutUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodeAccessStatisticsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.SaveQrCodeAccessLogUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.AuthenticateWithBiometricUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetUserSessionUseCase
@@ -120,6 +123,22 @@ object UseCaseModule {
         qrCodeRepository: QrCodeRepository
     ): UpdateQrCodeUseCase {
         return UpdateQrCodeUseCase(qrCodeRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSaveQrCodeAccessLogUseCase(
+        qrCodeAccessLogRepository: QrCodeAccessLogRepository
+    ): SaveQrCodeAccessLogUseCase {
+        return SaveQrCodeAccessLogUseCase(qrCodeAccessLogRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetQrCodeAccessStatisticsUseCase(
+        qrCodeAccessLogRepository: QrCodeAccessLogRepository
+    ): GetQrCodeAccessStatisticsUseCase {
+        return GetQrCodeAccessStatisticsUseCase(qrCodeAccessLogRepository)
     }
 
 }
