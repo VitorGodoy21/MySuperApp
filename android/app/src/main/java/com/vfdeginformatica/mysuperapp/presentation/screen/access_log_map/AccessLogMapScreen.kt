@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +52,7 @@ fun AccessLogMapScreen(
     uiState: AccessLogMapUiState,
     onEvent: (AccessLogMapEvent) -> Unit,
     qrCodeId: String,
+    contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier
 ) {
     LaunchedEffect(qrCodeId) {
@@ -68,16 +70,18 @@ fun AccessLogMapScreen(
         }
 
         uiState.viewMode == MapViewMode.MAP -> {
-            MapViewContent(uiState, onEvent, modifier)
+            MapViewContent(uiState, onEvent, contentPadding, modifier)
         }
 
         uiState.viewMode == MapViewMode.CITY_LIST -> {
-            CityListViewContent(uiState, onEvent, modifier)
+            CityListViewContent(uiState, onEvent, contentPadding, modifier)
         }
 
         uiState.errorMessage.isNotEmpty() && uiState.accessLogs.isEmpty() -> {
             Box(
-                modifier = modifier.fillMaxSize(),
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(contentPadding),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -106,6 +110,7 @@ fun AccessLogMapScreen(
 private fun MapViewContent(
     uiState: AccessLogMapUiState,
     onEvent: (AccessLogMapEvent) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier
 ) {
     val filteredLogs = if (uiState.selectedCity != null) {
@@ -114,7 +119,6 @@ private fun MapViewContent(
         uiState.accessLogs
     }
 
-    // Calculate bounds for the map
     val logsWithLocation = filteredLogs.filter { it.latitude != null && it.longitude != null }
 
     val cameraPositionState = rememberCameraPositionState {
@@ -125,12 +129,12 @@ private fun MapViewContent(
                 11f
             )
         } else {
-            // Default center at Brazil
             CameraPosition.fromLatLngZoom(LatLng(-15.7942, -47.8822), 4f)
         }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        // Mapa preenche tudo — a imersão total é intencional
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState
@@ -144,13 +148,16 @@ private fun MapViewContent(
             }
         }
 
-        // Top Bar with controls
+        // Controles superiores — respeitam o topo da toolbar via contentPadding
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(
+                    top = contentPadding.calculateTopPadding() + 8.dp,
+                    start = 8.dp,
+                    end = 8.dp
+                )
         ) {
-            // View Mode Toggle and City Filter
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,7 +196,6 @@ private fun MapViewContent(
                 }
             }
 
-            // Selected City Display
             if (uiState.selectedCity != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Card(
@@ -222,13 +228,17 @@ private fun MapViewContent(
             }
         }
 
-        // Access count info at bottom
+        // Card de totais no rodapé — respeita a barra de navegação via contentPadding
         if (logsWithLocation.isNotEmpty()) {
             Card(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(0.9f)
-                    .padding(16.dp),
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = contentPadding.calculateBottomPadding() + 16.dp
+                    ),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White
                 )
@@ -255,10 +265,11 @@ private fun MapViewContent(
 private fun CityListViewContent(
     uiState: AccessLogMapUiState,
     onEvent: (AccessLogMapEvent) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        // Header
+        // Header com botão de retorno ao mapa
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -292,7 +303,6 @@ private fun CityListViewContent(
             }
         }
 
-        // City List
         if (uiState.cityStatistics.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -304,14 +314,21 @@ private fun CityListViewContent(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(8.dp),
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                // contentPadding garante que o último item não fique atrás da navigation bar
+                contentPadding = PaddingValues(
+                    bottom = contentPadding.calculateBottomPadding()
+                ),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(uiState.cityStatistics) { cityStat ->
                     CityStatisticCard(
                         cityStat = cityStat,
                         isSelected = cityStat.city == uiState.selectedCity,
-                        onSelect = { onEvent(AccessLogMapEvent.OnSelectCity(cityStat.city)) }
+                        onSelect = {
+                            onEvent(AccessLogMapEvent.OnSelectCity(cityStat.city))
+                            onEvent(AccessLogMapEvent.OnToggleViewMode)
+                        }
                     )
                 }
             }

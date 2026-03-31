@@ -125,7 +125,7 @@ fun MySuperApp(
                     )
                 }
 
-                accessLogMapRoute()
+                accessLogMapRoute(navController)
             }
         }
     }
