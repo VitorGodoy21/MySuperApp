@@ -19,4 +19,8 @@ sealed class Screen(val route: String) {
             return "qr_code_screen/$encoded"
         }
     }
+    object AccessLogMapScreen : Screen("access_log_map/{qrCodeId}") {
+        const val QR_CODE_ID = "qrCodeId"
+        fun createRoute(qrCodeId: String): String = "access_log_map/$qrCodeId"
+    }
 }

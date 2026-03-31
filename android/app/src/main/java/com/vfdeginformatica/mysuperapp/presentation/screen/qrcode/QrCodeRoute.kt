@@ -49,6 +49,9 @@ fun QrCodeRoute(
         QrCodeScreen(
             uiState = state,
             onEvent = viewModel::onEvent,
+            onViewAccessLogs = { qrCodeId ->
+                navController.navigate("access_log_map/$qrCodeId")
+            },
             modifier = Modifier.padding(padding)
         )
     }

@@ -14,6 +14,9 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_cat
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LoginUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LogoutUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetAccessLogsByCityUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetAccessLogsWithLocationsUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetCityAccessStatisticsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodeAccessStatisticsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.SaveQrCodeAccessLogUseCase
@@ -139,6 +142,30 @@ object UseCaseModule {
         qrCodeAccessLogRepository: QrCodeAccessLogRepository
     ): GetQrCodeAccessStatisticsUseCase {
         return GetQrCodeAccessStatisticsUseCase(qrCodeAccessLogRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAccessLogsWithLocationsUseCase(
+        qrCodeAccessLogRepository: QrCodeAccessLogRepository
+    ): GetAccessLogsWithLocationsUseCase {
+        return GetAccessLogsWithLocationsUseCase(qrCodeAccessLogRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetCityAccessStatisticsUseCase(
+        qrCodeAccessLogRepository: QrCodeAccessLogRepository
+    ): GetCityAccessStatisticsUseCase {
+        return GetCityAccessStatisticsUseCase(qrCodeAccessLogRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAccessLogsByCityUseCase(
+        qrCodeAccessLogRepository: QrCodeAccessLogRepository
+    ): GetAccessLogsByCityUseCase {
+        return GetAccessLogsByCityUseCase(qrCodeAccessLogRepository)
     }
 
 }

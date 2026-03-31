@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
@@ -38,6 +39,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCod
 fun QrCodeScreen(
     uiState: QrCodeUiState,
     onEvent: (QrCodeEvent) -> Unit,
+    onViewAccessLogs: (qrCodeId: String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val qrCode = uiState.qrCode
@@ -126,6 +128,25 @@ fun QrCodeScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Salvar Alterações")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // View Access Logs Map Button
+            Button(
+                onClick = { onViewAccessLogs(qrCode.id) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Map,
+                    contentDescription = "View map",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Ver Mapa de Acessos")
             }
 
             if (uiState.errorMessage.isNotEmpty()) {

@@ -11,6 +11,15 @@ android {
     namespace = "com.vfdeginformatica.mysuperapp"
     compileSdk = 36
 
+    // Lê a Maps API Key do local.properties de forma segura
+    val localProperties = rootProject.file("local.properties")
+    val mapsApiKey = if (localProperties.exists()) {
+        localProperties.readLines()
+            .firstOrNull { it.startsWith("MAPS_API_KEY=") }
+            ?.substringAfter("=")
+            ?: ""
+    } else ""
+
     defaultConfig {
         applicationId = "com.vfdeginformatica.mysuperapp"
         minSdk = 26
@@ -19,6 +28,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     flavorDimensions += "env"
@@ -123,4 +134,9 @@ dependencies {
 
     //Gson for JSON serialization
     implementation(libs.gson)
+
+    //Google Maps
+    implementation(libs.google.maps.compose)
+    implementation(libs.google.play.services.maps)
+    implementation(libs.google.maps.utils)
 }

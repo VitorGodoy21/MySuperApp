@@ -24,6 +24,9 @@ biometric = "1.1.0"
 appcompat = "1.7.1"
 zxing = "3.5.3"
 gson = "2.10.1"
+googlePlayServices = "18.2.0"
+googleMapsCompose = "6.1.2"
+googleMapsUtils = "3.8.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,6 +63,9 @@ androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "b
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+google-maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "googleMapsCompose" }
+google-play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "googlePlayServices" }
+google-maps-utils = { module = "com.google.maps.android:maps-ktx", version = "5.1.1" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

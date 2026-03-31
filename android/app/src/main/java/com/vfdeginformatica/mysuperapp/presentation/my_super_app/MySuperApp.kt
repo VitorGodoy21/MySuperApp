@@ -18,6 +18,7 @@ import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
+import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.accessLogMapRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
@@ -123,6 +124,8 @@ fun MySuperApp(
                         qrCode = qrCode
                     )
                 }
+
+                accessLogMapRoute()
             }
         }
     }
