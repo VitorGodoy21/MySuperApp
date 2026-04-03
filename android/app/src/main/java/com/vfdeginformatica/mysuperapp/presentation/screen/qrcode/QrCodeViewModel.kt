@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
+import com.vfdeginformatica.mysuperapp.domain.util.QrCodeGenerator
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -16,11 +18,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class QrCodeViewModel @Inject constructor(
-    private val updateQrCodeUseCase: UpdateQrCodeUseCase
+    private val updateQrCodeUseCase: UpdateQrCodeUseCase,
+    private val qrCodeGenerator: QrCodeGenerator
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QrCodeUiState())
@@ -32,7 +36,16 @@ class QrCodeViewModel @Inject constructor(
     fun onEvent(event: QrCodeEvent) {
         when (event) {
             is QrCodeEvent.OnQrCodeLoaded -> {
-                _uiState.value = _uiState.value.copy(qrCode = event.qrCode)
+                viewModelScope.launch {
+                    _uiState.value = _uiState.value.copy(isLoading = true)
+                    val bitmap = withContext(Dispatchers.Default) {
+                        qrCodeGenerator.generate(event.qrCode.staticUrl)
+                    }
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        qrCode = event.qrCode.copy(qrcodeBitmap = bitmap)
+                    )
+                }
             }
 
             is QrCodeEvent.OnRedirectUrlChanged -> {
