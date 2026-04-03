@@ -175,6 +175,139 @@
                 font-size: 15px;
             }
         }
+
+        /* === MURAL === */
+        .mural-header {
+            margin-bottom: 15px;
+        }
+
+        .mural-title {
+            font-size: 22px;
+            color: #333;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .comments-list {
+            max-height: 50vh;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+            scroll-behavior: smooth;
+        }
+
+        .comments-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .comments-list::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 2px;
+        }
+
+        .comments-list::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 2px;
+        }
+
+        .comment-empty {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            padding: 30px 0;
+        }
+
+        .comment-item {
+            background: #f7f7fb;
+            border-radius: 12px;
+            padding: 12px 15px;
+            text-align: left;
+            border-left: 3px solid #667eea;
+        }
+
+        .comment-author {
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .comment-text {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .comment-time {
+            font-size: 11px;
+            color: #bbb;
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .comment-form {
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            border-color: #667eea;
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .char-counter {
+            font-size: 12px;
+            color: #bbb;
+        }
+
+        .form-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .form-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-submit:not(:disabled):hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -317,6 +450,144 @@
         container.appendChild(textDiv);
     }
 
+    function showMural(id) {
+        const container = document.querySelector('.container');
+        container.style.maxWidth = '600px';
+        container.style.padding = '30px 20px';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'mural-header';
+        const title = document.createElement('h2');
+        title.className = 'mural-title';
+        title.textContent = '💬 Mural de Comentários';
+        header.appendChild(title);
+
+        // Comments list
+        const commentsList = document.createElement('div');
+        commentsList.className = 'comments-list';
+
+        // Form
+        const form = document.createElement('form');
+        form.className = 'comment-form';
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'form-input';
+        nameInput.placeholder = 'Seu nome (opcional)';
+        nameInput.maxLength = 60;
+        nameInput.autocomplete = 'off';
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'form-textarea';
+        textarea.placeholder = 'Escreva um comentário...';
+        textarea.maxLength = 500;
+        textarea.rows = 3;
+
+        const formFooter = document.createElement('div');
+        formFooter.className = 'form-footer';
+
+        const charCounter = document.createElement('span');
+        charCounter.className = 'char-counter';
+        charCounter.textContent = '0/500';
+
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'submit';
+        submitBtn.className = 'form-submit';
+        submitBtn.textContent = 'Enviar';
+
+        formFooter.appendChild(charCounter);
+        formFooter.appendChild(submitBtn);
+        form.appendChild(nameInput);
+        form.appendChild(textarea);
+        form.appendChild(formFooter);
+
+        // Render container
+        container.innerHTML = '';
+        container.appendChild(header);
+        container.appendChild(commentsList);
+        container.appendChild(form);
+
+        // Character counter
+        textarea.addEventListener('input', () => {
+            charCounter.textContent = `${textarea.value.length}/500`;
+        });
+
+        // Real-time comments listener
+        function renderComments(snapshot) {
+            commentsList.innerHTML = '';
+            if (snapshot.empty) {
+                const empty = document.createElement('div');
+                empty.className = 'comment-empty';
+                empty.textContent = 'Nenhum comentário ainda. Seja o primeiro!';
+                commentsList.appendChild(empty);
+                return;
+            }
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const item = document.createElement('div');
+                item.className = 'comment-item';
+
+                if (data.author && data.author.trim()) {
+                    const authorEl = document.createElement('div');
+                    authorEl.className = 'comment-author';
+                    authorEl.textContent = data.author.trim();
+                    item.appendChild(authorEl);
+                }
+
+                const textEl = document.createElement('div');
+                textEl.className = 'comment-text';
+                textEl.textContent = data.text || '';
+                item.appendChild(textEl);
+
+                if (data.timestamp && data.timestamp.toDate) {
+                    const timeEl = document.createElement('div');
+                    timeEl.className = 'comment-time';
+                    timeEl.textContent = data.timestamp.toDate().toLocaleString('pt-BR', {
+                        dateStyle: 'short',
+                        timeStyle: 'short'
+                    });
+                    item.appendChild(timeEl);
+                }
+
+                commentsList.appendChild(item);
+            });
+            commentsList.scrollTop = commentsList.scrollHeight;
+        }
+
+        db.collection('qrcodes').doc(id).collection('comments')
+            .orderBy('timestamp', 'asc')
+            .onSnapshot(renderComments, (error) => {
+                console.error('Erro ao carregar comentários:', error);
+            });
+
+        // Submit handler
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = textarea.value.trim();
+            const author = nameInput.value.trim();
+            if (!text || text.length > 500) return;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+
+            db.collection('qrcodes').doc(id).collection('comments').add({
+                text: text,
+                author: author,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                textarea.value = '';
+                charCounter.textContent = '0/500';
+                submitBtn.textContent = 'Enviar';
+                submitBtn.disabled = false;
+            }).catch((error) => {
+                console.error('Erro ao enviar comentário:', error);
+                submitBtn.textContent = 'Enviar';
+                submitBtn.disabled = false;
+            });
+        });
+    }
+
     if (!id) {
         showError('QR Code inválido', 'O código QR não contém um identificador válido. Verifique se o código está legível e tente novamente.');
     } else {
@@ -399,6 +670,9 @@
                     } else if (type === 'TEXT') {
                         trackScanInBackground(id);
                         showText(data.text || '');
+                    } else if (type === 'MURAL') {
+                        trackScanInBackground(id);
+                        showMural(id);
                     } else {
                         showError('Tipo não suportado', 'Este QR Code possui um tipo não reconhecido.');
                     }
