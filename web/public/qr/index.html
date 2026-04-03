@@ -151,7 +151,7 @@
             padding: 25px;
             background: #f9f9f9;
             border-radius: 12px;
-            text-align: left;
+            text-align: center;
         }
 
         .text-content {
@@ -305,12 +305,9 @@
     }
 
     function showText(text) {
-        document.querySelector('.spinner').style.display = 'none';
-        document.querySelector('.status-text').innerHTML = '';
-        document.querySelector('.security-badge').style.display = 'none';
-        document.querySelector('.qr-info').innerHTML = '';
-
         const container = document.querySelector('.container');
+        container.innerHTML = '';
+
         const textDiv = document.createElement('div');
         textDiv.className = 'text-container';
         const contentDiv = document.createElement('div');
