@@ -216,6 +216,18 @@ fun QrCodeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Identifier
+            if (qrCode.identifier.isNotEmpty()) {
+                Text(
+                    text = qrCode.identifier,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+
             // QR Code ID
             Text(
                 text = "ID: ${qrCode.id}",

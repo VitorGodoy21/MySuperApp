@@ -8,6 +8,7 @@ import com.vfdeginformatica.mysuperapp.domain.util.QrCodeGenerator
 fun QrCodeDto.toModel(qrCodeGenerator: QrCodeGenerator): QrCode {
     return QrCode(
         id = this.id,
+        identifier = this.identifier,
         redirectUrl = this.redirectUrl,
         staticUrl = this.staticUrl,
         type = runCatching { QrCodeType.valueOf(this.type) }.getOrDefault(QrCodeType.REDIRECT),

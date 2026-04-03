@@ -10,6 +10,7 @@ enum class QrCodeType {
 
 data class QrCode(
     val id: String,
+    val identifier: String = "",
     val redirectUrl: String,
     val staticUrl: String = "",
     val type: QrCodeType = QrCodeType.REDIRECT,
@@ -20,6 +21,7 @@ data class QrCode(
 fun QrCode.toDto(): QrCodeDto {
     return QrCodeDto(
         id = id,
+        identifier = identifier,
         redirectUrl = redirectUrl,
         staticUrl = staticUrl,
         type = type.name,

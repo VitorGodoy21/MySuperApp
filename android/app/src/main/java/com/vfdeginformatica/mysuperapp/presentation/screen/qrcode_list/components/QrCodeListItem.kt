@@ -62,7 +62,7 @@ fun QrCodeListItem(
         ) {
             // Title
             Text(
-                text = "QR Code",
+                text = qrCode.identifier.ifEmpty { "QR Code" },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
