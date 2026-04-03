@@ -32,9 +32,6 @@ fun QrCodeRoute(
             when (effect) {
                 is QrCodeEffect.ShowToast -> {
                     snackBarHost.showSnackbar(effect.message)
-                    if (effect.message.contains("sucesso", ignoreCase = true)) {
-                        navController.popBackStack()
-                    }
                 }
             }
         }
