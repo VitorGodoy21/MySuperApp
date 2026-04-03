@@ -146,6 +146,22 @@
             color: #999;
         }
 
+        .text-container {
+            margin-top: 25px;
+            padding: 25px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            text-align: left;
+        }
+
+        .text-content {
+            font-size: 16px;
+            color: #333;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 35px 25px;
@@ -288,6 +304,22 @@
         document.querySelector('.container').innerHTML += errorHTML;
     }
 
+    function showText(text) {
+        document.querySelector('.spinner').style.display = 'none';
+        document.querySelector('.status-text').innerHTML = '';
+        document.querySelector('.security-badge').style.display = 'none';
+        document.querySelector('.qr-info').innerHTML = '';
+
+        const container = document.querySelector('.container');
+        const textDiv = document.createElement('div');
+        textDiv.className = 'text-container';
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'text-content';
+        contentDiv.textContent = text;
+        textDiv.appendChild(contentDiv);
+        container.appendChild(textDiv);
+    }
+
     if (!id) {
         showError('QR Code inválido', 'O código QR não contém um identificador válido. Verifique se o código está legível e tente novamente.');
     } else {
@@ -357,13 +389,21 @@
             .then(doc => {
                 if (doc.exists) {
                     const data = doc.data();
-                    if (data.redirectUrl) {
-                        trackScanInBackground(id);
+                    const type = data.type || 'REDIRECT';
 
-                        // 🚀 REDIRECT IMEDIATO
-                        window.location.href = data.redirectUrl;
+                    if (type === 'REDIRECT') {
+                        if (data.redirectUrl) {
+                            trackScanInBackground(id);
+                            // 🚀 REDIRECT IMEDIATO
+                            window.location.href = data.redirectUrl;
+                        } else {
+                            showError('Erro no QR Code', 'O código QR não contém um destino válido. Contate o suporte.');
+                        }
+                    } else if (type === 'TEXT') {
+                        trackScanInBackground(id);
+                        showText(data.text || '');
                     } else {
-                        showError('Erro no QR Code', 'O código QR não contém um destino válido. Contate o suporte.');
+                        showError('Tipo não suportado', 'Este QR Code possui um tipo não reconhecido.');
                     }
                 } else {
                     showError('QR Code não encontrado', 'Este código QR não existe ou foi removido. Por favor, tente outro código.');
