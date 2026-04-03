@@ -5,7 +5,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
 
 enum class QrCodeType {
     REDIRECT,
-    TEXT
+    TEXT,
+    MURAL
 }
 
 data class QrCode(

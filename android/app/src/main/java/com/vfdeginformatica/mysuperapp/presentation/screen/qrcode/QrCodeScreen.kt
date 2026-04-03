@@ -206,7 +206,11 @@ fun QrCodeScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
-                            value = if (qrCode.type == QrCodeType.REDIRECT) "Redirect" else "Texto",
+                            value = when (qrCode.type) {
+                                QrCodeType.REDIRECT -> "Redirect"
+                                QrCodeType.TEXT -> "Texto"
+                                QrCodeType.MURAL -> "Mural"
+                            },
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Tipo") },
@@ -235,35 +239,55 @@ fun QrCodeScreen(
                                     typeDropdownExpanded = false
                                 }
                             )
+                            DropdownMenuItem(
+                                text = { Text("Mural") },
+                                onClick = {
+                                    onEvent(QrCodeEvent.OnTypeChanged(QrCodeType.MURAL))
+                                    typeDropdownExpanded = false
+                                }
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    if (qrCode.type == QrCodeType.REDIRECT) {
-                        OutlinedTextField(
-                            value = qrCode.redirectUrl,
-                            onValueChange = { newUrl ->
-                                onEvent(QrCodeEvent.OnRedirectUrlChanged(newUrl))
-                            },
-                            label = { Text("URL de Redirecionamento") },
-                            placeholder = { Text("https://example.com") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = false,
-                            maxLines = 4,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                    } else {
-                        OutlinedTextField(
-                            value = qrCode.text,
-                            onValueChange = { newText ->
-                                onEvent(QrCodeEvent.OnTextChanged(newText))
-                            },
-                            label = { Text("Texto") },
-                            placeholder = { Text("Digite o texto do QR Code") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = false,
-                            maxLines = 6,
-                            shape = RoundedCornerShape(8.dp)
-                        )
+                    when (qrCode.type) {
+                        QrCodeType.REDIRECT -> {
+                            OutlinedTextField(
+                                value = qrCode.redirectUrl,
+                                onValueChange = { newUrl ->
+                                    onEvent(QrCodeEvent.OnRedirectUrlChanged(newUrl))
+                                },
+                                label = { Text("URL de Redirecionamento") },
+                                placeholder = { Text("https://example.com") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = false,
+                                maxLines = 4,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                        }
+
+                        QrCodeType.TEXT -> {
+                            OutlinedTextField(
+                                value = qrCode.text,
+                                onValueChange = { newText ->
+                                    onEvent(QrCodeEvent.OnTextChanged(newText))
+                                },
+                                label = { Text("Texto") },
+                                placeholder = { Text("Digite o texto do QR Code") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = false,
+                                maxLines = 6,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                        }
+
+                        QrCodeType.MURAL -> {
+                            Text(
+                                text = "O QR Code abrirá uma página de mural para comentários. Nenhuma URL ou texto adicional é necessário.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             },

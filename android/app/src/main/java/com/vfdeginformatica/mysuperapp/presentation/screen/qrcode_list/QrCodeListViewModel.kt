@@ -8,6 +8,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -30,22 +31,11 @@ class QrCodeListViewModel @Inject constructor(
     private val _effect = MutableSharedFlow<QrCodeListEffect>()
     val effect: SharedFlow<QrCodeListEffect> = _effect.asSharedFlow()
 
-    init {
-        getQrCodes()
-    }
+    private var getQrCodesJob: Job? = null
 
-    fun onEvent(event: QrCodeListEvent) {
-        when (event) {
-            is QrCodeListEvent.OnSelectQrCode -> {
-                viewModelScope.launch {
-                    _effect.emit(QrCodeListEffect.NavigateToQrCode(event.qrCode))
-                }
-            }
-        }
-    }
-
-    private fun getQrCodes() {
-        getQrCodesUseCase.invoke().onEach { result ->
+    fun refresh() {
+        getQrCodesJob?.cancel()
+        getQrCodesJob = getQrCodesUseCase.invoke().onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     _uiState.value = QrCodeListUiState(isLoading = true)
@@ -61,7 +51,16 @@ class QrCodeListViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
+    }
 
+    fun onEvent(event: QrCodeListEvent) {
+        when (event) {
+            is QrCodeListEvent.OnSelectQrCode -> {
+                viewModelScope.launch {
+                    _effect.emit(QrCodeListEffect.NavigateToQrCode(event.qrCode))
+                }
+            }
+        }
     }
 
 }

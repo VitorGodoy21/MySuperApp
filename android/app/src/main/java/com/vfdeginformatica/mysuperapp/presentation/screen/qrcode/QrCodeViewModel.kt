@@ -58,9 +58,9 @@ class QrCodeViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     qrCode = _uiState.value.qrCode?.copy(
                         type = event.type,
-                        redirectUrl = if (event.type == QrCodeType.TEXT) "" else _uiState.value.qrCode?.redirectUrl
+                        redirectUrl = if (event.type == QrCodeType.TEXT || event.type == QrCodeType.MURAL) "" else _uiState.value.qrCode?.redirectUrl
                             ?: "",
-                        text = if (event.type == QrCodeType.REDIRECT) "" else _uiState.value.qrCode?.text
+                        text = if (event.type == QrCodeType.REDIRECT || event.type == QrCodeType.MURAL) "" else _uiState.value.qrCode?.text
                             ?: ""
                     )
                 )
