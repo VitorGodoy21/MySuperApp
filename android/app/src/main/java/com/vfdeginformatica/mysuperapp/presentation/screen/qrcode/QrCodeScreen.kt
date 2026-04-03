@@ -21,8 +21,13 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,9 +45,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QrCodeScreen(
     uiState: QrCodeUiState,
@@ -53,6 +60,7 @@ fun QrCodeScreen(
     val qrCode = uiState.qrCode
     val qrCodeBitmap = qrCode?.qrcodeBitmap
     var showEditDialog by remember { mutableStateOf(false) }
+    var typeDropdownExpanded by remember { mutableStateOf(false) }
 
     if (showEditDialog && qrCode != null) {
         AlertDialog(
@@ -63,24 +71,83 @@ fun QrCodeScreen(
                 .padding(horizontal = 24.dp),
             title = {
                 Text(
-                    text = "Editar URL de Redirecionamento",
+                    text = "Configurar QR Code",
                     style = MaterialTheme.typography.titleMedium
                 )
             },
             text = {
                 Column {
-                    OutlinedTextField(
-                        value = qrCode.redirectUrl,
-                        onValueChange = { newUrl ->
-                            onEvent(QrCodeEvent.OnRedirectUrlChanged(newUrl))
-                        },
-                        label = { Text("URL de Redirecionamento") },
-                        placeholder = { Text("https://example.com") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = false,
-                        maxLines = 4,
-                        shape = RoundedCornerShape(8.dp)
+                    Text(
+                        text = "Tipo",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ExposedDropdownMenuBox(
+                        expanded = typeDropdownExpanded,
+                        onExpandedChange = { typeDropdownExpanded = it },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = if (qrCode.type == QrCodeType.REDIRECT) "Redirect" else "Texto",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Tipo") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeDropdownExpanded) },
+                            modifier = Modifier
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = typeDropdownExpanded,
+                            onDismissRequest = { typeDropdownExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Redirect") },
+                                onClick = {
+                                    onEvent(QrCodeEvent.OnTypeChanged(QrCodeType.REDIRECT))
+                                    typeDropdownExpanded = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Texto") },
+                                onClick = {
+                                    onEvent(QrCodeEvent.OnTypeChanged(QrCodeType.TEXT))
+                                    typeDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    if (qrCode.type == QrCodeType.REDIRECT) {
+                        OutlinedTextField(
+                            value = qrCode.redirectUrl,
+                            onValueChange = { newUrl ->
+                                onEvent(QrCodeEvent.OnRedirectUrlChanged(newUrl))
+                            },
+                            label = { Text("URL de Redirecionamento") },
+                            placeholder = { Text("https://example.com") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = false,
+                            maxLines = 4,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    } else {
+                        OutlinedTextField(
+                            value = qrCode.text,
+                            onValueChange = { newText ->
+                                onEvent(QrCodeEvent.OnTextChanged(newText))
+                            },
+                            label = { Text("Texto") },
+                            placeholder = { Text("Digite o texto do QR Code") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = false,
+                            maxLines = 6,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {

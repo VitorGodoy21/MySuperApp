@@ -3,6 +3,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.qrcode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEvent
@@ -37,6 +38,24 @@ class QrCodeViewModel @Inject constructor(
             is QrCodeEvent.OnRedirectUrlChanged -> {
                 _uiState.value = _uiState.value.copy(
                     qrCode = _uiState.value.qrCode?.copy(redirectUrl = event.url)
+                )
+            }
+
+            is QrCodeEvent.OnTypeChanged -> {
+                _uiState.value = _uiState.value.copy(
+                    qrCode = _uiState.value.qrCode?.copy(
+                        type = event.type,
+                        redirectUrl = if (event.type == QrCodeType.TEXT) "" else _uiState.value.qrCode?.redirectUrl
+                            ?: "",
+                        text = if (event.type == QrCodeType.REDIRECT) "" else _uiState.value.qrCode?.text
+                            ?: ""
+                    )
+                )
+            }
+
+            is QrCodeEvent.OnTextChanged -> {
+                _uiState.value = _uiState.value.copy(
+                    qrCode = _uiState.value.qrCode?.copy(text = event.text)
                 )
             }
 

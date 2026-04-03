@@ -7,5 +7,7 @@ import com.google.firebase.firestore.IgnoreExtraProperties
 data class QrCodeDto(
     @DocumentId var id: String = "",
     var redirectUrl: String = "",
-    var staticUrl: String = ""
+    var staticUrl: String = "",
+    var type: String = "REDIRECT",
+    var text: String = ""
 )

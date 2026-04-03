@@ -14,7 +14,7 @@ sealed class Screen(val route: String) {
     object QrCodeScreen : Screen("qr_code_screen/{qrCodeData}") {
         const val QR_CODE_DATA = "qrCodeData"
         fun createRoute(qrCode: QrCode): String {
-            val json = Gson().toJson(qrCode)
+            val json = Gson().toJson(qrCode.copy(qrcodeBitmap = null))
             val encoded = Uri.encode(json)
             return "qr_code_screen/$encoded"
         }
