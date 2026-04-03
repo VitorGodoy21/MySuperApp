@@ -1,13 +1,31 @@
+# ============================================================
+# ANDROID
+# ============================================================
 *.iml
-.gradle
-/local.properties
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+**/.gradle/
+**/local.properties
+**/.idea/
+**/.externalNativeBuild/
+**/.cxx/
+**/captures/
+**/build/
 **/google-services.json
-/.idea/
+
+# ============================================================
+# WEB / NODE
+# ============================================================
+**/node_modules/
+**/.env
+**/.env.local
+**/.env.*.local
+**/dist/
+**/.firebase/
 /web/firebase-tools-instant-win.exe
-/.firebase/hosting.d2Vi.cache
+
+# ============================================================
+# OS / EDITORS
+# ============================================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

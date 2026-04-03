@@ -1,0 +1,15 @@
+# Normaliza line endings para LF no repositório em todas as plataformas
+* text=auto eol=lf
+
+# Binários — não alterar
+*.jar binary
+*.keystore binary
+*.jks binary
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
