@@ -27,12 +27,15 @@ gson = "2.10.1"
 googlePlayServices = "18.2.0"
 googleMapsCompose = "6.1.2"
 googleMapsUtils = "3.8.2"
+firebaseAppcheckDebug = "19.0.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-lifecycle-runtime-ktx-v284 = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtxVersion" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-appcheck-playintegrity = { module = "com.google.firebase:firebase-appcheck-playintegrity" }
+firebase-appcheck-debug = { module = "com.google.firebase:firebase-appcheck-debug" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "firebaseUi" }
 javapoet = { module = "com.squareup:javapoet", version.ref = "javapoet" }
@@ -66,6 +69,7 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 google-maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "googleMapsCompose" }
 google-play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "googlePlayServices" }
 google-maps-utils = { module = "com.google.maps.android:maps-ktx", version = "5.1.1" }
+google-firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug", version.ref = "firebaseAppcheckDebug" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
