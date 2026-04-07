@@ -1,4 +1,6 @@
 ﻿package com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments
+
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,6 +55,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contra
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contract.MuralCommentsUiState
 import java.text.SimpleDateFormat
 import java.util.Locale
+
 @Composable
 fun MuralCommentsScreen(
     qrCodeId: String,
@@ -242,13 +247,28 @@ private fun MuralCommentItem(
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val cardBackground = if (comment.highlighted)
+        Color(0xFFFFF3CD)   // amarelo-dourado suave
+    else
+        MaterialTheme.colorScheme.surfaceVariant
+
+    val iconTint = if (comment.highlighted)
+        Color(0xFFB8860B)   // dourado escuro (DarkGoldenrod)
+    else
+        MaterialTheme.colorScheme.primary
+
+    val avatarIcon = if (comment.highlighted)
+        Icons.Default.Stars
+    else
+        Icons.Default.Person
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(containerColor = cardBackground),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (comment.highlighted) 4.dp else 1.dp
+        )
     ) {
         Row(
             modifier = Modifier
@@ -257,12 +277,12 @@ private fun MuralCommentItem(
             verticalAlignment = Alignment.Top
         ) {
             Icon(
-                imageVector = Icons.Default.Person,
+                imageVector = avatarIcon,
                 contentDescription = null,
                 modifier = Modifier
                     .size(36.dp)
                     .padding(top = 2.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = iconTint
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -271,12 +291,30 @@ private fun MuralCommentItem(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = comment.author.ifEmpty { "Anônimo" },
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = comment.author.ifEmpty { "Anônimo" },
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (comment.highlighted) {
+                            Text(
+                                text = "Destaque",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF7A5C00),
+                                modifier = Modifier
+                                    .background(
+                                        color = Color(0xFFFFD700).copy(alpha = 0.30f),
+                                        shape = RoundedCornerShape(4.dp)
+                                    )
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
                     if (comment.timestamp != null) {
                         Text(
                             text = formatTimestamp(comment.timestamp),

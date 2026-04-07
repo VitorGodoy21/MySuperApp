@@ -12,7 +12,8 @@ fun MuralCommentDto.toModel(): MuralComment {
         id = this.id,
         author = this.author,
         message = this.text,
-        timestamp = this.timestamp
+        timestamp = this.timestamp,
+        highlighted = this.highlighted
     )
 }
 
