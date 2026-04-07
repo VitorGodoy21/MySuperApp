@@ -7,7 +7,8 @@ data class MuralComment(
     val id: String = "",
     val author: String = "",
     val message: String = "",
-    val timestamp: Timestamp? = null
+    val timestamp: Timestamp? = null,
+    var highlighted: Boolean = false
 )
 
 fun MuralComment.toDto(): MuralCommentDto {
@@ -15,7 +16,8 @@ fun MuralComment.toDto(): MuralCommentDto {
         id = id,
         author = author,
         text = message,
-        timestamp = timestamp
+        timestamp = timestamp,
+        highlighted = highlighted
     )
 }
 

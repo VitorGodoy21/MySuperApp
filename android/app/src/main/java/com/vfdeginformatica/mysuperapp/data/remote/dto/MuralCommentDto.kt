@@ -10,5 +10,5 @@ data class MuralCommentDto(
     var author: String = "",
     var text: String = "",
     var timestamp: Timestamp? = null,
-    var highlighted: Boolean = true
+    var highlighted: Boolean = false
 )

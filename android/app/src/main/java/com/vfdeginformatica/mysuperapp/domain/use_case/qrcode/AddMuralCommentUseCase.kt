@@ -20,7 +20,8 @@ class AddMuralCommentUseCase @Inject constructor(
         val comment = MuralComment(
             author = author,
             message = message,
-            timestamp = Timestamp.now()
+            timestamp = Timestamp.now(),
+            highlighted = true
         )
         val result = repository.addComment(qrCodeId, comment)
         if (result) {
