@@ -9,6 +9,42 @@
         "source": "/api/log-qr-scan",
         "function": "logQrScan",
         "region": "us-central1"
+      },
+      {
+        "source": "/api/add-mural-comment",
+        "function": "addMuralComment",
+        "region": "us-central1"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "camera=(), microphone=(), geolocation=(), payment=()"
+          },
+          {
+            "key": "Strict-Transport-Security",
+            "value": "max-age=31536000; includeSubDomains"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'none'; script-src 'unsafe-inline' https://www.gstatic.com; style-src 'unsafe-inline'; connect-src 'self' https://*.googleapis.com https://www.google-analytics.com https://analytics.google.com; img-src data: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+          }
+        ]
       }
     ],
     "ignore": [
