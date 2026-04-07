@@ -308,6 +308,17 @@
         .form-submit:not(:disabled):hover {
             opacity: 0.9;
         }
+
+        .form-message {
+            font-size: 13px;
+            min-height: 18px;
+            text-align: center;
+            color: #c0392b;
+        }
+
+        .form-message.success {
+            color: #27ae60;
+        }
     </style>
 </head>
 <body>
@@ -450,6 +461,12 @@
         container.appendChild(textDiv);
     }
 
+    function sanitizeInput(str, maxLen) {
+        if (typeof str !== 'string') return '';
+        // Remove C0/C1 control characters except \t, \n, \r
+        return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '').slice(0, maxLen);
+    }
+
     function showMural(id) {
         const container = document.querySelector('.container');
         container.style.maxWidth = '600px';
@@ -496,11 +513,15 @@
         submitBtn.className = 'form-submit';
         submitBtn.textContent = 'Enviar';
 
+        const formMsg = document.createElement('div');
+        formMsg.className = 'form-message';
+
         formFooter.appendChild(charCounter);
         formFooter.appendChild(submitBtn);
         form.appendChild(nameInput);
         form.appendChild(textarea);
         form.appendChild(formFooter);
+        form.appendChild(formMsg);
 
         // Render container
         container.innerHTML = '';
@@ -562,26 +583,52 @@
             });
 
         // Submit handler
+        const cooldownKey = `mural_last_${id}`;
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            const text = textarea.value.trim();
-            const author = nameInput.value.trim();
-            if (!text || text.length > 500) return;
+            formMsg.textContent = '';
+            formMsg.className = 'form-message';
+
+            // Client-side cooldown: 30 s between submissions
+            try {
+                const lastSent = parseInt(sessionStorage.getItem(cooldownKey) || '0', 10);
+                const remaining = Math.ceil((30000 - (Date.now() - lastSent)) / 1000);
+                if (remaining > 0) {
+                    formMsg.textContent = `Aguarde ${remaining}s antes de enviar outro comentário.`;
+                    return;
+                }
+            } catch (_) {}
+
+            const cleanText = sanitizeInput(textarea.value.trim(), 500);
+            const cleanAuthor = sanitizeInput(nameInput.value.trim(), 60);
+            if (!cleanText) return;
 
             submitBtn.disabled = true;
             submitBtn.textContent = 'Enviando...';
 
-            db.collection('qrcodes').doc(id).collection('comments').add({
-                text: text,
-                author: author,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                textarea.value = '';
-                charCounter.textContent = '0/500';
-                submitBtn.textContent = 'Enviar';
-                submitBtn.disabled = false;
+            fetch('/api/add-mural-comment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qrCodeId: id, text: cleanText, author: cleanAuthor })
+            }).then((res) => {
+                if (res.status === 201) {
+                    textarea.value = '';
+                    charCounter.textContent = '0/500';
+                    try { sessionStorage.setItem(cooldownKey, String(Date.now())); } catch (_) {}
+                    formMsg.className = 'form-message success';
+                    formMsg.textContent = 'Comentário enviado!';
+                    setTimeout(() => { formMsg.textContent = ''; }, 3000);
+                } else if (res.status === 429) {
+                    formMsg.textContent = 'Muitos comentários enviados. Aguarde alguns minutos.';
+                } else {
+                    return res.json().then((data) => {
+                        formMsg.textContent = data.error || 'Erro ao enviar. Tente novamente.';
+                    });
+                }
             }).catch((error) => {
                 console.error('Erro ao enviar comentário:', error);
+                formMsg.textContent = 'Erro de conexão. Tente novamente.';
+            }).finally(() => {
                 submitBtn.textContent = 'Enviar';
                 submitBtn.disabled = false;
             });
