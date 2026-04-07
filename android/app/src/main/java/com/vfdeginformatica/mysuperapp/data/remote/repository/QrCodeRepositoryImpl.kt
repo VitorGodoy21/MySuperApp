@@ -28,4 +28,8 @@ class QrCodeRepositoryImpl(
     override suspend fun deleteComment(qrCodeId: String, commentId: String): Boolean {
         return qrCodeDao.deleteComment(qrCodeId, commentId)
     }
+
+    override suspend fun addComment(qrCodeId: String, comment: MuralComment): Boolean {
+        return qrCodeDao.addComment(qrCodeId, comment.toDto())
+    }
 }

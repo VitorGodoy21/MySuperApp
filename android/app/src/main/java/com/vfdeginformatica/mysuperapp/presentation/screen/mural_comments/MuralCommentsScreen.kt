@@ -1,5 +1,4 @@
-package com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments
-
+﻿package com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,28 +8,34 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +51,6 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contra
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contract.MuralCommentsUiState
 import java.text.SimpleDateFormat
 import java.util.Locale
-
 @Composable
 fun MuralCommentsScreen(
     qrCodeId: String,
@@ -56,7 +60,13 @@ fun MuralCommentsScreen(
     modifier: Modifier = Modifier
 ) {
     var commentToDelete by remember { mutableStateOf<MuralComment?>(null) }
-
+    val listState = rememberLazyListState()
+    // Scroll to top when a new comment arrives
+    LaunchedEffect(uiState.comments.size) {
+        if (uiState.comments.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
     // Delete confirmation dialog
     commentToDelete?.let { comment ->
         AlertDialog(
@@ -92,98 +102,140 @@ fun MuralCommentsScreen(
             }
         )
     }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+            .imePadding()
+    ) {
+        // Comments area
+        Box(modifier = Modifier.weight(1f)) {
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
 
-    when {
-        uiState.isLoading -> {
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+                uiState.errorMessage.isNotEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = uiState.errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+
+                uiState.comments.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Forum,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Nenhum comentário ainda",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Seja o primeiro a comentar!",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp)
+                            )
+                        }
+                    }
+                }
+
+                else -> {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        item {
+                            Text(
+                                text = "${uiState.comments.size} comentário(s)",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
+                        items(
+                            items = uiState.comments,
+                            key = { it.id }
+                        ) { comment ->
+                            MuralCommentItem(
+                                comment = comment,
+                                onDeleteClick = { commentToDelete = comment }
+                            )
+                        }
+                    }
+                }
             }
         }
-
-        uiState.errorMessage.isNotEmpty() -> {
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-                contentAlignment = Alignment.Center
+        // Input bar — always visible at the bottom
+        HorizontalDivider()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = uiState.newCommentText,
+                onValueChange = { onEvent(MuralCommentsEvent.OnCommentTextChanged(it)) },
+                placeholder = { Text("Escreva um comentário...") },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(24.dp),
+                singleLine = false,
+                maxLines = 4,
+                enabled = !uiState.isSendingComment
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(
+                onClick = { onEvent(MuralCommentsEvent.OnSendComment(qrCodeId)) },
+                enabled = uiState.newCommentText.isNotBlank() && !uiState.isSendingComment,
+                modifier = Modifier.size(48.dp)
             ) {
-                Text(
-                    text = uiState.errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        }
-
-        uiState.comments.isEmpty() -> {
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (uiState.isSendingComment) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
                     Icon(
-                        imageVector = Icons.Default.Forum,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "Nenhum comentário ainda",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Os comentários feitos neste mural aparecerão aqui.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 32.dp)
-                    )
-                }
-            }
-        }
-
-        else -> {
-            LazyColumn(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                item {
-                    Text(
-                        text = "${uiState.comments.size} comentário(s)",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                }
-                items(
-                    items = uiState.comments,
-                    key = { it.id }
-                ) { comment ->
-                    MuralCommentItem(
-                        comment = comment,
-                        onDeleteClick = { commentToDelete = comment }
+                        imageVector = Icons.Default.Send,
+                        contentDescription = "Enviar comentário",
+                        tint = if (uiState.newCommentText.isNotBlank())
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.outline
                     )
                 }
             }
         }
     }
 }
-
 @Composable
 private fun MuralCommentItem(
     comment: MuralComment,
@@ -255,7 +307,6 @@ private fun MuralCommentItem(
         }
     }
 }
-
 private fun formatTimestamp(timestamp: Timestamp): String {
     return try {
         val sdf = SimpleDateFormat("dd/MM/yy HH:mm", Locale.getDefault())
@@ -264,4 +315,3 @@ private fun formatTimestamp(timestamp: Timestamp): String {
         ""
     }
 }
-

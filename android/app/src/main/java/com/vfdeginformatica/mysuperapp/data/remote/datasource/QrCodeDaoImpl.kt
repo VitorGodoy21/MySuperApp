@@ -1,13 +1,15 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
+import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.firestore.FirebaseFirestore
 import com.vfdeginformatica.mysuperapp.data.remote.dto.MuralCommentDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
 import kotlinx.coroutines.tasks.await
 
 class QrCodeDaoImpl(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val appCheck: FirebaseAppCheck
 ) : QrCodeDao {
 
     companion object {
@@ -77,6 +79,32 @@ class QrCodeDaoImpl(
             true
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao deletar comentário $commentId do QrCode $qrCodeId: ${e.message}", e)
+            false
+        }
+    }
+
+    override suspend fun addComment(qrCodeId: String, comment: MuralCommentDto): Boolean {
+        return try {
+            // Obtém o token do App Check (Play Integrity em produção, debug token em dev)
+            // forceRefresh = false usa o token em cache quando ainda válido
+            val appCheckToken = try {
+                appCheck.getAppCheckToken(false).await().token
+            } catch (e: Exception) {
+                Log.w(TAG, "Não foi possível obter o App Check token: ${e.message}")
+                ""
+            }
+
+            val ref = db.collection(COLLECTION).document(qrCodeId)
+                .collection("comments").document()
+            val withIdAndToken = comment.copy(id = ref.id)
+            ref.set(withIdAndToken).await()
+            Log.d(
+                TAG,
+                "addComment: Comentário adicionado ao QrCode $qrCodeId (token presente: ${appCheckToken.isNotEmpty()})"
+            )
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao adicionar comentário ao QrCode $qrCodeId: ${e.message}", e)
             false
         }
     }

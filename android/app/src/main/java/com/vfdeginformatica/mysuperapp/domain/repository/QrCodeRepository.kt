@@ -12,4 +12,6 @@ interface QrCodeRepository {
     suspend fun getComments(qrCodeId: String): List<MuralComment>?
 
     suspend fun deleteComment(qrCodeId: String, commentId: String): Boolean
+
+    suspend fun addComment(qrCodeId: String, comment: MuralComment): Boolean
 }

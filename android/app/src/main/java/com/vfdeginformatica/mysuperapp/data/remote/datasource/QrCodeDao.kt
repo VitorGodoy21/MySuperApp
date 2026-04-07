@@ -11,4 +11,6 @@ interface QrCodeDao {
     suspend fun getComments(qrCodeId: String): List<MuralCommentDto>?
 
     suspend fun deleteComment(qrCodeId: String, commentId: String): Boolean
+
+    suspend fun addComment(qrCodeId: String, comment: MuralCommentDto): Boolean
 }

@@ -14,6 +14,7 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_cat
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LoginUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LogoutUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.AddMuralCommentUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.DeleteMuralCommentUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetAccessLogsByCityUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetAccessLogsWithLocationsUseCase
@@ -184,6 +185,14 @@ object UseCaseModule {
         qrCodeRepository: QrCodeRepository
     ): DeleteMuralCommentUseCase {
         return DeleteMuralCommentUseCase(qrCodeRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddMuralCommentUseCase(
+        qrCodeRepository: QrCodeRepository
+    ): AddMuralCommentUseCase {
+        return AddMuralCommentUseCase(qrCodeRepository)
     }
 
 }

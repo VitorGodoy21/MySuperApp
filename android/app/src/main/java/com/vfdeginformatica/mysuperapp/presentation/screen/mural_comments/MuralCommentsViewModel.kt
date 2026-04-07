@@ -1,10 +1,12 @@
-package com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments
+﻿package com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.AddMuralCommentUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.DeleteMuralCommentUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetMuralCommentsUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetUserSessionUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contract.MuralCommentsEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contract.MuralCommentsEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contract.MuralCommentsUiState
@@ -21,7 +23,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MuralCommentsViewModel @Inject constructor(
     private val getMuralCommentsUseCase: GetMuralCommentsUseCase,
-    private val deleteMuralCommentUseCase: DeleteMuralCommentUseCase
+    private val deleteMuralCommentUseCase: DeleteMuralCommentUseCase,
+    private val addMuralCommentUseCase: AddMuralCommentUseCase,
+    private val getUserSessionUseCase: GetUserSessionUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MuralCommentsUiState())
@@ -34,6 +38,10 @@ class MuralCommentsViewModel @Inject constructor(
         when (event) {
             is MuralCommentsEvent.OnLoadComments -> loadComments(event.qrCodeId)
             is MuralCommentsEvent.OnDeleteComment -> deleteComment(event.qrCodeId, event.commentId)
+            is MuralCommentsEvent.OnCommentTextChanged -> _uiState.value =
+                _uiState.value.copy(newCommentText = event.text)
+
+            is MuralCommentsEvent.OnSendComment -> sendComment(event.qrCodeId)
         }
     }
 
@@ -83,8 +91,39 @@ class MuralCommentsViewModel @Inject constructor(
         }
     }
 
+    private fun sendComment(qrCodeId: String) {
+        val message = _uiState.value.newCommentText.trim()
+        if (message.isEmpty()) return
+
+        viewModelScope.launch {
+            val author = "Roteador"//getUserSessionUseCase().first().name.ifEmpty { "Anônimo" }
+            addMuralCommentUseCase(qrCodeId, author, message).collect { resource ->
+                when (resource) {
+                    is Resource.Loading -> _uiState.value =
+                        _uiState.value.copy(isSendingComment = true)
+
+                    is Resource.Success -> {
+                        _uiState.value = _uiState.value.copy(
+                            isSendingComment = false,
+                            newCommentText = ""
+                        )
+                        loadComments(qrCodeId)
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.value = _uiState.value.copy(isSendingComment = false)
+                        sendEffect(
+                            MuralCommentsEffect.ShowToast(
+                                resource.message ?: "Erro ao enviar comentário"
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun sendEffect(effect: MuralCommentsEffect) {
         viewModelScope.launch { _effect.emit(effect) }
     }
 }
-

@@ -1,6 +1,7 @@
 package com.vfdeginformatica.mysuperapp.di
 
 import android.content.Context
+import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
@@ -80,7 +81,8 @@ object DaoModule {
     @Singleton
     fun provideQrcodeTransactionDao(): QrCodeDao {
         return QrCodeDaoImpl(
-            db = FirebaseFirestore.getInstance()
+            db = FirebaseFirestore.getInstance(),
+            appCheck = FirebaseAppCheck.getInstance()
         )
     }
 
