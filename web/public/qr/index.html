@@ -262,6 +262,23 @@
             border-left: 3px solid #667eea;
         }
 
+        .comment-item.highlighted {
+            background: #fffbf0;
+            border-left: 3px solid #f39c12;
+        }
+
+        .comment-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            color: #f39c12;
+            background: #fff3d6;
+            border-radius: 4px;
+            padding: 1px 6px;
+            margin-bottom: 5px;
+            letter-spacing: 0.3px;
+        }
+
         .comment-author {
             font-size: 12px;
             font-weight: 600;
@@ -602,7 +619,16 @@
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 const item = document.createElement('div');
-                item.className = 'comment-item';
+                item.className = data.highlighted === true
+                    ? 'comment-item highlighted'
+                    : 'comment-item';
+
+                if (data.highlighted === true) {
+                    const badge = document.createElement('span');
+                    badge.className = 'comment-badge';
+                    badge.textContent = '⭐ admin';
+                    item.appendChild(badge);
+                }
 
                 if (data.author && data.author.trim()) {
                     const authorEl = document.createElement('div');

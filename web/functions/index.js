@@ -304,10 +304,24 @@ exports.addMuralComment = onRequest(
     }
 
     // ── Write comment via Admin SDK (bypasses Firestore Security Rules) ──────
+    // Highlighted flag: set server-side only via App Check — never trusted from req.body
+    let highlighted = false;
+    const appCheckToken = req.headers['x-firebase-appcheck'];
+    if (appCheckToken && typeof appCheckToken === 'string') {
+      try {
+        await admin.appCheck().verifyToken(appCheckToken);
+        highlighted = true;
+      } catch (error) {
+        // Invalid or expired token — treat as regular (non-highlighted) comment
+        logger.warn('App Check token invalid, comment will not be highlighted', { error: error.message });
+      }
+    }
+
     try {
       await db.collection('qrcodes').doc(rawQrCodeId).collection('comments').add({
         text,
         author,
+        highlighted,
         timestamp: admin.firestore.FieldValue.serverTimestamp()
       });
       res.status(201).json({ ok: true });
