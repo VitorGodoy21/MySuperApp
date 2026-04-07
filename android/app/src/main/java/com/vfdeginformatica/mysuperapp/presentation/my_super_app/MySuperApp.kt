@@ -22,6 +22,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.access
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.muralCommentsRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.NewTransactionRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
@@ -126,6 +127,7 @@ fun MySuperApp(
                 }
 
                 accessLogMapRoute(navController)
+                muralCommentsRoute(navController)
             }
         }
     }

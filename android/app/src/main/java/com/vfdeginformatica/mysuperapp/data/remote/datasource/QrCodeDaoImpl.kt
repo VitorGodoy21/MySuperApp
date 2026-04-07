@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.vfdeginformatica.mysuperapp.data.remote.dto.MuralCommentDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
 import kotlinx.coroutines.tasks.await
 
@@ -46,6 +47,36 @@ class QrCodeDaoImpl(
             true
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao atualizar QR Code $id: ${e.message}", e)
+            false
+        }
+    }
+
+    override suspend fun getComments(qrCodeId: String): List<MuralCommentDto>? {
+        return try {
+            val snap = db.collection(COLLECTION).document(qrCodeId)
+                .collection("comments")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get().await()
+            val comments = snap.documents.mapNotNull { doc ->
+                doc.toObject(MuralCommentDto::class.java)
+            }
+            Log.d(TAG, "getComments: ${comments.size} comentários encontrados para $qrCodeId")
+            comments
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao buscar comentários do QrCode $qrCodeId: ${e.message}", e)
+            null
+        }
+    }
+
+    override suspend fun deleteComment(qrCodeId: String, commentId: String): Boolean {
+        return try {
+            db.collection(COLLECTION).document(qrCodeId)
+                .collection("comments").document(commentId)
+                .delete().await()
+            Log.d(TAG, "deleteComment: Comentário $commentId removido do QrCode $qrCodeId")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao deletar comentário $commentId do QrCode $qrCodeId: ${e.message}", e)
             false
         }
     }

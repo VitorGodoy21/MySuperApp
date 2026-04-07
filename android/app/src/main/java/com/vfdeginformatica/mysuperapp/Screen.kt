@@ -23,4 +23,12 @@ sealed class Screen(val route: String) {
         const val QR_CODE_ID = "qrCodeId"
         fun createRoute(qrCodeId: String): String = "access_log_map/$qrCodeId"
     }
+    object MuralCommentsScreen : Screen("mural_comments/{qrCodeId}/{qrCodeIdentifier}") {
+        const val QR_CODE_ID = "qrCodeId"
+        const val QR_CODE_IDENTIFIER = "qrCodeIdentifier"
+        fun createRoute(qrCodeId: String, identifier: String = ""): String {
+            val encodedIdentifier = Uri.encode(identifier.ifEmpty { " " })
+            return "mural_comments/$qrCodeId/$encodedIdentifier"
+        }
+    }
 }

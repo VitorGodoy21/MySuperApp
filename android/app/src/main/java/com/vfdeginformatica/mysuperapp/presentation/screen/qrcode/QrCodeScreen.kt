@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Save
@@ -109,6 +110,7 @@ fun QrCodeScreen(
     uiState: QrCodeUiState,
     onEvent: (QrCodeEvent) -> Unit,
     onViewAccessLogs: (qrCodeId: String) -> Unit = {},
+    onViewMural: (qrCodeId: String, identifier: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -430,6 +432,26 @@ fun QrCodeScreen(
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Text("Ver Mapa de Acessos")
+            }
+
+            // Mural Comments Button — only for MURAL type
+            if (qrCode.type == QrCodeType.MURAL) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = { onViewMural(qrCode.id, qrCode.identifier) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Forum,
+                        contentDescription = "Ver mural de comentários",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text("Ver Mural de Comentários")
+                }
             }
 
             if (uiState.errorMessage.isNotEmpty()) {

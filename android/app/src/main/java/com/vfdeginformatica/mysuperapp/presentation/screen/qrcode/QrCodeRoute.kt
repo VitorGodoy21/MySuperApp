@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEffect
@@ -49,7 +50,12 @@ fun QrCodeRoute(
             onViewAccessLogs = { qrCodeId ->
                 navController.navigate("access_log_map/$qrCodeId")
             },
+            onViewMural = { qrCodeId, identifier ->
+                navController.navigate(Screen.MuralCommentsScreen.createRoute(qrCodeId, identifier))
+            },
             modifier = Modifier.padding(padding)
         )
     }
 }
+
+

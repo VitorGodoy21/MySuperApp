@@ -1,9 +1,20 @@
 package com.vfdeginformatica.mysuperapp.data.mapper
 
+import com.vfdeginformatica.mysuperapp.data.remote.dto.MuralCommentDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
+import com.vfdeginformatica.mysuperapp.domain.model.MuralComment
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
 import com.vfdeginformatica.mysuperapp.domain.util.QrCodeGenerator
+
+fun MuralCommentDto.toModel(): MuralComment {
+    return MuralComment(
+        id = this.id,
+        author = this.author,
+        message = this.text,
+        timestamp = this.timestamp
+    )
+}
 
 fun QrCodeDto.toModel(qrCodeGenerator: QrCodeGenerator): QrCode {
     return QrCode(
