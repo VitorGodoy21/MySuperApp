@@ -46,7 +46,8 @@ object DaoModule {
     fun provideQrCodeDao(): QrCodeDao =
         QrCodeDaoImpl(
             db = FirebaseFirestore.getInstance(),
-            appCheck = FirebaseAppCheck.getInstance()
+            appCheck = FirebaseAppCheck.getInstance(),
+            auth = FirebaseAuth.getInstance()
         )
 
     @Provides
@@ -54,4 +55,3 @@ object DaoModule {
     fun provideQrCodeAccessLogDao(): QrCodeAccessLogDao =
         QrCodeAccessLogDaoImpl(db = FirebaseFirestore.getInstance())
 }
-

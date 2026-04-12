@@ -10,5 +10,6 @@ data class QrCodeDto(
     var redirectUrl: String = "",
     var staticUrl: String = "",
     var type: String = "REDIRECT",
-    var text: String = ""
+    var text: String = "",
+    var userId: String = ""
 )

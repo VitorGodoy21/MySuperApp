@@ -16,6 +16,7 @@ data class QrCode(
     val staticUrl: String = "",
     val type: QrCodeType = QrCodeType.REDIRECT,
     val text: String = "",
+    val userId: String = "",
     val qrcodeBitmap: Bitmap? = null
 )
 
@@ -26,7 +27,8 @@ fun QrCode.toDto(): QrCodeDto {
         redirectUrl = redirectUrl,
         staticUrl = staticUrl,
         type = type.name,
-        text = text
+        text = text,
+        userId = userId
     )
 
 }

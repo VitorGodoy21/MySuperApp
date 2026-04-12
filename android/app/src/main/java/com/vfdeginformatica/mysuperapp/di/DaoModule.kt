@@ -82,7 +82,8 @@ object DaoModule {
     fun provideQrcodeTransactionDao(): QrCodeDao {
         return QrCodeDaoImpl(
             db = FirebaseFirestore.getInstance(),
-            appCheck = FirebaseAppCheck.getInstance()
+            appCheck = FirebaseAppCheck.getInstance(),
+            auth = FirebaseAuth.getInstance()
         )
     }
 

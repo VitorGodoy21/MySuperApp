@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
 import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.vfdeginformatica.mysuperapp.data.remote.dto.MuralCommentDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
@@ -9,7 +10,8 @@ import kotlinx.coroutines.tasks.await
 
 class QrCodeDaoImpl(
     private val db: FirebaseFirestore,
-    private val appCheck: FirebaseAppCheck
+    private val appCheck: FirebaseAppCheck,
+    private val auth: FirebaseAuth
 ) : QrCodeDao {
 
     companion object {
@@ -18,9 +20,19 @@ class QrCodeDaoImpl(
     }
 
     override suspend fun getQrCodes(): List<QrCodeDto>? {
+        val userId = auth.currentUser?.uid
+        if (userId.isNullOrEmpty()) {
+            Log.w(TAG, "getQrCodes: usuário não autenticado, retornando lista vazia")
+            return emptyList()
+        }
         return try {
-            val snap = db.collection(COLLECTION).get().await()
-            Log.d(TAG, "getQrCodes: ${snap.documents.size} documentos encontrados")
+            val snap = db.collection(COLLECTION)
+                .whereEqualTo("userId", userId)
+                .get().await()
+            Log.d(
+                TAG,
+                "getQrCodes: ${snap.documents.size} documentos encontrados para userId=$userId"
+            )
 
             val result = snap.documents.mapNotNull { doc ->
                 try {

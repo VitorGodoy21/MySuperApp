@@ -25,6 +25,7 @@ fun QrCodeDto.toModel(qrCodeGenerator: QrCodeGenerator): QrCode {
         staticUrl = this.staticUrl,
         type = runCatching { QrCodeType.valueOf(this.type) }.getOrDefault(QrCodeType.REDIRECT),
         text = this.text,
+        userId = this.userId,
         qrcodeBitmap = qrCodeGenerator.generate(this.staticUrl)
     )
 }
