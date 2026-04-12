@@ -268,7 +268,11 @@ private fun CityListViewContent(
     contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+    ) {
         // Header com botão de retorno ao mapa
         Row(
             modifier = Modifier

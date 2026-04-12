@@ -1,5 +1,6 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map
 
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -7,7 +8,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 
 fun NavGraphBuilder.accessLogMapRoute(navController: NavController) {
     composable(
@@ -18,11 +18,7 @@ fun NavGraphBuilder.accessLogMapRoute(navController: NavController) {
         val uiState = viewModel.uiState.collectAsState().value
         val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
 
-        AppScaffold(
-            title = "Mapa de Acessos",
-            canNavigateUp = true,
-            onNavigateUp = { navController.popBackStack() },
-            snackBarHostState = snackBarHost
+        Scaffold(
         ) { innerPadding ->
             AccessLogMapScreen(
                 uiState = uiState,
