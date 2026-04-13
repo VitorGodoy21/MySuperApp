@@ -14,14 +14,15 @@ class AddMuralCommentUseCase @Inject constructor(
     operator fun invoke(
         qrCodeId: String,
         author: String,
-        message: String
+        message: String,
+        isAdmin: Boolean
     ): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
         val comment = MuralComment(
             author = author,
             message = message,
             timestamp = Timestamp.now(),
-            highlighted = true
+            highlighted = isAdmin
         )
         val result = repository.addComment(qrCodeId, comment)
         if (result) {

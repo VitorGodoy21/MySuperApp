@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -97,7 +98,8 @@ class MuralCommentsViewModel @Inject constructor(
 
         viewModelScope.launch {
             val author = "Roteador"//getUserSessionUseCase().first().name.ifEmpty { "Anônimo" }
-            addMuralCommentUseCase(qrCodeId, author, message).collect { resource ->
+            val isAdmin = getUserSessionUseCase().first().isAdmin
+            addMuralCommentUseCase(qrCodeId, author, message, isAdmin).collect { resource ->
                 when (resource) {
                     is Resource.Loading -> _uiState.value =
                         _uiState.value.copy(isSendingComment = true)

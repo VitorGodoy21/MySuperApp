@@ -38,7 +38,8 @@ class UserRemoteDaoImpl(
             email = userRef.get().await().getString("email") ?: "",
             isLoggedIn = true,
             lastSignInAt = System.currentTimeMillis(),
-            name = userRef.get().await().getString("name") ?: ""
+            name = userRef.get().await().getString("name") ?: "",
+            isAdmin = userRef.get().await().getBoolean("isAdmin") ?: false
         )
 
         return userSession
