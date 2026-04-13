@@ -1,7 +1,6 @@
 package com.vfdeginformatica.qrcodemanager
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -28,13 +27,13 @@ fun QrCodeManagerNavGraph(
     val state by sessionViewModel.uiState.collectAsStateWithLifecycle()
 
     MySuperAppTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
-            val navController = rememberNavController()
+        val navController = rememberNavController()
 
-            NavHost(
-                navController = navController,
-                startDestination = QrCodeManagerScreen.Splash.route
-            ) {
+        NavHost(
+            modifier = Modifier.fillMaxSize(),
+            navController = navController,
+            startDestination = QrCodeManagerScreen.Splash.route
+        ) {
                 // ── Splash ──────────────────────────────────────────────────
                 composable(route = QrCodeManagerScreen.Splash.route) {
                     QrCodeManagerSplashRoute(
@@ -66,10 +65,14 @@ fun QrCodeManagerNavGraph(
                         navController = navController,
                         onNavigateQrCode = { qrCode ->
                             navController.navigate(
-                                QrCodeManagerScreen.QrCodeDetail.createRoute(
-                                    qrCode
-                                )
+                                QrCodeManagerScreen.QrCodeDetail.createRoute(qrCode)
                             )
+                        },
+                        onLogout = {
+                            navController.navigate(QrCodeManagerScreen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
+                            }
                         }
                     )
                 }
@@ -100,7 +103,6 @@ fun QrCodeManagerNavGraph(
                 // ── Mural comments ───────────────────────────────────────────
                 muralCommentsRoute(navController)
             }
-        }
     }
 }
 
