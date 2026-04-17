@@ -106,6 +106,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.ui.auth)
     implementation(libs.firebase.firestore)
+    implementation("com.google.firebase:firebase-messaging")
     implementation(libs.firebase.appcheck.playintegrity)
 
     // Hilt
@@ -135,5 +136,3 @@ dependencies {
     implementation(libs.google.play.services.maps)
     implementation(libs.google.maps.utils)
 }
-
-

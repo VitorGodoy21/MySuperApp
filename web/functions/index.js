@@ -1,10 +1,12 @@
 const { onRequest } = require('firebase-functions/v2/https');
+const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
 const admin = require('firebase-admin');
 const { createHash } = require('crypto');
 
 admin.initializeApp();
+const messaging = admin.messaging();
 
 
 function getClientIp(req) {
@@ -327,5 +329,70 @@ exports.addMuralComment = onRequest(
       logger.error('Failed to save mural comment', error);
       res.status(500).json({ error: 'Erro ao salvar comentário.' });
     }
+  }
+);
+
+// ─── FCM Notifications ───────────────────────────────────────────────────────
+
+async function sendToQrOwner({ qrCodeId, title, body }) {
+  const db = admin.firestore();
+
+  const qrDoc = await db.collection('qrcodes').doc(qrCodeId).get();
+  if (!qrDoc.exists) {
+    logger.warn('QRCode not found', { qrCodeId });
+    return;
+  }
+
+  const userId = (qrDoc.data() || {}).userId;
+  if (!userId) {
+    logger.warn('QRCode without userId', { qrCodeId });
+    return;
+  }
+
+  const userDoc = await db.collection('users').doc(userId).get();
+  const token = (userDoc.data() || {}).fcmToken;
+  if (!token) {
+    logger.warn('User without fcmToken', { userId, qrCodeId });
+    return;
+  }
+
+  await messaging.send({
+    token,
+    notification: { title, body },
+    data: { qrCodeId, type: 'qrcode_event' }
+  });
+}
+
+exports.notifyQrCodeAccess = onDocumentCreated(
+  { document: 'qrcodes/{qrCodeId}/access_logs/{logId}', region: 'us-central1' },
+  async (event) => {
+    const qrCodeId = event.params.qrCodeId;
+    const log = event.data?.data() || {};
+
+    const place = [log.city, log.country].filter(Boolean).join(', ');
+    const suffix = place ? ` (${place})` : '';
+
+    await sendToQrOwner({
+      qrCodeId,
+      title: 'QR CODE ACESSADO',
+      body: `Houve um acesso em um QR Code seu${suffix}`
+    });
+  }
+);
+
+exports.notifyMuralComment = onDocumentCreated(
+  { document: 'qrcodes/{qrCodeId}/comments/{commentId}', region: 'us-central1' },
+  async (event) => {
+    const qrCodeId = event.params.qrCodeId;
+    const comment = event.data?.data() || {};
+
+    const author = comment.author || 'Anônimo';
+    const text = comment.text || '';
+
+    await sendToQrOwner({
+      qrCodeId,
+      title: 'COMENTARIO NO MURAL',
+      body: `${author}: ${text}`
+    });
   }
 );
