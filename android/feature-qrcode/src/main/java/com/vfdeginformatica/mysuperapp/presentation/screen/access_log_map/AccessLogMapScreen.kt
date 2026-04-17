@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
@@ -33,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -161,10 +159,6 @@ private fun MapViewContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        color = Color.White,
-                        shape = RoundedCornerShape(12.dp)
-                    )
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -240,7 +234,7 @@ private fun MapViewContent(
                         bottom = contentPadding.calculateBottomPadding() + 16.dp
                     ),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
                 Column(
@@ -249,11 +243,13 @@ private fun MapViewContent(
                     Text(
                         text = "Total de Acessos: ${logsWithLocation.size}",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Cidades: ${uiState.cityStatistics.size}",
-                        style = MaterialTheme.typography.labelSmall
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -286,13 +282,13 @@ private fun CityListViewContent(
                 Text(
                     text = "Acessos por Cidade",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Total: ${uiState.cityStatistics.size} cidades",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
 
@@ -302,7 +298,7 @@ private fun CityListViewContent(
                 Icon(
                     imageVector = Icons.Default.Map,
                     contentDescription = "Map view",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -374,7 +370,7 @@ private fun CityStatisticCard(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "City",
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Column {
@@ -410,7 +406,7 @@ private fun CityStatisticCard(
                 Text(
                     text = "${cityStat.accessCount}",
                     style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.padding(8.dp),
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -419,4 +415,3 @@ private fun CityStatisticCard(
         }
     }
 }
-

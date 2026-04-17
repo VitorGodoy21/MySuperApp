@@ -1,53 +1,66 @@
 package com.vfdeginformatica.mysuperapp.presentation.common.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
+// ── Esquema de cores: modo escuro roxo ────────────────────────────────────────
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = PurpleDarkPrimary,
+    onPrimary = PurpleDarkOnPrimary,
+    primaryContainer = PurpleDarkPrimaryContainer,
+    onPrimaryContainer = PurpleDarkOnPrimaryContainer,
+    secondary = PurpleDarkSecondary,
+    onSecondary = PurpleDarkOnSecondary,
+    tertiary = PurpleDarkTertiary,
+    onTertiary = PurpleDarkOnTertiary,
+    error = PurpleDarkError,
+    onError = PurpleDarkOnError,
+    background = PurpleDarkBackground,
+    onBackground = PurpleDarkOnBackground,
+    surface = PurpleDarkSurface,
+    onSurface = PurpleDarkOnSurface,
+    surfaceVariant = PurpleDarkSurfaceVariant,
+    onSurfaceVariant = PurpleDarkOnSurfaceVariant,
+    outline = PurpleDarkOutline,
+    inverseSurface = PurpleDarkInverseSurface,
+    inverseOnSurface = PurpleDarkInverseOnSurface,
+    inversePrimary = PurpleDarkInversePrimary,
 )
 
+// ── Esquema de cores: modo claro roxo ─────────────────────────────────────────
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = PurpleLightPrimary,
+    onPrimary = PurpleLightOnPrimary,
+    primaryContainer = PurpleLightPrimaryContainer,
+    onPrimaryContainer = PurpleLightOnPrimaryContainer,
+    secondary = PurpleLightSecondary,
+    onSecondary = PurpleLightOnSecondary,
+    tertiary = PurpleLightTertiary,
+    onTertiary = PurpleLightOnTertiary,
+    error = PurpleLightError,
+    onError = PurpleLightOnError,
+    background = PurpleLightBackground,
+    onBackground = PurpleLightOnBackground,
+    surface = PurpleLightSurface,
+    onSurface = PurpleLightOnSurface,
+    surfaceVariant = PurpleLightSurfaceVariant,
+    onSurfaceVariant = PurpleLightOnSurfaceVariant,
+    outline = PurpleLightOutline,
+    inverseSurface = PurpleLightInverseSurface,
+    inverseOnSurface = PurpleLightInverseOnSurface,
+    inversePrimary = PurpleLightInversePrimary,
 )
 
 @Composable
 fun MySuperAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    // Dynamic color desabilitado: garante que o roxo da marca seja sempre aplicado
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
