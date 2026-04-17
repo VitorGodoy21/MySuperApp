@@ -11,8 +11,8 @@ import com.vfdeginformatica.mysuperapp.domain.model.QrCode as DomainQrCode
 sealed class QrCodeManagerScreen(val route: String) {
     object Splash : QrCodeManagerScreen("splash")
     object Login : QrCodeManagerScreen("login")
-
     object QrCodeList : QrCodeManagerScreen("qr_code_list_screen")
+    object Profile : QrCodeManagerScreen("profile")
 
     /** Detail / edit screen for a single QR code. */
     object QrCodeDetail : QrCodeManagerScreen("qr_code_screen/{qrCodeData}") {

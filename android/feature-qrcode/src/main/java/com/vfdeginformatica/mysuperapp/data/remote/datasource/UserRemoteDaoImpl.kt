@@ -33,16 +33,22 @@ class UserRemoteDaoImpl(
 
     override suspend fun getUserSession(id: String): UserSession {
         val userRef = db.collection("users").document(id)
+        val snapshot = userRef.get().await()
         val userSession = UserSession(
             id = id,
-            email = userRef.get().await().getString("email") ?: "",
+            email = snapshot.getString("email") ?: "",
             isLoggedIn = true,
             lastSignInAt = System.currentTimeMillis(),
-            name = userRef.get().await().getString("name") ?: "",
-            isAdmin = userRef.get().await().getBoolean("isAdmin") ?: false
+            name = snapshot.getString("name") ?: "",
+            isAdmin = snapshot.getBoolean("isAdmin") ?: false
         )
-
         return userSession
     }
 
+    override suspend fun updateUser(uid: String, name: String, email: String) {
+        db.collection("users").document(uid)
+            .update(mapOf("name" to name, "email" to email))
+            .await()
+        Log.d("UserRemoteDaoImpl", "updateUser: uid=$uid name=$name email=$email")
+    }
 }

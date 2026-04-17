@@ -68,4 +68,16 @@ class UserRepositoryImpl(
         return userSessionSecureStorage.sessionFlow
     }
 
+    override suspend fun updateProfile(name: String, email: String): Resource<Unit> {
+        return try {
+            val uid = userSessionSecureStorage.getUserSession().id
+            if (uid.isEmpty()) return Resource.Error("Usuário não autenticado")
+            userRemoteDao.updateUser(uid, name, email)
+            val current = userSessionSecureStorage.getUserSession()
+            userSessionSecureStorage.write(current.copy(name = name, email = email))
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Erro ao atualizar perfil")
+        }
+    }
 }

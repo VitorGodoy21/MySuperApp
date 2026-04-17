@@ -18,6 +18,7 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.SaveQrCodeAccessLogUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetUserSessionUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.UpdateUserProfileUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.validator.ValidateEmail
 import com.vfdeginformatica.mysuperapp.domain.use_case.validator.ValidatePassword
 import com.vfdeginformatica.mysuperapp.domain.util.QrCodeGenerator
@@ -49,6 +50,10 @@ object UseCaseModule {
     @Singleton
     fun provideGetUserSessionUseCase(storage: UserSessionSecureStorage) =
         GetUserSessionUseCase(storage)
+
+    @Provides
+    @Singleton
+    fun provideUpdateUserProfileUseCase(r: UserRepository) = UpdateUserProfileUseCase(r)
 
     @Provides
     @Singleton
