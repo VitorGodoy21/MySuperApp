@@ -6,7 +6,6 @@ const { createHash } = require('crypto');
 
 admin.initializeApp();
 
-const ipinfoToken = defineSecret('IPINFO_TOKEN');
 
 function getClientIp(req) {
   const forwardedFor = req.headers['x-forwarded-for'];
@@ -48,54 +47,53 @@ function normalizePayload(req) {
   return {};
 }
 
-async function resolveGeoByIp(ipAddress, token) {
-  if (!ipAddress || !token) {
+async function resolveGeoByIp(ipAddress, key) {
+  if (!ipAddress) {
     return {
       city: null,
+      region: null,
       country: null,
       latitude: null,
       longitude: null,
-      method: 'IPINFO_UNAVAILABLE'
+      method: 'IPAPI_UNAVAILABLE'
     };
   }
 
+  const fields = 'status,message,country,city,regionName,lat,lon';
+  const url = key
+    ? `https://pro.ip-api.com/json/${encodeURIComponent(ipAddress)}?key=${key}&fields=${fields}`
+    : `http://ip-api.com/json/${encodeURIComponent(ipAddress)}?fields=${fields}`;
+
   try {
-    const response = await fetch(
-      `https://ipinfo.io/${encodeURIComponent(ipAddress)}/json?token=${token}`,
-      { signal: AbortSignal.timeout(5000) }
-    );
+    const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
 
     if (!response.ok) {
-      throw new Error(`ipinfo.io returned ${response.status}`);
+      throw new Error(`ip-api.com returned ${response.status}`);
     }
 
     const data = await response.json();
 
-    let latitude = null;
-    let longitude = null;
-    if (data.loc && typeof data.loc === 'string') {
-      const [lat, lng] = data.loc.split(',').map(Number);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        latitude = lat;
-        longitude = lng;
-      }
+    if (data.status !== 'success') {
+      throw new Error(`ip-api.com: ${data.message || data.status}`);
     }
 
     return {
       city: data.city || null,
+      region: data.regionName || null,
       country: data.country || null,
-      latitude,
-      longitude,
-      method: 'IPINFO'
+      latitude: typeof data.lat === 'number' ? data.lat : null,
+      longitude: typeof data.lon === 'number' ? data.lon : null,
+      method: key ? 'IPAPI_PRO' : 'IPAPI_FREE'
     };
   } catch (error) {
-    logger.error('ipinfo.io lookup failed', error);
+    logger.error('ip-api.com lookup failed', error);
     return {
       city: null,
+      region: null,
       country: null,
       latitude: null,
       longitude: null,
-      method: 'IPINFO_ERROR'
+      method: 'IPAPI_ERROR'
     };
   }
 }
@@ -104,7 +102,6 @@ exports.logQrScan = onRequest(
   {
     region: 'us-central1',
     timeoutSeconds: 10,
-    secrets: [ipinfoToken],
     invoker: 'public'
   },
   async (req, res) => {
@@ -131,7 +128,7 @@ exports.logQrScan = onRequest(
     }
 
     const ipAddress = getClientIp(req);
-    const geo = await resolveGeoByIp(ipAddress, ipinfoToken.value());
+    const geo = await resolveGeoByIp(ipAddress, null);
 
     const scanId = typeof payload.scanId === 'string' ? payload.scanId : null;
     const sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : null;
@@ -155,6 +152,7 @@ exports.logQrScan = onRequest(
       utmMedium: payload.utmMedium || null,
       utmCampaign: payload.utmCampaign || null,
       city: geo.city,
+      region: geo.region,
       country: geo.country,
       latitude: geo.latitude,
       longitude: geo.longitude,

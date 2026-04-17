@@ -188,10 +188,32 @@
             text-align: center;
         }
 
+        .mural-notice {
+            position: relative;
+        }
+
+        .mural-notice-close {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            color: #aaa;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .mural-notice-close:hover {
+            color: #666;
+        }
+
         .mural-about {
             background: linear-gradient(135deg, #f0f2ff 0%, #f8f0ff 100%);
             border-radius: 12px;
-            padding: 14px 16px;
+            padding: 14px 32px 14px 16px;
             margin: 12px 0 8px;
             text-align: left;
         }
@@ -211,7 +233,7 @@
             background: #fff8f0;
             border-left: 3px solid #e67e22;
             border-radius: 0 10px 10px 0;
-            padding: 10px 14px;
+            padding: 10px 32px 10px 14px;
             margin-bottom: 14px;
         }
 
@@ -456,6 +478,15 @@
     console.log('🔍 QR Code ID obtido:', id);
     console.log('📱 URL completa:', window.location.href);
 
+    function getLastTuesdayStart() {
+        const now = new Date();
+        const daysSinceTuesday = (now.getDay() + 7 - 2) % 7; // 2 = Tuesday
+        const lastTuesday = new Date(now);
+        lastTuesday.setDate(now.getDate() - daysSinceTuesday);
+        lastTuesday.setHours(0, 0, 0, 0);
+        return lastTuesday;
+    }
+
     function getOrCreateSessionId() {
         try {
             let sessionId = sessionStorage.getItem(sessionStorageKey);
@@ -532,15 +563,31 @@
         title.textContent = '💬 Mural';
         header.appendChild(title);
 
+        function makeDismissible(el) {
+            el.classList.add('mural-notice');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'mural-notice-close';
+            btn.setAttribute('aria-label', 'Fechar');
+            btn.textContent = '✕';
+            btn.addEventListener('click', () => {
+                el.style.transition = 'opacity 0.2s';
+                el.style.opacity = '0';
+                setTimeout(() => { el.style.display = 'none'; }, 200);
+            });
+            el.appendChild(btn);
+        }
+
         const about = document.createElement('div');
         about.className = 'mural-about';
         const aboutP = document.createElement('p');
         aboutP.innerHTML = 'Um espaço para <strong>conectar quem está no por ai</strong> 🎉 '
             + 'Conta qual é a boa, compartilha seu insta se quiser ou deixa uma mensagem '
-            + 'pra galera. É um <strong>mural aberto</strong>, não um chat. ' 
-            + 'Se quiser, diga em que região o qrcode foi acessado.'
+            + 'pra galera. É um <strong>mural aberto</strong>, não um chat. '
+            + 'Se quiser, diga em que região o qrcode foi acessado. '
             + '(O mural reseta toda terça-feira.)';
         about.appendChild(aboutP);
+        makeDismissible(about);
         header.appendChild(about);
 
         const rules = document.createElement('div');
@@ -550,6 +597,7 @@
             + 'ou qualquer conteúdo que constranja outras pessoas. '
             + 'Comentários inadequados serão removidos e o autor poderá ser denunciado.';
         rules.appendChild(rulesP);
+        makeDismissible(rules);
         header.appendChild(rules);
 
         // Comments list
@@ -658,6 +706,7 @@
         }
 
         db.collection('qrcodes').doc(id).collection('comments')
+            .where('timestamp', '>=', getLastTuesdayStart())
             .orderBy('timestamp', 'asc')
             .onSnapshot(renderComments, (error) => {
                 console.error('Erro ao carregar comentários:', error);
