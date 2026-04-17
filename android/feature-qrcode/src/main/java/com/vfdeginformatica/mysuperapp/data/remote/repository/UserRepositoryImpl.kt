@@ -4,6 +4,7 @@ import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
+import com.vfdeginformatica.mysuperapp.domain.model.NotificationSettings
 import com.vfdeginformatica.mysuperapp.domain.model.UserSession
 import com.vfdeginformatica.mysuperapp.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
@@ -78,6 +79,27 @@ class UserRepositoryImpl(
             Resource.Success(Unit)
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Erro ao atualizar perfil")
+        }
+    }
+
+    override suspend fun getNotificationSettings(): Resource<NotificationSettings> {
+        return try {
+            val uid = userSessionSecureStorage.getUserSession().id
+            if (uid.isEmpty()) return Resource.Error("Usuário não autenticado")
+            Resource.Success(userRemoteDao.getNotificationSettings(uid))
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Erro ao carregar preferências de notificações")
+        }
+    }
+
+    override suspend fun updateNotificationSettings(settings: NotificationSettings): Resource<Unit> {
+        return try {
+            val uid = userSessionSecureStorage.getUserSession().id
+            if (uid.isEmpty()) return Resource.Error("Usuário não autenticado")
+            userRemoteDao.updateNotificationSettings(uid, settings)
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Erro ao atualizar preferências de notificações")
         }
     }
 }

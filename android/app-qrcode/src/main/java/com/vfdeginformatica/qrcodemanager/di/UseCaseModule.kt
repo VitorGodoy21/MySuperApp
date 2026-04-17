@@ -17,7 +17,9 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodeAccessSta
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.SaveQrCodeAccessLogUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetNotificationSettingsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetUserSessionUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.UpdateNotificationSettingsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.UpdateUserProfileUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.validator.ValidateEmail
 import com.vfdeginformatica.mysuperapp.domain.use_case.validator.ValidatePassword
@@ -54,6 +56,16 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideUpdateUserProfileUseCase(r: UserRepository) = UpdateUserProfileUseCase(r)
+
+    @Provides
+    @Singleton
+    fun provideGetNotificationSettingsUseCase(r: UserRepository) =
+        GetNotificationSettingsUseCase(r)
+
+    @Provides
+    @Singleton
+    fun provideUpdateNotificationSettingsUseCase(r: UserRepository) =
+        UpdateNotificationSettingsUseCase(r)
 
     @Provides
     @Singleton
@@ -111,4 +123,3 @@ object UseCaseModule {
     @Singleton
     fun provideAddMuralCommentUseCase(r: QrCodeRepository) = AddMuralCommentUseCase(r)
 }
-

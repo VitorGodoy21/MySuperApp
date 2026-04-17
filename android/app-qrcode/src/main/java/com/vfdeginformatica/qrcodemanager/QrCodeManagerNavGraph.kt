@@ -19,6 +19,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.muralCommentsRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
+import com.vfdeginformatica.qrcodemanager.notifications.NotificationsRoute
 import com.vfdeginformatica.qrcodemanager.profile.ProfileRoute
 
 @Composable
@@ -108,7 +109,11 @@ fun QrCodeManagerNavGraph(
             composable(route = QrCodeManagerScreen.Profile.route) {
                 ProfileRoute(navController = navController)
             }
+
+            // ── Notifications ─────────────────────────────────────────────
+            composable(route = QrCodeManagerScreen.Notifications.route) {
+                NotificationsRoute(navController = navController)
             }
+        }
     }
 }
-

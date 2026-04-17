@@ -76,7 +76,7 @@ fun QrCodeManagerListRoute(
             navController.navigate(QrCodeManagerScreen.Profile.route)
         },
         onNotifications = {
-            // TODO: navegar para tela de notificações quando implementada
+            navController.navigate(QrCodeManagerScreen.Notifications.route)
         },
         onLogout = { logoutViewModel.logout() }
     ) {

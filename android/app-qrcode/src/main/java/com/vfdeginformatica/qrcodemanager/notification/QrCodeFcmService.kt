@@ -9,8 +9,10 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.vfdeginformatica.mysuperapp.domain.model.NotificationSettings
 import com.vfdeginformatica.qrcodemanager.QrCodeManagerActivity
 
 class QrCodeFcmService : FirebaseMessagingService() {
@@ -18,6 +20,8 @@ class QrCodeFcmService : FirebaseMessagingService() {
     companion object {
         const val CHANNEL_ID = "qrcode_notifications"
         private const val CHANNEL_NAME = "Notificacoes QR Code"
+        private const val TYPE_ACCESS = "access"
+        private const val TYPE_MURAL_COMMENT = "mural_comment"
     }
 
     override fun onNewToken(token: String) {
@@ -30,10 +34,51 @@ class QrCodeFcmService : FirebaseMessagingService() {
 
         val title = message.notification?.title ?: message.data["title"]
         val body = message.notification?.body ?: message.data["body"]
+        val type = message.data["type"] ?: ""
 
-        if (!title.isNullOrBlank() && !body.isNullOrBlank()) {
-            showNotification(title, body)
+        if (title.isNullOrBlank() || body.isNullOrBlank()) return
+
+        loadNotificationSettings { settings ->
+            if (shouldShowNotification(settings, type)) {
+                showNotification(title, body)
+            }
         }
+    }
+
+    private fun shouldShowNotification(settings: NotificationSettings, type: String): Boolean {
+        if (!settings.enabledAll) return false
+
+        return when (type) {
+            TYPE_ACCESS -> settings.enabledAccess
+            TYPE_MURAL_COMMENT -> settings.enabledMuralComments
+            else -> true
+        }
+    }
+
+    private fun loadNotificationSettings(onResult: (NotificationSettings) -> Unit) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid.isNullOrEmpty()) {
+            onResult(NotificationSettings())
+            return
+        }
+
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val settingsMap = snapshot.get("notificationSettings") as? Map<*, *>
+                val settings = NotificationSettings(
+                    enabledAll = settingsMap?.get("enabledAll") as? Boolean ?: true,
+                    enabledAccess = settingsMap?.get("enabledAccess") as? Boolean ?: true,
+                    enabledMuralComments =
+                        settingsMap?.get("enabledMuralComments") as? Boolean ?: true
+                )
+                onResult(settings)
+            }
+            .addOnFailureListener {
+                onResult(NotificationSettings())
+            }
     }
 
     private fun saveTokenToFirestore(token: String) {
@@ -41,7 +86,7 @@ class QrCodeFcmService : FirebaseMessagingService() {
         FirebaseFirestore.getInstance()
             .collection("users")
             .document(uid)
-            .set(mapOf("fcmToken" to token), com.google.firebase.firestore.SetOptions.merge())
+            .set(mapOf("fcmToken" to token), SetOptions.merge())
     }
 
     private fun showNotification(title: String, body: String) {
@@ -80,4 +125,3 @@ class QrCodeFcmService : FirebaseMessagingService() {
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 }
-

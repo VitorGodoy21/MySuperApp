@@ -13,6 +13,7 @@ sealed class QrCodeManagerScreen(val route: String) {
     object Login : QrCodeManagerScreen("login")
     object QrCodeList : QrCodeManagerScreen("qr_code_list_screen")
     object Profile : QrCodeManagerScreen("profile")
+    object Notifications : QrCodeManagerScreen("notifications")
 
     /** Detail / edit screen for a single QR code. */
     object QrCodeDetail : QrCodeManagerScreen("qr_code_screen/{qrCodeData}") {
@@ -38,4 +39,3 @@ sealed class QrCodeManagerScreen(val route: String) {
         }
     }
 }
-

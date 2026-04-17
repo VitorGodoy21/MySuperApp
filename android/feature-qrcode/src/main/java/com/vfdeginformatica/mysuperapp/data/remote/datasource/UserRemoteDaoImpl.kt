@@ -3,6 +3,8 @@ package com.vfdeginformatica.mysuperapp.data.remote.datasource
 import android.util.Log
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.vfdeginformatica.mysuperapp.domain.model.NotificationSettings
 import com.vfdeginformatica.mysuperapp.domain.model.UserSession
 import kotlinx.coroutines.tasks.await
 
@@ -17,7 +19,12 @@ class UserRemoteDaoImpl(
         val userMap = mapOf(
             "email" to email,
             "createdAt" to FieldValue.serverTimestamp(),
-            "name" to name
+            "name" to name,
+            "notificationSettings" to mapOf(
+                "enabledAll" to true,
+                "enabledAccess" to true,
+                "enabledMuralComments" to true
+            )
         )
 
         db.collection("users")
@@ -50,5 +57,35 @@ class UserRemoteDaoImpl(
             .update(mapOf("name" to name, "email" to email))
             .await()
         Log.d("UserRemoteDaoImpl", "updateUser: uid=$uid name=$name email=$email")
+    }
+
+    override suspend fun getNotificationSettings(uid: String): NotificationSettings {
+        val snapshot = db.collection("users").document(uid).get().await()
+        val settings = snapshot.get("notificationSettings") as? Map<*, *>
+
+        val enabledAll = settings?.get("enabledAll") as? Boolean ?: true
+        val enabledAccess = settings?.get("enabledAccess") as? Boolean ?: true
+        val enabledMuralComments = settings?.get("enabledMuralComments") as? Boolean ?: true
+
+        return NotificationSettings(
+            enabledAll = enabledAll,
+            enabledAccess = enabledAccess,
+            enabledMuralComments = enabledMuralComments
+        )
+    }
+
+    override suspend fun updateNotificationSettings(uid: String, settings: NotificationSettings) {
+        val payload = mapOf(
+            "notificationSettings" to mapOf(
+                "enabledAll" to settings.enabledAll,
+                "enabledAccess" to settings.enabledAccess,
+                "enabledMuralComments" to settings.enabledMuralComments
+            )
+        )
+
+        db.collection("users")
+            .document(uid)
+            .set(payload, SetOptions.merge())
+            .await()
     }
 }

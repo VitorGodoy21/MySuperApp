@@ -334,7 +334,10 @@ exports.addMuralComment = onRequest(
 
 // ─── FCM Notifications ───────────────────────────────────────────────────────
 
-async function sendToQrOwner({ qrCodeId, title, body }) {
+const NOTIFICATION_TYPE_ACCESS = 'access';
+const NOTIFICATION_TYPE_MURAL_COMMENT = 'mural_comment';
+
+async function sendToQrOwner({ qrCodeId, title, body, type }) {
   const db = admin.firestore();
 
   const qrDoc = await db.collection('qrcodes').doc(qrCodeId).get();
@@ -343,23 +346,23 @@ async function sendToQrOwner({ qrCodeId, title, body }) {
     return;
   }
 
-  const userId = (qrDoc.data() || {}).userId;
-  if (!userId) {
+  const ownerUserId = (qrDoc.data() || {}).userId;
+  if (!ownerUserId) {
     logger.warn('QRCode without userId', { qrCodeId });
     return;
   }
 
-  const userDoc = await db.collection('users').doc(userId).get();
+  const userDoc = await db.collection('users').doc(ownerUserId).get();
   const token = (userDoc.data() || {}).fcmToken;
   if (!token) {
-    logger.warn('User without fcmToken', { userId, qrCodeId });
+    logger.warn('Owner without fcmToken', { ownerUserId, qrCodeId });
     return;
   }
 
   await messaging.send({
     token,
     notification: { title, body },
-    data: { qrCodeId, type: 'qrcode_event' }
+    data: { type, qrCodeId }
   });
 }
 
@@ -374,8 +377,9 @@ exports.notifyQrCodeAccess = onDocumentCreated(
 
     await sendToQrOwner({
       qrCodeId,
-      title: 'QR CODE ACESSADO',
-      body: `Houve um acesso em um QR Code seu${suffix}`
+      title: 'Registro de acesso',
+      body: `Acesso em um QR Code seu${suffix}`,
+      type: NOTIFICATION_TYPE_ACCESS
     });
   }
 );
@@ -391,8 +395,9 @@ exports.notifyMuralComment = onDocumentCreated(
 
     await sendToQrOwner({
       qrCodeId,
-      title: 'COMENTARIO NO MURAL',
-      body: `${author}: ${text}`
+      title: `Mural: ${author}`,
+      body: `${text}`,
+      type: NOTIFICATION_TYPE_MURAL_COMMENT
     });
   }
 );
