@@ -20,6 +20,7 @@ private object UserSessionConstants {
     const val PREFERENCE_IS_LOGGED_IN = "is_logged_in"
     const val PREFERENCE_LAST_SIGN_IN_AT = "last_sign_in_at"
     const val PREFERENCE_NAME = "name"
+    const val PREFERENCE_IS_ADMIN = "is_admin"
 }
 
 private object UserSessionObject {
@@ -28,6 +29,7 @@ private object UserSessionObject {
     val LOGGED = booleanPreferencesKey(UserSessionConstants.PREFERENCE_IS_LOGGED_IN)
     val LAST = longPreferencesKey(UserSessionConstants.PREFERENCE_LAST_SIGN_IN_AT)
     val NAME = stringPreferencesKey(UserSessionConstants.PREFERENCE_NAME)
+    val IS_ADMIN = booleanPreferencesKey(UserSessionConstants.PREFERENCE_IS_ADMIN)
 }
 
 class UserSessionSecureStorageImpl(
@@ -41,6 +43,7 @@ class UserSessionSecureStorageImpl(
             isLoggedIn = p[UserSessionObject.LOGGED] ?: false,
             lastSignInAt = p[UserSessionObject.LAST] ?: 0L,
             name = p[UserSessionObject.NAME].orEmpty(),
+            isAdmin = p[UserSessionObject.IS_ADMIN] ?: false,
         )
     }
 
@@ -51,13 +54,15 @@ class UserSessionSecureStorageImpl(
         val isLoggedIn = prefs[UserSessionObject.LOGGED] ?: false
         val lastSignInAt = prefs[UserSessionObject.LAST] ?: 0L
         val name = prefs[UserSessionObject.NAME].orEmpty()
+        val isAdmin = prefs[UserSessionObject.IS_ADMIN] ?: false
 
         return UserSession(
             id = uid,
             email = email,
             isLoggedIn = isLoggedIn,
             lastSignInAt = lastSignInAt,
-            name = name
+            name = name,
+            isAdmin = isAdmin
         )
     }
 
@@ -68,6 +73,7 @@ class UserSessionSecureStorageImpl(
             user[UserSessionObject.LOGGED] = s.isLoggedIn
             user[UserSessionObject.LAST] = s.lastSignInAt
             user[UserSessionObject.NAME] = s.name
+            user[UserSessionObject.IS_ADMIN] = s.isAdmin
         }
     }
 

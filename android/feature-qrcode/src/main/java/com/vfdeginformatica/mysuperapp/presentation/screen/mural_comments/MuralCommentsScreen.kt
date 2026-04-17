@@ -54,6 +54,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.MuralComment
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contract.MuralCommentsEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.contract.MuralCommentsUiState
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 @Composable
@@ -171,6 +172,8 @@ fun MuralCommentsScreen(
                 }
 
                 else -> {
+                    val sections = splitCommentsByTuesdayCutoff(uiState.comments)
+
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
@@ -185,14 +188,43 @@ fun MuralCommentsScreen(
                                 modifier = Modifier.padding(bottom = 4.dp)
                             )
                         }
+
+                        item {
+                            SectionMarker(
+                                title = "Exibidos no mural (desde terça-feira)",
+                                count = sections.recentComments.size,
+                                highlighted = true
+                            )
+                        }
+
                         items(
-                            items = uiState.comments,
+                            items = sections.recentComments,
                             key = { it.id }
                         ) { comment ->
                             MuralCommentItem(
                                 comment = comment,
                                 onDeleteClick = { commentToDelete = comment }
                             )
+                        }
+
+                        if (sections.olderComments.isNotEmpty()) {
+                            item {
+                                SectionMarker(
+                                    title = "Comentários anteriores",
+                                    count = sections.olderComments.size,
+                                    highlighted = false
+                                )
+                            }
+
+                            items(
+                                items = sections.olderComments,
+                                key = { "old-${it.id}" }
+                            ) { comment ->
+                                MuralCommentItem(
+                                    comment = comment,
+                                    onDeleteClick = { commentToDelete = comment }
+                                )
+                            }
                         }
                     }
                 }
@@ -239,6 +271,47 @@ fun MuralCommentsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SectionMarker(
+    title: String,
+    count: Int,
+    highlighted: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (highlighted) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    val textColor = if (highlighted) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(backgroundColor, RoundedCornerShape(10.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = textColor,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "$count",
+            style = MaterialTheme.typography.labelMedium,
+            color = textColor
+        )
     }
 }
 
@@ -354,4 +427,40 @@ private fun formatTimestamp(timestamp: Timestamp): String {
     } catch (e: Exception) {
         ""
     }
+}
+
+private data class MuralCommentSections(
+    val recentComments: List<MuralComment>,
+    val olderComments: List<MuralComment>
+)
+
+private fun splitCommentsByTuesdayCutoff(comments: List<MuralComment>): MuralCommentSections {
+    val cutoff = getLastTuesdayStart()
+
+    val recent = comments.filter { comment ->
+        val commentDate = comment.timestamp?.toDate() ?: return@filter false
+        !commentDate.before(cutoff)
+    }
+
+    val older = comments.filterNot { comment ->
+        val commentDate = comment.timestamp?.toDate() ?: return@filterNot false
+        !commentDate.before(cutoff)
+    }
+
+    return MuralCommentSections(
+        recentComments = recent,
+        olderComments = older
+    )
+}
+
+private fun getLastTuesdayStart(): java.util.Date {
+    val calendar = Calendar.getInstance()
+    while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.TUESDAY) {
+        calendar.add(Calendar.DAY_OF_MONTH, -1)
+    }
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    return calendar.time
 }

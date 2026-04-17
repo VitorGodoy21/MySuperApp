@@ -97,8 +97,11 @@ class MuralCommentsViewModel @Inject constructor(
         if (message.isEmpty()) return
 
         viewModelScope.launch {
-            val author = "Roteador"//getUserSessionUseCase().first().name.ifEmpty { "Anônimo" }
-            val isAdmin = getUserSessionUseCase().first().isAdmin
+            val session = getUserSessionUseCase().first()
+            val author = session.name
+                .ifEmpty { session.email.substringBefore('@', missingDelimiterValue = "") }
+                .ifEmpty { "Anônimo" }
+            val isAdmin = session.isAdmin
             addMuralCommentUseCase(qrCodeId, author, message, isAdmin).collect { resource ->
                 when (resource) {
                     is Resource.Loading -> _uiState.value =
