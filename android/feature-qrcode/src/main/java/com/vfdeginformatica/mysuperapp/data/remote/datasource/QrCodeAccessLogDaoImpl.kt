@@ -66,5 +66,16 @@ class QrCodeAccessLogDaoImpl(
             null
         }
     }
+
+    override suspend fun deleteAccessLog(qrCodeId: String, logId: String): Boolean {
+        return try {
+            db.collection("qrcodes").document(qrCodeId)
+                .collection("access_logs").document(logId)
+                .delete().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
 

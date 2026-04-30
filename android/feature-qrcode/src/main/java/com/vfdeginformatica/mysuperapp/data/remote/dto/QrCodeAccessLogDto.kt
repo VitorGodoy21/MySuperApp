@@ -25,6 +25,11 @@ data class QrCodeAccessLogDto(
     var scanId: String = "",
     var sessionId: String = "",
     var status: String = "completed",
-    var method: String = ""
+    var method: String = "",
+    var region: String = "",
+    var loggedAt: String = "",
+    var utmSource: String? = null,
+    var utmMedium: String? = null,
+    var utmCampaign: String? = null
 )
 

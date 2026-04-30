@@ -25,4 +25,9 @@ interface QrCodeAccessLogRepository {
      * Get city-based statistics for access logs
      */
     suspend fun getCityAccessStatistics(qrCodeId: String): List<CityAccessStatistics>?
+
+    /**
+     * Delete a single access log entry
+     */
+    suspend fun deleteAccessLog(qrCodeId: String, logId: String): Boolean
 }

@@ -9,12 +9,15 @@ data class AccessLogMapUiState(
     val cityStatistics: List<CityAccessStatistics> = emptyList(),
     val selectedCity: String? = null,
     val errorMessage: String = "",
-    val viewMode: MapViewMode = MapViewMode.MAP
+    val viewMode: MapViewMode = MapViewMode.MAP,
+    val selectedLog: AccessLog? = null,
+    val isDeleting: Boolean = false
 )
 
 enum class MapViewMode {
     MAP,
-    CITY_LIST
+    CITY_LIST,
+    LOG_LIST
 }
 
 sealed interface AccessLogMapEvent {
@@ -22,10 +25,13 @@ sealed interface AccessLogMapEvent {
     data class OnSelectCity(val city: String) : AccessLogMapEvent
     data object OnClearCityFilter : AccessLogMapEvent
     data object OnToggleViewMode : AccessLogMapEvent
+    data object OnShowLogList : AccessLogMapEvent
+    data class OnSelectLog(val log: AccessLog) : AccessLogMapEvent
+    data object OnClearSelectedLog : AccessLogMapEvent
+    data class OnDeleteLog(val qrCodeId: String, val logId: String) : AccessLogMapEvent
 }
 
 sealed interface AccessLogMapEffect {
     data class ShowToast(val message: String) : AccessLogMapEffect
     data class ShowError(val error: String) : AccessLogMapEffect
 }
-

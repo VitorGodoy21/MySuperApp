@@ -10,6 +10,7 @@ data class AccessLog(
     val id: String,
     val qrCodeId: String,
     val timestamp: Date,
+    val loggedAt: String = "",
     val latitude: Double?,
     val longitude: Double?,
     val city: String,
@@ -21,7 +22,16 @@ data class AccessLog(
     val screenWidth: Int? = null,
     val screenHeight: Int? = null,
     val pageUrl: String = "",
-    val pagePath: String = ""
+    val pagePath: String = "",
+    val referrer: String? = null,
+    val scanId: String = "",
+    val sessionId: String = "",
+    val status: String = "",
+    val method: String = "",
+    val region: String = "",
+    val utmSource: String? = null,
+    val utmMedium: String? = null,
+    val utmCampaign: String? = null
 )
 
 /**

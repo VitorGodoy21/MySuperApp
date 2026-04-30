@@ -38,4 +38,8 @@ class QrCodeAccessLogRepositoryImpl(
         val logs = getAccessLogsWithLocations(qrCodeId) ?: return null
         return logs.groupByCityStatistics()
     }
+
+    override suspend fun deleteAccessLog(qrCodeId: String, logId: String): Boolean {
+        return accessLogDao.deleteAccessLog(qrCodeId, logId)
+    }
 }

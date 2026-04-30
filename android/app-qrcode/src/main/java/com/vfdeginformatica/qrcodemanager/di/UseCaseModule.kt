@@ -8,6 +8,7 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LoginUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LogoutUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.AddMuralCommentUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.DeleteAccessLogUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.DeleteMuralCommentUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetAccessLogsByCityUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetAccessLogsWithLocationsUseCase
@@ -110,6 +111,11 @@ object UseCaseModule {
     @Singleton
     fun provideGetAccessLogsByCityUseCase(r: QrCodeAccessLogRepository) =
         GetAccessLogsByCityUseCase(r)
+
+    @Provides
+    @Singleton
+    fun provideDeleteAccessLogUseCase(r: QrCodeAccessLogRepository) =
+        DeleteAccessLogUseCase(r)
 
     @Provides
     @Singleton

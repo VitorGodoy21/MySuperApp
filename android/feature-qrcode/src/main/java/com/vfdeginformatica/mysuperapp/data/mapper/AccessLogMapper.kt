@@ -14,6 +14,7 @@ fun QrCodeAccessLogDto.toAccessLog(): AccessLog {
         id = id,
         qrCodeId = qrCodeId,
         timestamp = timestamp,
+        loggedAt = loggedAt,
         latitude = latitude,
         longitude = longitude,
         city = city,
@@ -25,7 +26,16 @@ fun QrCodeAccessLogDto.toAccessLog(): AccessLog {
         screenWidth = screenWidth,
         screenHeight = screenHeight,
         pageUrl = pageUrl,
-        pagePath = pagePath
+        pagePath = pagePath,
+        referrer = referrer,
+        scanId = scanId,
+        sessionId = sessionId,
+        status = status,
+        method = method,
+        region = region,
+        utmSource = utmSource,
+        utmMedium = utmMedium,
+        utmCampaign = utmCampaign
     )
 }
 

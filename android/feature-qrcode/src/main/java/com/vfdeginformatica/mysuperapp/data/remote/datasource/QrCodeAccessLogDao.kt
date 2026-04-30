@@ -8,5 +8,7 @@ interface QrCodeAccessLogDao {
     suspend fun getAccessLogsByQrCode(qrCodeId: String): List<QrCodeAccessLogDto>?
 
     suspend fun getAccessLogStatistics(qrCodeId: String): Map<String, Any>?
+
+    suspend fun deleteAccessLog(qrCodeId: String, logId: String): Boolean
 }
 
