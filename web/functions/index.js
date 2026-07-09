@@ -367,7 +367,13 @@ async function sendToQrOwner({ qrCodeId, title, body, type }) {
 }
 
 exports.notifyQrCodeAccess = onDocumentCreated(
-  { document: 'qrcodes/{qrCodeId}/access_logs/{logId}', region: 'us-central1' },
+  {
+    document: 'qrcodes/{qrCodeId}/access_logs/{logId}',
+    region: 'us-central1',
+    timeoutSeconds: 30,
+    minInstances: 1,
+    maxInstances: 10
+  },
   async (event) => {
     const qrCodeId = event.params.qrCodeId;
     const log = event.data?.data() || {};
@@ -385,7 +391,13 @@ exports.notifyQrCodeAccess = onDocumentCreated(
 );
 
 exports.notifyMuralComment = onDocumentCreated(
-  { document: 'qrcodes/{qrCodeId}/comments/{commentId}', region: 'us-central1' },
+  {
+    document: 'qrcodes/{qrCodeId}/comments/{commentId}',
+    region: 'us-central1',
+    timeoutSeconds: 30,
+    minInstances: 1,
+    maxInstances: 10
+  },
   async (event) => {
     const qrCodeId = event.params.qrCodeId;
     const comment = event.data?.data() || {};
