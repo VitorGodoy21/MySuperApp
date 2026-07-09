@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isQrOwner(qrId) {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/qrcodes/$(qrId)).data.userId == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read, write: if isSelf(userId);
+    }
+
+    match /qrcodes/{qrId} {
+      // Leitura pública de um QR Code específico
+      allow get: if true;
+
+      // O app manager lista os QR Codes do usuário autenticado com whereEqualTo("userId", uid)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // O dono autenticado pode atualizar o próprio QR Code, mas não trocar o userId
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId;
+
+      allow create, delete: if false;
+
+      // Comentários: leitura pública; moderação/edição permitida ao dono do QR autenticado
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create, update, delete: if isQrOwner(qrId);
+      }
+
+      // Access logs: leitura e exclusão apenas para o dono do QR; escrita segue fora do cliente
+      match /access_logs/{logId} {
+        allow read: if isQrOwner(qrId);
+        allow delete: if isQrOwner(qrId);
+        allow create, update: if false;
+      }
+    }
+
+    // Rate limiting interno — acessado apenas via Admin SDK (Cloud Function)
+    match /_rate_limits/{doc} {
+      allow read, write: if false;
+    }
+
+    // Política definitiva: qualquer caminho não tratado explicitamente fica negado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
