@@ -1,8 +1,7 @@
 package com.vfdeginformatica.mysuperapp
 
-import android.net.Uri
-import com.google.gson.Gson
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.navigation.SharedQrCodeRoutes
 
 sealed class Screen(val route: String) {
     object SplashScreen : Screen("splash_screen")
@@ -10,27 +9,21 @@ sealed class Screen(val route: String) {
     object LoginScreen : Screen("login_screen")
     object FinancialScreen : Screen("financial_screen")
     object NewTransactionScreen : Screen("new_transaction_screen")
-    object QrCodeListScreen : Screen("qr_code_list_screen")
-    object QrCodeScreen : Screen("qr_code_screen/{qrCodeData}") {
-        const val QR_CODE_DATA = "qrCodeData"
-        fun createRoute(qrCode: QrCode): String {
-            val json = Gson().toJson(qrCode.copy(qrcodeBitmap = null))
-            val encoded = Uri.encode(json)
-            return "qr_code_screen/$encoded"
-        }
+    object QrCodeListScreen : Screen(SharedQrCodeRoutes.QR_CODE_LIST)
+    object QrCodeScreen : Screen(SharedQrCodeRoutes.QR_CODE_DETAIL) {
+        const val QR_CODE_DATA = SharedQrCodeRoutes.QR_CODE_DATA
+        fun createRoute(qrCode: QrCode): String = SharedQrCodeRoutes.createQrCodeDetailRoute(qrCode)
     }
 
-    object AccessLogMapScreen : Screen("access_log_map/{qrCodeId}") {
-        const val QR_CODE_ID = "qrCodeId"
-        fun createRoute(qrCodeId: String): String = "access_log_map/$qrCodeId"
+    object AccessLogMapScreen : Screen(SharedQrCodeRoutes.ACCESS_LOG_MAP) {
+        const val QR_CODE_ID = SharedQrCodeRoutes.QR_CODE_ID
+        fun createRoute(qrCodeId: String): String = SharedQrCodeRoutes.createAccessLogMapRoute(qrCodeId)
     }
 
-    object MuralCommentsScreen : Screen("mural_comments/{qrCodeId}/{qrCodeIdentifier}") {
-        const val QR_CODE_ID = "qrCodeId"
-        const val QR_CODE_IDENTIFIER = "qrCodeIdentifier"
-        fun createRoute(qrCodeId: String, identifier: String = ""): String {
-            val encodedIdentifier = Uri.encode(identifier.ifEmpty { " " })
-            return "mural_comments/$qrCodeId/$encodedIdentifier"
-        }
+    object MuralCommentsScreen : Screen(SharedQrCodeRoutes.MURAL_COMMENTS) {
+        const val QR_CODE_ID = SharedQrCodeRoutes.QR_CODE_ID
+        const val QR_CODE_IDENTIFIER = SharedQrCodeRoutes.QR_CODE_IDENTIFIER
+        fun createRoute(qrCodeId: String, identifier: String = ""): String =
+            SharedQrCodeRoutes.createMuralCommentsRoute(qrCodeId, identifier)
     }
 }

@@ -1,4 +1,4 @@
-package com.vfdeginformatica.mysuperapp.di
+package com.vfdeginformatica.mysuperapp.di.shared
 
 import com.vfdeginformatica.mysuperapp.data.util.QrCodeGeneratorImpl
 import com.vfdeginformatica.mysuperapp.domain.util.QrCodeGenerator
@@ -10,10 +10,9 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object UtilModule {
+object SharedUtilModule {
+
     @Provides
     @Singleton
-    fun provideQrCodeGenerator(): QrCodeGenerator {
-        return QrCodeGeneratorImpl()
-    }
+    fun provideQrCodeGenerator(): QrCodeGenerator = QrCodeGeneratorImpl()
 }

@@ -1,4 +1,4 @@
-package com.vfdeginformatica.qrcodemanager.di
+package com.vfdeginformatica.mysuperapp.di.shared
 
 import android.content.Context
 import com.google.firebase.appcheck.FirebaseAppCheck
@@ -23,7 +23,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DaoModule {
+object SharedDaoModule {
 
     @Provides
     @Singleton

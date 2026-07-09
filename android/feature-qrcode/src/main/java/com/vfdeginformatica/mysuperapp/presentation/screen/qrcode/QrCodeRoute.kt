@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
+import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.navigateToAccessLogMap
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEvent
 
@@ -48,7 +49,7 @@ fun QrCodeRoute(
             uiState = state,
             onEvent = viewModel::onEvent,
             onViewAccessLogs = { qrCodeId ->
-                navController.navigate("access_log_map/$qrCodeId")
+                navController.navigateToAccessLogMap(qrCodeId)
             },
             onViewMural = { qrCodeId, identifier ->
                 navController.navigate(Screen.MuralCommentsScreen.createRoute(qrCodeId, identifier))
@@ -57,5 +58,4 @@ fun QrCodeRoute(
         )
     }
 }
-
 

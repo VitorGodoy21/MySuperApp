@@ -1,4 +1,4 @@
-package com.vfdeginformatica.qrcodemanager.di
+package com.vfdeginformatica.mysuperapp.di.shared
 
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
@@ -19,7 +19,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object RepositoryModule {
+object SharedRepositoryModule {
 
     @Provides
     @Singleton
@@ -45,4 +45,3 @@ object RepositoryModule {
         qrCodeAccessLogDao: QrCodeAccessLogDao
     ): QrCodeAccessLogRepository = QrCodeAccessLogRepositoryImpl(qrCodeAccessLogDao)
 }
-

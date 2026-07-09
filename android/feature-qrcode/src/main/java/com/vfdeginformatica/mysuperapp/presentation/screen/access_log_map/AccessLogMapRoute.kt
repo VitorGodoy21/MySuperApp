@@ -8,12 +8,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.vfdeginformatica.mysuperapp.Screen
 
 fun NavGraphBuilder.accessLogMapRoute(navController: NavController) {
     composable(
-        route = "access_log_map/{qrCodeId}"
+        route = Screen.AccessLogMapScreen.route
     ) { backStackEntry ->
-        val qrCodeId = backStackEntry.arguments?.getString("qrCodeId") ?: ""
+        val qrCodeId = backStackEntry.arguments?.getString(Screen.AccessLogMapScreen.QR_CODE_ID) ?: ""
         val viewModel: AccessLogMapViewModel = hiltViewModel()
         val uiState = viewModel.uiState.collectAsState().value
         val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -31,5 +32,5 @@ fun NavGraphBuilder.accessLogMapRoute(navController: NavController) {
 }
 
 fun NavController.navigateToAccessLogMap(qrCodeId: String) {
-    navigate("access_log_map/$qrCodeId")
+    navigate(Screen.AccessLogMapScreen.createRoute(qrCodeId))
 }
