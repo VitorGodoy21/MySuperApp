@@ -1,5 +1,8 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map
 
+import android.content.Context
+import android.content.pm.PackageManager
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,25 +65,44 @@ import com.vfdeginformatica.mysuperapp.domain.model.AccessLog
 import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.contract.AccessLogMapEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.contract.AccessLogMapUiState
 import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.contract.MapViewMode
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
 
+private const val MapsApiKeyMetadataName = "com.google.android.geo.API_KEY"
+private const val MapsApiKeyPlaceholder = "\${MAPS_API_KEY}"
+
 private fun formatLoggedAt(raw: String): String {
+    if (raw.isBlank()) return "—"
+
     return try {
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        val formatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
-        val date = parser.parse(raw)
-        if (date != null) formatter.format(date) else raw
+        DateTimeFormatter
+            .ofPattern("dd-MM-yyyy HH:mm", Locale.getDefault())
+            .withZone(ZoneId.systemDefault())
+            .format(Instant.parse(raw))
     } catch (e: Exception) {
-        raw.ifEmpty { "—" }
+        raw
     }
 }
 
 private fun formatTimestamp(date: java.util.Date?): String {
     if (date == null) return "—"
     return SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(date)
+}
+
+private fun Context.hasConfiguredMapsApiKey(): Boolean {
+    val appInfo = try {
+        packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+    } catch (_: PackageManager.NameNotFoundException) {
+        return false
+    }
+
+    val mapsApiKey = appInfo.metaData?.getString(MapsApiKeyMetadataName)?.trim().orEmpty()
+    return mapsApiKey.isNotEmpty() && mapsApiKey != MapsApiKeyPlaceholder
 }
 
 // ─── Root Screen ─────────────────────────────────────────────────────────────
@@ -114,18 +137,6 @@ fun AccessLogMapScreen(
             }
         }
 
-        uiState.viewMode == MapViewMode.MAP -> {
-            MapViewContent(uiState, onEvent, contentPadding, modifier)
-        }
-
-        uiState.viewMode == MapViewMode.CITY_LIST -> {
-            CityListViewContent(uiState, onEvent, contentPadding, modifier)
-        }
-
-        uiState.viewMode == MapViewMode.LOG_LIST -> {
-            LogListViewContent(uiState, onEvent, qrCodeId, contentPadding, modifier)
-        }
-
         uiState.errorMessage.isNotEmpty() && uiState.accessLogs.isEmpty() -> {
             Box(
                 modifier = modifier
@@ -152,6 +163,18 @@ fun AccessLogMapScreen(
                 }
             }
         }
+
+        uiState.viewMode == MapViewMode.MAP -> {
+            MapViewContent(uiState, onEvent, contentPadding, modifier)
+        }
+
+        uiState.viewMode == MapViewMode.CITY_LIST -> {
+            CityListViewContent(uiState, onEvent, contentPadding, modifier)
+        }
+
+        uiState.viewMode == MapViewMode.LOG_LIST -> {
+            LogListViewContent(uiState, onEvent, qrCodeId, contentPadding, modifier)
+        }
     }
 }
 
@@ -164,6 +187,8 @@ private fun MapViewContent(
     contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val hasMapsApiKey = remember(context) { context.hasConfiguredMapsApiKey() }
     val filteredLogs = if (uiState.selectedCity != null) {
         uiState.accessLogs.filter { it.city.equals(uiState.selectedCity, ignoreCase = true) }
     } else {
@@ -185,16 +210,18 @@ private fun MapViewContent(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState
-        ) {
-            logsWithLocation.forEach { log ->
-                Marker(
-                    state = MarkerState(position = LatLng(log.latitude!!, log.longitude!!)),
-                    title = log.city,
-                    snippet = "${log.country} - ${log.timestamp}"
-                )
+        if (hasMapsApiKey) {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState
+            ) {
+                logsWithLocation.forEach { log ->
+                    Marker(
+                        state = MarkerState(position = LatLng(log.latitude!!, log.longitude!!)),
+                        title = log.city,
+                        snippet = "${log.country} - ${log.timestamp}"
+                    )
+                }
             }
         }
 
@@ -286,6 +313,42 @@ private fun MapViewContent(
             }
         }
 
+        when {
+            !hasMapsApiKey -> {
+                MapStatusCard(
+                    title = "Google Maps não configurado",
+                    message = "Defina MAPS_API_KEY em android/local.properties para carregar o mapa.",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp)
+                )
+            }
+
+            filteredLogs.isEmpty() -> {
+                MapStatusCard(
+                    title = "Nenhum acesso encontrado",
+                    message = if (uiState.selectedCity != null) {
+                        "Nao ha acessos para a cidade selecionada."
+                    } else {
+                        "Ainda nao existem acessos registrados para este QR Code."
+                    },
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp)
+                )
+            }
+
+            logsWithLocation.isEmpty() -> {
+                MapStatusCard(
+                    title = "Sem coordenadas para exibir",
+                    message = "Os acessos carregados nao possuem latitude e longitude, entao nenhum pin pode ser exibido no mapa.",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp)
+                )
+            }
+        }
+
         if (logsWithLocation.isNotEmpty()) {
             Card(
                 modifier = Modifier
@@ -314,6 +377,46 @@ private fun MapViewContent(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun MapStatusCard(
+    title: String,
+    message: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(0.9f),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.LocationOn,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

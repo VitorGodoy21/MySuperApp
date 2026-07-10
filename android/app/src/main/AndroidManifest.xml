@@ -4,6 +4,7 @@
     <!-- Permissões para autenticação biométrica -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Salvar imagem na galeria (necessário apenas até API 28) -->
     <uses-permission
