@@ -7,7 +7,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -18,6 +20,7 @@ import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffo
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListScreen
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListViewModel
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEffect
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEvent
 import com.vfdeginformatica.qrcodemanager.drawer.QrCodeManagerDrawerScreen
 import com.vfdeginformatica.qrcodemanager.drawer.QrCodeManagerDrawerViewModel
 
@@ -37,6 +40,7 @@ fun QrCodeManagerListRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val drawerState by drawerViewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
+    var showCreateDialog by remember { mutableStateOf(false) }
 
     // Reload list whenever this screen becomes active
     val currentEntry by navController.currentBackStackEntryAsState()
@@ -86,13 +90,21 @@ fun QrCodeManagerListRoute(
             customizedNavigateUpIcon = Icons.Default.Menu,
             onNavigateUp = { drawerViewModel.toggleDrawer() },
             snackBarHostState = snackBarHost,
-            toolbarActions = {}
+            toolbarActions = {},
+            floatingActionButtonOnClick = { showCreateDialog = true },
+            floatingActionButtonLabel = "Novo QR Code"
         ) { padding ->
             QrCodeListScreen(
                 uiState = state,
                 onEvent = viewModel::onEvent,
                 modifier = Modifier.padding(padding),
-                innerPadding = padding
+                innerPadding = padding,
+                showCreateDialog = showCreateDialog,
+                onDismissCreateDialog = { showCreateDialog = false },
+                onConfirmCreateQrCode = { type, identifier ->
+                    showCreateDialog = false
+                    viewModel.onEvent(QrCodeListEvent.OnCreateQrCode(type, identifier))
+                }
             )
         }
     }

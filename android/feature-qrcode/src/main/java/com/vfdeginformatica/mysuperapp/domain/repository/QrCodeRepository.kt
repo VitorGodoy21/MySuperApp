@@ -7,6 +7,8 @@ import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 interface QrCodeRepository {
     suspend fun getQrCodes(): List<QrCodeDto>?
 
+    suspend fun createQrCode(qrCode: QrCode): QrCodeDto?
+
     suspend fun updateQrCode(id: String, qrCode: QrCode): Boolean
 
     suspend fun getComments(qrCodeId: String): List<MuralComment>?

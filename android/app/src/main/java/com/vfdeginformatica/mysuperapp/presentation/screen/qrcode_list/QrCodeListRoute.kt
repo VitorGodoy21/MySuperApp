@@ -5,7 +5,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -16,6 +18,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.AppDrawerMenuRoute
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEffect
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEvent
 
 @Composable
 fun QrCodeListRoute(
@@ -25,6 +28,7 @@ fun QrCodeListRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
+    var showCreateDialog by remember { mutableStateOf(false) }
 
     // Recarrega os dados sempre que esta tela se tornar a tela ativa
     // (carga inicial + retorno de outra tela como a de edição)
@@ -53,13 +57,21 @@ fun QrCodeListRoute(
             title = "QR Codes",
             canNavigateUp = true,
             onNavigateUp = { onToggleDrawer.invoke() },
-            snackBarHostState = snackBarHost
+            snackBarHostState = snackBarHost,
+            floatingActionButtonOnClick = { showCreateDialog = true },
+            floatingActionButtonLabel = "Novo QR Code"
         ) { padding ->
             QrCodeListScreen(
                 uiState = state,
                 onEvent = viewModel::onEvent,
                 modifier = Modifier.padding(padding),
-                padding
+                innerPadding = padding,
+                showCreateDialog = showCreateDialog,
+                onDismissCreateDialog = { showCreateDialog = false },
+                onConfirmCreateQrCode = { type, identifier ->
+                    showCreateDialog = false
+                    viewModel.onEvent(QrCodeListEvent.OnCreateQrCode(type, identifier))
+                }
             )
         }
     }

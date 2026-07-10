@@ -518,11 +518,11 @@ fun QrCodeScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Editar URL",
+                    contentDescription = "Configurar QR Code",
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text("Editar URL de Redirecionamento")
+                Text("Configurar QR Code")
             }
 
             Spacer(modifier = Modifier.height(12.dp))

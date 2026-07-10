@@ -17,6 +17,7 @@ class QrCodeDaoImpl(
     companion object {
         private const val TAG = "QrCodeDaoImpl"
         private const val COLLECTION = "qrcodes"
+        private const val STATIC_URL_BASE = "https://baila.space/qr/?id="
     }
 
     override suspend fun getQrCodes(): List<QrCodeDto>? {
@@ -50,6 +51,29 @@ class QrCodeDaoImpl(
             result
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao buscar QR Codes: ${e.message}", e)
+            null
+        }
+    }
+
+    override suspend fun createQrCode(qrCodeDto: QrCodeDto): QrCodeDto? {
+        val userId = auth.currentUser?.uid
+        if (userId.isNullOrEmpty()) {
+            Log.w(TAG, "createQrCode: usuário não autenticado")
+            return null
+        }
+
+        return try {
+            val ref = db.collection(COLLECTION).document()
+            val newQrCode = qrCodeDto.copy(
+                id = ref.id,
+                staticUrl = "$STATIC_URL_BASE${ref.id}",
+                userId = userId
+            )
+            ref.set(newQrCode).await()
+            Log.d(TAG, "createQrCode: QR Code ${ref.id} criado com sucesso para userId=$userId")
+            newQrCode
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao criar QR Code: ${e.message}", e)
             null
         }
     }

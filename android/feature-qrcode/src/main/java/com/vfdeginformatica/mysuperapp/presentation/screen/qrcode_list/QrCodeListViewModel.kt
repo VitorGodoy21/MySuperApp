@@ -3,6 +3,9 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.CreateQrCodeUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEvent
@@ -22,7 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class QrCodeListViewModel @Inject constructor(
-    private val getQrCodesUseCase: GetQrCodesUseCase
+    private val getQrCodesUseCase: GetQrCodesUseCase,
+    private val createQrCodeUseCase: CreateQrCodeUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QrCodeListUiState())
@@ -38,16 +42,22 @@ class QrCodeListViewModel @Inject constructor(
         getQrCodesJob = getQrCodesUseCase.invoke().onEach { result ->
             when (result) {
                 is Resource.Loading -> {
-                    _uiState.value = QrCodeListUiState(isLoading = true)
+                    _uiState.value = _uiState.value.copy(isLoading = true, error = "")
                 }
 
                 is Resource.Success -> {
-                    _uiState.value = QrCodeListUiState(qrCodes = result.data ?: emptyList())
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        qrCodes = result.data ?: emptyList(),
+                        error = ""
+                    )
                 }
 
                 is Resource.Error -> {
-                    _uiState.value =
-                        QrCodeListUiState(error = result.message ?: "Erro desconhecido")
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = result.message ?: "Erro desconhecido"
+                    )
                 }
             }
         }.launchIn(viewModelScope)
@@ -60,7 +70,53 @@ class QrCodeListViewModel @Inject constructor(
                     _effect.emit(QrCodeListEffect.NavigateToQrCode(event.qrCode))
                 }
             }
+
+            is QrCodeListEvent.OnCreateQrCode -> {
+                createQrCode(event.type, event.identifier)
+            }
         }
     }
 
+    private fun createQrCode(type: QrCodeType, identifier: String) {
+        if (_uiState.value.isCreating) return
+
+        val trimmedIdentifier = identifier.trim()
+
+        val pendingQrCode = QrCode(
+            id = "",
+            identifier = trimmedIdentifier,
+            redirectUrl = "",
+            staticUrl = "",
+            type = type,
+            text = "",
+            userId = ""
+        )
+
+        createQrCodeUseCase.invoke(pendingQrCode).onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    _uiState.value = _uiState.value.copy(isCreating = true, error = "")
+                }
+
+                is Resource.Success -> {
+                    _uiState.value = _uiState.value.copy(isCreating = false, error = "")
+                    val createdQrCode = result.data ?: return@onEach
+                    viewModelScope.launch {
+                        _effect.emit(QrCodeListEffect.ShowToast("QR Code criado com sucesso"))
+                        _effect.emit(QrCodeListEffect.NavigateToQrCode(createdQrCode))
+                    }
+                }
+
+                is Resource.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isCreating = false,
+                        error = result.message ?: "Erro desconhecido"
+                    )
+                    viewModelScope.launch {
+                        _effect.emit(QrCodeListEffect.ShowToast(result.message ?: "Erro desconhecido"))
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
 }

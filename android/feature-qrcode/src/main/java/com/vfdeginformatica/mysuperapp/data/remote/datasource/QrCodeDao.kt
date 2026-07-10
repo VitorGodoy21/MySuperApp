@@ -6,6 +6,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
 interface QrCodeDao {
     suspend fun getQrCodes(): List<QrCodeDto>?
 
+    suspend fun createQrCode(qrCodeDto: QrCodeDto): QrCodeDto?
+
     suspend fun updateQrCode(id: String, qrCodeDto: QrCodeDto): Boolean
 
     suspend fun getComments(qrCodeId: String): List<MuralCommentDto>?

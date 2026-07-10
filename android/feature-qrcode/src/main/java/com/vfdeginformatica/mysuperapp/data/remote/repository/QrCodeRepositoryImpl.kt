@@ -15,6 +15,10 @@ class QrCodeRepositoryImpl(
         return qrCodeDao.getQrCodes()
     }
 
+    override suspend fun createQrCode(qrCode: QrCode): QrCodeDto? {
+        return qrCodeDao.createQrCode(qrCode.toDto())
+    }
+
     override suspend fun updateQrCode(id: String, qrCode: QrCode): Boolean {
         val qrCodeDto = qrCode.toDto()
         return qrCodeDao.updateQrCode(id, qrCodeDto)
