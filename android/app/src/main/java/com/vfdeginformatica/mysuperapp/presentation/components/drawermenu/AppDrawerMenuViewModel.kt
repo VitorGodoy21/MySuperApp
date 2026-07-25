@@ -1,10 +1,13 @@
 package com.vfdeginformatica.mysuperapp.presentation.components.drawermenu
 
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LogoutUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetUserSessionUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.ProtectedNavigationResult
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.ResolveProtectedNavigationUseCase
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.contract.AppDrawerMenuEffect
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.contract.AppDrawerMenuEvent
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.contract.AppDrawerMenuUiState
@@ -21,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AppDrawerMenuViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
-    private val getUserSessionUseCase: GetUserSessionUseCase
+    private val getUserSessionUseCase: GetUserSessionUseCase,
+    private val resolveProtectedNavigationUseCase: ResolveProtectedNavigationUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppDrawerMenuUiState())
     val uiState: StateFlow<AppDrawerMenuUiState> = _uiState
@@ -96,6 +100,26 @@ class AppDrawerMenuViewModel @Inject constructor(
 
     fun navigate(route: String) = viewModelScope.launch {
         _effect.emit(AppDrawerMenuEffect.Navigate(route))
+    }
+
+    /**
+     * Navega para uma rota que pode exigir biometria, delegando a decisão
+     * ao fluxo comum [ResolveProtectedNavigationUseCase] (mesmo usado na Home).
+     */
+    fun navigateWithBiometric(route: String, passwordRequired: Boolean = true, activity: FragmentActivity?) {
+        viewModelScope.launch {
+            resolveProtectedNavigationUseCase(route, passwordRequired, activity).collect { result ->
+                when (result) {
+                    is ProtectedNavigationResult.Allowed -> {
+                        _effect.emit(AppDrawerMenuEffect.Navigate(result.route))
+                    }
+
+                    is ProtectedNavigationResult.Denied -> {
+                        _effect.emit(AppDrawerMenuEffect.ShowToastMessage(result.message))
+                    }
+                }
+            }
+        }
     }
 
     private fun onClickItem(item: UiMenuItem) {

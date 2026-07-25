@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.vfdeginformatica.mysuperapp.Screen
+import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.contract.AppDrawerMenuEffect
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.contract.AppDrawerMenuEvent
 
@@ -26,6 +27,7 @@ fun AppDrawerMenuRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val activity = remember { context.getFragmentActivity() }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -74,6 +76,7 @@ fun AppDrawerMenuRoute(
         onLogout = { viewModel.logout() },
         onHome = { viewModel.goHome() },
         onFinancialManagement = { viewModel.navigate(Screen.FinancialScreen.route) },
+        onQrCode = { viewModel.navigateWithBiometric(Screen.QrCodeListScreen.route, activity = activity) },
         onSettings = {},
         onResume = { viewModel.onEvent(AppDrawerMenuEvent.OnResume) }
     ) {

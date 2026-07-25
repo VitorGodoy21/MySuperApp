@@ -1,6 +1,5 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -8,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -64,7 +62,6 @@ fun QrCodeListRoute(
             QrCodeListScreen(
                 uiState = state,
                 onEvent = viewModel::onEvent,
-                modifier = Modifier.padding(padding),
                 innerPadding = padding,
                 showCreateDialog = showCreateDialog,
                 onDismissCreateDialog = { showCreateDialog = false },

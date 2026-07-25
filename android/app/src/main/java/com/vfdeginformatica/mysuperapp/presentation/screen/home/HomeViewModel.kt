@@ -4,12 +4,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AllInclusive
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.ui.graphics.Color
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.HomeMenuItem
-import com.vfdeginformatica.mysuperapp.domain.use_case.user.AuthenticateWithBiometricUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.ProtectedNavigationResult
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.ResolveProtectedNavigationUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeUiState
@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val authenticateWithBiometricUseCase: AuthenticateWithBiometricUseCase
+    private val resolveProtectedNavigationUseCase: ResolveProtectedNavigationUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -36,30 +36,21 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is HomeEvent.OnMenuItemNavigate -> {
                 viewModelScope.launch {
-                    // Se requer senha/biometria, SEMPRE é necessário validar
-                    if (event.passwordRequired) {
-                        // Se a activity for nula, não libera acesso
-                        if (event.activity == null) {
-                            _effect.emit(HomeEffect.ShowToast("Erro: Não foi possível obter o contexto da aplicação"))
-                        } else {
-                            authenticateWithBiometric(event.route, event.activity)
-                        }
-                    } else {
-                        // Apenas itens sem proteção podem ser acessados diretamente
-                        _effect.emit(HomeEffect.NavigateToMenuItem(event.route))
-                    }
-                }
-            }
-        }
-    }
+                    resolveProtectedNavigationUseCase(
+                        route = event.route,
+                        passwordRequired = event.passwordRequired,
+                        activity = event.activity
+                    ).collect { result ->
+                        when (result) {
+                            is ProtectedNavigationResult.Allowed -> {
+                                _effect.emit(HomeEffect.NavigateToMenuItem(result.route))
+                            }
 
-    private fun authenticateWithBiometric(route: String, activity: FragmentActivity) {
-        viewModelScope.launch {
-            authenticateWithBiometricUseCase(activity).collect { isAuthenticated ->
-                if (isAuthenticated) {
-                    _effect.emit(HomeEffect.NavigateToMenuItem(route))
-                } else {
-                    _effect.emit(HomeEffect.ShowToast("Autenticação biométrica falhou"))
+                            is ProtectedNavigationResult.Denied -> {
+                                _effect.emit(HomeEffect.ShowToast(result.message))
+                            }
+                        }
+                    }
                 }
             }
         }

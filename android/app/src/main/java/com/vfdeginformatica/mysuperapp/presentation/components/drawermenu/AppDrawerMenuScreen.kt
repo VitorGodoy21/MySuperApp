@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DrawerValue
@@ -42,6 +43,7 @@ fun AppDrawerMenuScreen(
     onLogout: () -> Unit,
     onHome: () -> Unit,
     onFinancialManagement: () -> Unit,
+    onQrCode: () -> Unit,
     onSettings: () -> Unit,
     onResume: () -> Unit = {},
     content: @Composable () -> Unit
@@ -117,6 +119,18 @@ fun AppDrawerMenuScreen(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "FinancialManagement"
+                        )
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = { Text("QR Code") },
+                    selected = false,
+                    onClick = { onQrCode.invoke() },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.QrCode,
+                            contentDescription = "QrCode"
                         )
                     }
                 )
