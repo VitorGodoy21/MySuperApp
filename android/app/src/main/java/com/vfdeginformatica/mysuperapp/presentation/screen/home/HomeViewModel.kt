@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.home
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AllInclusive
+import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,7 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.user.ResolveProtectedNavi
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeUiState
+import com.vfdeginformatica.mysuperapp.nfc.navigation.SharedNfcRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,6 +78,15 @@ class HomeViewModel @Inject constructor(
                     title = "QRCode",
                     icon = Icons.Default.QrCode2,
                     route = Screen.QrCodeListScreen.route,
+                    backgroundColor = Color.DarkGray,
+                    passwordRequired = true,
+                    content = {}
+                ),
+
+                HomeMenuItem(
+                    title = "NFC",
+                    icon = Icons.Default.Nfc,
+                    route = SharedNfcRoutes.NFC_SCREEN,
                     backgroundColor = Color.DarkGray,
                     passwordRequired = true,
                     content = {}

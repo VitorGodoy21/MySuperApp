@@ -30,6 +30,7 @@ data class QrCodeAccessLogDto(
     var loggedAt: String = "",
     var utmSource: String? = null,
     var utmMedium: String? = null,
-    var utmCampaign: String? = null
+    var utmCampaign: String? = null,
+    var source: String = ""
 )
 

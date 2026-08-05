@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Settings
@@ -44,6 +45,7 @@ fun AppDrawerMenuScreen(
     onHome: () -> Unit,
     onFinancialManagement: () -> Unit,
     onQrCode: () -> Unit,
+    onNfc: () -> Unit,
     onSettings: () -> Unit,
     onResume: () -> Unit = {},
     content: @Composable () -> Unit
@@ -131,6 +133,18 @@ fun AppDrawerMenuScreen(
                         Icon(
                             imageVector = Icons.Default.QrCode,
                             contentDescription = "QrCode"
+                        )
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = { Text("NFC") },
+                    selected = false,
+                    onClick = { onNfc.invoke() },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Nfc,
+                            contentDescription = "Nfc"
                         )
                     }
                 )

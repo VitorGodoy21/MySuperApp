@@ -19,6 +19,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.muralCommentsRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
+import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.NfcRoute
 import com.vfdeginformatica.qrcodemanager.notifications.NotificationsRoute
 import com.vfdeginformatica.qrcodemanager.profile.ProfileRoute
 
@@ -113,6 +114,11 @@ fun QrCodeManagerNavGraph(
             // ── Notifications ─────────────────────────────────────────────
             composable(route = QrCodeManagerScreen.Notifications.route) {
                 NotificationsRoute(navController = navController)
+            }
+
+            // ── NFC ──────────────────────────────────────────────────────
+            composable(route = QrCodeManagerScreen.Nfc.route) {
+                NfcRoute(onNavigateUp = { navController.navigateUp() })
             }
         }
     }

@@ -82,6 +82,9 @@ fun QrCodeManagerListRoute(
         onNotifications = {
             navController.navigate(QrCodeManagerScreen.Notifications.route)
         },
+        onNfc = {
+            navController.navigate(QrCodeManagerScreen.Nfc.route)
+        },
         onLogout = { logoutViewModel.logout() }
     ) {
         AppScaffold(

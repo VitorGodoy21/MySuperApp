@@ -31,7 +31,8 @@ data class AccessLog(
     val region: String = "",
     val utmSource: String? = null,
     val utmMedium: String? = null,
-    val utmCampaign: String? = null
+    val utmCampaign: String? = null,
+    val source: String = ""
 )
 
 /**

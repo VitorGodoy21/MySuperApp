@@ -23,4 +23,5 @@ rootProject.name = "MySuperApp"
 include(":app")
 include(":feature-qrcode")
 include(":app-qrcode")
+include(":nfc-features")
 

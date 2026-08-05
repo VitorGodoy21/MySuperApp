@@ -27,6 +27,8 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.NewTr
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListRoute
+import com.vfdeginformatica.mysuperapp.nfc.navigation.SharedNfcRoutes
+import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.NfcRoute
 
 @Composable
 fun MySuperApp(
@@ -128,6 +130,10 @@ fun MySuperApp(
 
                 accessLogMapRoute(navController)
                 muralCommentsRoute(navController)
+
+                composable(route = SharedNfcRoutes.NFC_SCREEN) {
+                    NfcRoute(onNavigateUp = { navController.navigateUp() })
+                }
             }
         }
     }

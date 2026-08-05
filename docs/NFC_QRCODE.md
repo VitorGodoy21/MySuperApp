@@ -19,10 +19,11 @@ Celular le NFC --> https://baila.space/qr/?id={qrCodeId} --> resolvem o conteudo
 
 ## O que gravar na tag
 
-Grave **um unico NDEF URI Record** com a `staticUrl` do QR Code. Exemplo:
+Grave **um unico NDEF URI Record** com a `staticUrl` do QR Code acrescida do
+parametro `source=nfc`. Exemplo:
 
 ```text
-https://baila.space/qr/?id=XTF9FopziwTWxRRscDkv
+https://baila.space/qr/?id=XTF9FopziwTWxRRscDkv&source=nfc
 ```
 
 NDEF (NFC Data Exchange Format) e o formato padrao de mensagens NFC. Um URI Record informa ao celular que o conteudo e uma URL; Android e iPhones modernos normalmente oferecem ou abrem o navegador ao aproximar uma tag com uma URL HTTPS.
@@ -32,9 +33,13 @@ Nao grave:
 - O `redirectUrl` final, pois ele muda e eliminaria o controle centralizado.
 - O texto ou o conteudo de um mural, pois eles tambem podem mudar.
 - Credenciais, tokens, IDs internos de usuarios ou dados sensiveis.
-- Uma URL diferente com `source=nfc`.
 
-QR e NFC devem conter a mesma URL canonica. Por decisao de produto, os acessos nao serao distinguidos nos logs: ambos resultarao no mesmo `qrCodeId` e no mesmo fluxo de monitoramento.
+**Atualizacao de decisao de produto:** diferente da versao anterior deste
+documento, QR e NFC **nao** usam mais a URL canonica identica. A tag NFC leva
+o parametro extra `source=nfc` para que a pagina de redirect e as Cloud
+Functions consigam registrar a origem do acesso (`qr` ou `nfc`) no
+`access_log`, permitindo comparar volume/uso por canal sem alterar o
+`qrCodeId` nem o restante do fluxo de resolucao (texto, redirect, mural).
 
 ## Como a atualizacao funciona
 
@@ -98,14 +103,43 @@ Use a URL HTTPS completa. Embora o NDEF possa codificar prefixos de URL para eco
 - Um adesivo pode conter QR e NFC, mas materiais metalicos, agua, dobra e a posicao da antena podem degradar a leitura NFC mesmo quando o QR continua visivel.
 - O redirecionamento depende da disponibilidade do dominio, Firebase Hosting e Firestore, exatamente como o QR atual.
 
-## Possivel integracao futura no Android
+## Integracao no Android (modulo `nfc-features`)
 
-Uma fase posterior pode adicionar ao `android/feature-qrcode` um fluxo compartilhado para:
+A leitura, gravacao e bloqueio de tags NFC estao centralizadas no modulo
+Android `android/nfc-features`, consumido tanto por `:app` quanto por
+`:app-qrcode`. O fluxo implementado:
 
-1. Verificar se o aparelho possui NFC e se ele esta ativado.
-2. Solicitar a aproximacao de uma tag NDEF.
-3. Gravar um unico URI Record com `QrCode.staticUrl`.
-4. Ler a tag em seguida e comparar a URL gravada com a URL esperada.
-5. Informar erros claros para tags sem NDEF, sem espaco, bloqueadas, incompativeis ou ausentes.
+1. Verifica se o aparelho possui NFC e se ele esta ativado.
+2. Solicita a aproximacao de uma tag NDEF (foreground dispatch).
+3. **Leitura:** decodifica o primeiro `NdefRecord` como URI e mostra o
+   conteudo, incluindo se a tag esta bloqueada (somente leitura).
+4. **Gravacao:** o usuario escolhe um QR Code existente na lista (mesma base
+   usada pelo `feature-qrcode`); o app monta
+   `"${qrCode.staticUrl}&source=nfc"`, valida se a mensagem NDEF cabe na
+   capacidade da tag (NTAG213 possui ~144 bytes de memoria de usuario) e
+   grava um unico URI Record.
+5. **Bloqueio:** apos uma gravacao bem-sucedida, o app oferece um passo
+   opcional para bloquear a tag (`Ndef.makeReadOnly()`), deixando claro que a
+   acao e irreversivel antes de confirmar.
+6. Erros claros sao reportados para tags sem NDEF, sem espaco, bloqueadas,
+   incompativeis, perdidas durante a operacao ou ausentes.
 
-As duas aplicacoes Android devem apenas integrar esse fluxo compartilhado. Nenhuma mudanca no modelo Firestore, no redirect ou na URL seria necessaria.
+Nenhuma mudanca no modelo Firestore ou no fluxo de resolucao de conteudo
+(texto, redirect, mural) foi necessaria; apenas o novo campo `source` no
+`access_log`, conforme descrito acima.
+
+## Notificacao e detalhes do log por origem
+
+O campo `source` (`qr` ou `nfc`) gravado no `access_log` tambem e usado em
+dois pontos visiveis ao dono do QR Code:
+
+- **Notificacao push:** a Cloud Function `notifyQrCodeAccess` (gatilho de
+  criacao em `qrcodes/{qrCodeId}/access_logs/{logId}`) monta o corpo da
+  mensagem indicando a origem do acesso, por exemplo `Acesso via NFC seu
+  (Cidade, Pais)` ou `Acesso via QR Code seu (Cidade, Pais)`. O `source`
+  tambem viaja no payload `data` da notificacao FCM para uso futuro no app.
+- **Detalhes do log no app:** a tela `AccessLogMapScreen` (secao
+  "Identificacao" do bottom sheet de detalhes) exibe a linha `Origem` com o
+  rotulo amigavel `QR Code` ou `NFC`, obtido do `AccessLog.source` mapeado a
+  partir do `QrCodeAccessLogDto.source`.
+

@@ -134,6 +134,7 @@ exports.logQrScan = onRequest(
 
     const scanId = typeof payload.scanId === 'string' ? payload.scanId : null;
     const sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : null;
+    const source = payload.source === 'nfc' ? 'nfc' : 'qr';
 
     const accessLog = {
       scanId,
@@ -153,6 +154,7 @@ exports.logQrScan = onRequest(
       utmSource: payload.utmSource || null,
       utmMedium: payload.utmMedium || null,
       utmCampaign: payload.utmCampaign || null,
+      source,
       city: geo.city,
       region: geo.region,
       country: geo.country,
@@ -337,7 +339,7 @@ exports.addMuralComment = onRequest(
 const NOTIFICATION_TYPE_ACCESS = 'access';
 const NOTIFICATION_TYPE_MURAL_COMMENT = 'mural_comment';
 
-async function sendToQrOwner({ qrCodeId, title, body, type }) {
+async function sendToQrOwner({ qrCodeId, title, body, type, data }) {
   const db = admin.firestore();
 
   const qrDoc = await db.collection('qrcodes').doc(qrCodeId).get();
@@ -362,7 +364,7 @@ async function sendToQrOwner({ qrCodeId, title, body, type }) {
   await messaging.send({
     token,
     notification: { title, body },
-    data: { type, qrCodeId }
+    data: { type, qrCodeId, ...data }
   });
 }
 
@@ -380,12 +382,15 @@ exports.notifyQrCodeAccess = onDocumentCreated(
 
     const place = [log.city, log.country].filter(Boolean).join(', ');
     const suffix = place ? ` (${place})` : '';
+    const source = log.source === 'nfc' ? 'nfc' : 'qr';
+    const originLabel = source === 'nfc' ? 'via NFC' : 'via QR Code';
 
     await sendToQrOwner({
       qrCodeId,
       title: 'Registro de acesso',
-      body: `Acesso em um QR Code seu${suffix}`,
-      type: NOTIFICATION_TYPE_ACCESS
+      body: `Acesso ${originLabel} seu${suffix}`,
+      type: NOTIFICATION_TYPE_ACCESS,
+      data: { source }
     });
   }
 );

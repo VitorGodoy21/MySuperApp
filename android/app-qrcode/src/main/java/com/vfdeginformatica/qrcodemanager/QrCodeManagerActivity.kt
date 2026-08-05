@@ -1,6 +1,7 @@
 package com.vfdeginformatica.qrcodemanager
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -13,10 +14,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
+import com.vfdeginformatica.mysuperapp.nfc.presentation.NfcForegroundDispatcher
+import com.vfdeginformatica.mysuperapp.nfc.presentation.NfcTagBus
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class QrCodeManagerActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var nfcTagBus: NfcTagBus
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -34,6 +41,11 @@ class QrCodeManagerActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateFcmTokenForCurrentUser()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        NfcForegroundDispatcher.extractTag(intent)?.let { tag -> nfcTagBus.tryEmit(tag) }
     }
 
     private fun requestNotificationPermission() {

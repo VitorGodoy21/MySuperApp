@@ -512,7 +512,8 @@
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
             utmSource: params.get('utm_source'),
             utmMedium: params.get('utm_medium'),
-            utmCampaign: params.get('utm_campaign')
+            utmCampaign: params.get('utm_campaign'),
+            source: params.get('source') === 'nfc' ? 'nfc' : 'qr'
         };
     }
 
@@ -782,7 +783,8 @@
                         page_referrer: trackingContext.referrer || 'direct',
                         utm_source: trackingContext.utmSource || 'none',
                         utm_medium: trackingContext.utmMedium || 'none',
-                        utm_campaign: trackingContext.utmCampaign || 'none'
+                        utm_campaign: trackingContext.utmCampaign || 'none',
+                        source: trackingContext.source
                     });
                 }
             } catch (error) {
@@ -805,6 +807,7 @@
                 utmSource: trackingContext.utmSource,
                 utmMedium: trackingContext.utmMedium,
                 utmCampaign: trackingContext.utmCampaign,
+                source: trackingContext.source,
                 loggedAt: new Date().toISOString()
             });
 

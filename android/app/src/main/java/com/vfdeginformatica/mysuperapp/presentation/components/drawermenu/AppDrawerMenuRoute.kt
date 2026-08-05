@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.vfdeginformatica.mysuperapp.Screen
+import com.vfdeginformatica.mysuperapp.nfc.navigation.SharedNfcRoutes
 import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.contract.AppDrawerMenuEffect
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.contract.AppDrawerMenuEvent
@@ -77,6 +78,7 @@ fun AppDrawerMenuRoute(
         onHome = { viewModel.goHome() },
         onFinancialManagement = { viewModel.navigate(Screen.FinancialScreen.route) },
         onQrCode = { viewModel.navigateWithBiometric(Screen.QrCodeListScreen.route, activity = activity) },
+        onNfc = { viewModel.navigateWithBiometric(SharedNfcRoutes.NFC_SCREEN, activity = activity) },
         onSettings = {},
         onResume = { viewModel.onEvent(AppDrawerMenuEvent.OnResume) }
     ) {

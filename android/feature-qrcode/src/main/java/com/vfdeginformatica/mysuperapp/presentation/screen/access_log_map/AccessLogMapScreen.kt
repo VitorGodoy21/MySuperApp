@@ -94,6 +94,12 @@ private fun formatTimestamp(date: java.util.Date?): String {
     return SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(date)
 }
 
+private fun formatAccessSource(source: String): String = when (source.lowercase(Locale.ROOT)) {
+    "nfc" -> "NFC"
+    "qr" -> "QR Code"
+    else -> "—"
+}
+
 private fun Context.hasConfiguredMapsApiKey(): Boolean {
     val appInfo = try {
         packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
@@ -695,6 +701,7 @@ private fun LogDetailBottomSheet(
             )
 
             DetailSection(title = "Identificação") {
+                DetailRow("Origem", formatAccessSource(log.source))
                 DetailRow("Scan ID", log.scanId.ifEmpty { "—" })
                 DetailRow("Session ID", log.sessionId.ifEmpty { "—" })
                 DetailRow("Doc ID", log.id.ifEmpty { "—" })

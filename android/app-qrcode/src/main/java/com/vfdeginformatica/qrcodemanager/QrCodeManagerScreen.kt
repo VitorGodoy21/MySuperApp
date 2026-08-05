@@ -2,6 +2,7 @@ package com.vfdeginformatica.qrcodemanager
 
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode as DomainQrCode
 import com.vfdeginformatica.mysuperapp.navigation.SharedQrCodeRoutes
+import com.vfdeginformatica.mysuperapp.nfc.navigation.SharedNfcRoutes
 
 /**
  * Routes for the QR Code Manager standalone app.
@@ -13,6 +14,7 @@ sealed class QrCodeManagerScreen(val route: String) {
     object QrCodeList : QrCodeManagerScreen(SharedQrCodeRoutes.QR_CODE_LIST)
     object Profile : QrCodeManagerScreen("profile")
     object Notifications : QrCodeManagerScreen("notifications")
+    object Nfc : QrCodeManagerScreen(SharedNfcRoutes.NFC_SCREEN)
 
     /** Detail / edit screen for a single QR code. */
     object QrCodeDetail : QrCodeManagerScreen(SharedQrCodeRoutes.QR_CODE_DETAIL) {
@@ -33,3 +35,4 @@ sealed class QrCodeManagerScreen(val route: String) {
             SharedQrCodeRoutes.createMuralCommentsRoute(qrCodeId, identifier)
     }
 }
+

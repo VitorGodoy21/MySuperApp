@@ -35,7 +35,8 @@ fun QrCodeAccessLogDto.toAccessLog(): AccessLog {
         region = region,
         utmSource = utmSource,
         utmMedium = utmMedium,
-        utmCampaign = utmCampaign
+        utmCampaign = utmCampaign,
+        source = source
     )
 }
 

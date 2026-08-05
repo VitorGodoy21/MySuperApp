@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DividerDefaults
@@ -34,6 +35,7 @@ fun QrCodeManagerDrawerScreen(
     onToggle: () -> Unit,
     onProfile: () -> Unit,
     onNotifications: () -> Unit,
+    onNfc: () -> Unit,
     onLogout: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -90,6 +92,22 @@ fun QrCodeManagerDrawerScreen(
                         scope.launch { drawerState.close() }
                         onToggle()
                         onNotifications()
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = { Text("NFC") },
+                    selected = false,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Nfc,
+                            contentDescription = "NFC"
+                        )
+                    },
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onToggle()
+                        onNfc()
                     }
                 )
 
