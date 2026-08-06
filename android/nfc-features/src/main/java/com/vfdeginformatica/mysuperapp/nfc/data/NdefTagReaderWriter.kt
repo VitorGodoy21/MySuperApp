@@ -7,17 +7,22 @@ import android.nfc.Tag
 import android.nfc.TagLostException
 import android.nfc.tech.Ndef
 import android.nfc.tech.NdefFormatable
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcContentType
 import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcOperationError
 import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcOperationResult
 import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcTagContent
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcWriteContent
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.payloadSizeBytes
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.toNdefMessage
 import com.vfdeginformatica.mysuperapp.nfc.domain.repository.NfcTagRepository
 import java.io.IOException
 import javax.inject.Inject
 
 /**
  * Implementação de [NfcTagRepository] baseada em `android.nfc.tech.Ndef`.
- * Grava e lê sempre um único [NdefRecord] do tipo URI, compatível com
- * tags NFC Forum Type 2 (ex.: NTAG213/215/216).
+ * Grava e lê sempre um único [NdefRecord], seja do tipo URI (link de um QR
+ * Code) ou Texto (valor personalizado), compatível com tags NFC Forum
+ * Type 2 (ex.: NTAG213/215/216).
  */
 class NdefTagReaderWriter @Inject constructor() : NfcTagRepository {
 
@@ -31,12 +36,13 @@ class NdefTagReaderWriter @Inject constructor() : NfcTagRepository {
             val message = ndef.ndefMessage
                 ?: return NfcOperationResult.Failure(NfcOperationError.EmptyTag)
 
-            val url = message.records.firstOrNull()?.let(::extractUri)
+            val (value, contentType) = message.records.firstOrNull()?.let(::extractContent)
                 ?: return NfcOperationResult.Failure(NfcOperationError.EmptyTag)
 
             NfcOperationResult.Success(
                 NfcTagContent(
-                    url = url,
+                    value = value,
+                    contentType = contentType,
                     isWritable = ndef.isWritable,
                     maxSizeBytes = ndef.maxSize,
                     usedSizeBytes = message.toByteArray().size
@@ -51,9 +57,9 @@ class NdefTagReaderWriter @Inject constructor() : NfcTagRepository {
         }
     }
 
-    override suspend fun write(tag: Tag, url: String): NfcOperationResult<Unit> {
-        val message = NdefMessage(arrayOf(NdefRecord.createUri(url)))
-        val payloadSize = message.toByteArray().size
+    override suspend fun write(tag: Tag, content: NfcWriteContent): NfcOperationResult<Unit> {
+        val message = content.toNdefMessage()
+        val payloadSize = content.payloadSizeBytes
 
         val ndef = Ndef.get(tag)
         if (ndef != null) {
@@ -143,8 +149,50 @@ class NdefTagReaderWriter @Inject constructor() : NfcTagRepository {
         }
     }
 
+    private fun extractContent(record: NdefRecord): Pair<String, NfcContentType>? {
+        return when {
+            record.tnf == NdefRecord.TNF_WELL_KNOWN &&
+                record.type.contentEquals(NdefRecord.RTD_URI) -> {
+                extractUri(record)?.let { it to NfcContentType.URL }
+            }
+
+            record.tnf == NdefRecord.TNF_WELL_KNOWN &&
+                record.type.contentEquals(NdefRecord.RTD_TEXT) -> {
+                extractText(record)?.let { it to NfcContentType.TEXT }
+            }
+
+            else -> null
+        }
+    }
+
     private fun extractUri(record: NdefRecord): String? = try {
         record.toUri()?.toString()
+    } catch (error: Exception) {
+        null
+    }
+
+    /**
+     * Decodifica manualmente um NDEF Text Record (RTD_TEXT), pois
+     * [NdefRecord] não oferece um `toText()` equivalente ao `toUri()`.
+     * Formato: 1 byte de status (bit 7 = codificação, bits 0-5 = tamanho do
+     * código de idioma) seguido do código de idioma e, então, do texto.
+     */
+    private fun extractText(record: NdefRecord): String? = try {
+        val payload = record.payload
+        if (payload.isEmpty()) {
+            null
+        } else {
+            val statusByte = payload[0].toInt()
+            val isUtf16 = (statusByte and 0x80) != 0
+            val languageCodeLength = statusByte and 0x3F
+            val textStartIndex = 1 + languageCodeLength
+            if (textStartIndex > payload.size) {
+                null
+            } else {
+                val charset = if (isUtf16) Charsets.UTF_16 else Charsets.UTF_8
+                String(payload, textStartIndex, payload.size - textStartIndex, charset)
+            }
+        }
     } catch (error: Exception) {
         null
     }

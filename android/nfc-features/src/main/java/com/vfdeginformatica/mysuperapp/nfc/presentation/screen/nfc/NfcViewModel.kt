@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcWriteContent
 import com.vfdeginformatica.mysuperapp.nfc.domain.use_case.LockNfcTagUseCase
 import com.vfdeginformatica.mysuperapp.nfc.domain.use_case.ReadNfcTagUseCase
 import com.vfdeginformatica.mysuperapp.nfc.domain.use_case.WriteNfcTagUseCase
@@ -14,6 +15,7 @@ import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.contract.NfcE
 import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.contract.NfcEvent
 import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.contract.NfcMode
 import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.contract.NfcUiState
+import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.contract.NfcWriteSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,9 +32,10 @@ import javax.inject.Inject
 private const val NFC_SOURCE_PARAM = "source=nfc"
 
 /**
- * ViewModel único (hub) para as três ações de NFC: ler, gravar (vinculado a
- * um QR Code existente) e bloquear (oferecido como passo opcional após uma
- * gravação bem-sucedida).
+ * ViewModel único (hub) para as ações de NFC: ler/editar (vinculado a um QR
+ * Code existente ou a um valor de texto personalizado) e bloquear
+ * definitivamente (irreversível), oferecido como passo opcional após uma
+ * gravação bem-sucedida ou diretamente pela tela de leitura.
  */
 @HiltViewModel
 class NfcViewModel @Inject constructor(
@@ -60,11 +63,17 @@ class NfcViewModel @Inject constructor(
             NfcEvent.OnStartReading -> startReading()
             NfcEvent.OnStartWriting -> startWriting()
             NfcEvent.OnCancel -> cancelOperation()
+            is NfcEvent.OnSelectWriteSource -> selectWriteSource(event.source)
             is NfcEvent.OnSelectQrCode -> selectQrCode(event.qrCode)
+            is NfcEvent.OnCustomTextChanged ->
+                _uiState.value = _uiState.value.copy(customTextInput = event.text)
+            NfcEvent.OnConfirmCustomText -> confirmCustomText()
             is NfcEvent.OnTagDiscovered -> onTagDiscovered(event.tag)
             NfcEvent.OnConfirmLock -> confirmLock()
             NfcEvent.OnDismissLockConfirmation ->
                 _uiState.value = _uiState.value.copy(showLockConfirmation = false)
+            NfcEvent.OnEditFromRead -> startWriting()
+            NfcEvent.OnLockPermanentlyFromRead -> requestPermanentLockFromRead()
         }
     }
 
@@ -85,8 +94,11 @@ class NfcViewModel @Inject constructor(
     private fun startWriting() {
         _uiState.value = _uiState.value.copy(
             mode = NfcMode.WRITING,
+            writeSource = NfcWriteSource.QR_CODE,
             selectedQrCode = null,
-            writeSuccessUrl = null,
+            customTextInput = "",
+            writeSuccessContent = null,
+            showLockConfirmation = false,
             isWaitingForTag = false,
             errorMessage = ""
         )
@@ -120,8 +132,24 @@ class NfcViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    private fun selectWriteSource(source: NfcWriteSource) {
+        _uiState.value = _uiState.value.copy(
+            writeSource = source,
+            selectedQrCode = null,
+            customTextInput = "",
+            isWaitingForTag = false,
+            errorMessage = ""
+        )
+    }
+
     private fun selectQrCode(qrCode: QrCode) {
         _uiState.value = _uiState.value.copy(selectedQrCode = qrCode, isWaitingForTag = true)
+    }
+
+    private fun confirmCustomText() {
+        val text = _uiState.value.customTextInput.trim()
+        if (text.isBlank()) return
+        _uiState.value = _uiState.value.copy(customTextInput = text, isWaitingForTag = true)
     }
 
     private fun onTagDiscovered(tag: Tag) {
@@ -131,9 +159,16 @@ class NfcViewModel @Inject constructor(
         when {
             state.pendingLock -> lockTag(tag)
             state.mode == NfcMode.READING -> readTag(tag)
-            state.mode == NfcMode.WRITING -> state.selectedQrCode?.let { writeTag(tag, it) }
+            state.mode == NfcMode.WRITING -> writeContentForCurrentSource(state)?.let { writeTag(tag, it) }
         }
     }
+
+    private fun writeContentForCurrentSource(state: NfcUiState): NfcWriteContent? =
+        when (state.writeSource) {
+            NfcWriteSource.QR_CODE -> state.selectedQrCode?.let { NfcWriteContent.Url(buildNfcUrl(it.staticUrl)) }
+            NfcWriteSource.CUSTOM_TEXT -> state.customTextInput.takeIf { it.isNotBlank() }
+                ?.let { NfcWriteContent.CustomText(it) }
+        }
 
     private fun readTag(tag: Tag) {
         operationJob?.cancel()
@@ -156,18 +191,16 @@ class NfcViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun writeTag(tag: Tag, qrCode: QrCode) {
-        val url = buildNfcUrl(qrCode.staticUrl)
-
+    private fun writeTag(tag: Tag, content: NfcWriteContent) {
         operationJob?.cancel()
-        operationJob = writeNfcTagUseCase(tag, url).onEach { result ->
+        operationJob = writeNfcTagUseCase(tag, content).onEach { result ->
             when (result) {
                 is Resource.Loading -> _uiState.value = _uiState.value.copy(isProcessing = true)
 
                 is Resource.Success -> _uiState.value = _uiState.value.copy(
                     isProcessing = false,
                     isWaitingForTag = false,
-                    writeSuccessUrl = url,
+                    writeSuccessContent = content,
                     showLockConfirmation = true
                 )
 
@@ -189,6 +222,15 @@ class NfcViewModel @Inject constructor(
         sendEffect(NfcEffect.ShowToast("Aproxime a mesma tag novamente para bloqueá-la"))
     }
 
+    private fun requestPermanentLockFromRead() {
+        _uiState.value = _uiState.value.copy(
+            pendingLock = true,
+            isWaitingForTag = true,
+            errorMessage = ""
+        )
+        sendEffect(NfcEffect.ShowToast("Aproxime a mesma tag novamente para bloqueá-la"))
+    }
+
     private fun lockTag(tag: Tag) {
         operationJob?.cancel()
         operationJob = lockNfcTagUseCase(tag).onEach { result ->
@@ -199,7 +241,8 @@ class NfcViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         isProcessing = false,
                         isWaitingForTag = false,
-                        pendingLock = false
+                        pendingLock = false,
+                        lastReadContent = _uiState.value.lastReadContent?.copy(isWritable = false)
                     )
                     sendEffect(NfcEffect.ShowToast("Tag bloqueada com sucesso"))
                 }

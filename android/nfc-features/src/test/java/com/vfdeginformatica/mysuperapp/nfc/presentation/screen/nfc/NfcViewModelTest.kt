@@ -7,8 +7,11 @@ import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.repository.QrCodeRepository
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
 import com.vfdeginformatica.mysuperapp.domain.util.QrCodeGenerator
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcContentType
 import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcOperationError
 import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcOperationResult
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcTagContent
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcWriteContent
 import com.vfdeginformatica.mysuperapp.nfc.domain.repository.NfcTagRepository
 import com.vfdeginformatica.mysuperapp.nfc.domain.use_case.LockNfcTagUseCase
 import com.vfdeginformatica.mysuperapp.nfc.domain.use_case.ReadNfcTagUseCase
@@ -16,6 +19,7 @@ import com.vfdeginformatica.mysuperapp.nfc.domain.use_case.WriteNfcTagUseCase
 import com.vfdeginformatica.mysuperapp.nfc.presentation.NfcTagBus
 import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.contract.NfcEvent
 import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.contract.NfcMode
+import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.contract.NfcWriteSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -44,12 +48,21 @@ class NfcViewModelTest {
 
     private var writeResult: NfcOperationResult<Unit> = NfcOperationResult.Success(Unit)
     private var lockResult: NfcOperationResult<Unit> = NfcOperationResult.Success(Unit)
-    private var lastWrittenUrl: String? = null
+    private var readResult: NfcOperationResult<NfcTagContent> = NfcOperationResult.Success(
+        NfcTagContent(
+            value = "https://baila.space/qr/?id=abc123",
+            contentType = NfcContentType.URL,
+            isWritable = true,
+            maxSizeBytes = 144,
+            usedSizeBytes = 40
+        )
+    )
+    private var lastWrittenContent: NfcWriteContent? = null
 
     private val nfcTagRepository = object : NfcTagRepository {
-        override suspend fun read(tag: Tag) = error("not used in this test")
-        override suspend fun write(tag: Tag, url: String): NfcOperationResult<Unit> {
-            lastWrittenUrl = url
+        override suspend fun read(tag: Tag): NfcOperationResult<NfcTagContent> = readResult
+        override suspend fun write(tag: Tag, content: NfcWriteContent): NfcOperationResult<Unit> {
+            lastWrittenContent = content
             return writeResult
         }
         override suspend fun lock(tag: Tag): NfcOperationResult<Unit> = lockResult
@@ -98,10 +111,33 @@ class NfcViewModelTest {
         viewModel.onEvent(NfcEvent.OnTagDiscovered(tag))
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals("https://baila.space/qr/?id=abc123&source=nfc", lastWrittenUrl)
+        assertEquals(
+            NfcWriteContent.Url("https://baila.space/qr/?id=abc123&source=nfc"),
+            lastWrittenContent
+        )
         val state = viewModel.uiState.value
         assertTrue(state.showLockConfirmation)
-        assertEquals("https://baila.space/qr/?id=abc123&source=nfc", state.writeSuccessUrl)
+        assertEquals(
+            NfcWriteContent.Url("https://baila.space/qr/?id=abc123&source=nfc"),
+            state.writeSuccessContent
+        )
+    }
+
+    @Test
+    fun `writing a tag with a custom text value writes it as-is`() = runTest(testDispatcher) {
+        viewModel.onEvent(NfcEvent.OnStartWriting)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onEvent(NfcEvent.OnSelectWriteSource(NfcWriteSource.CUSTOM_TEXT))
+        viewModel.onEvent(NfcEvent.OnCustomTextChanged("valor personalizado"))
+        viewModel.onEvent(NfcEvent.OnConfirmCustomText)
+        viewModel.onEvent(NfcEvent.OnTagDiscovered(tag))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(NfcWriteContent.CustomText("valor personalizado"), lastWrittenContent)
+        val state = viewModel.uiState.value
+        assertTrue(state.showLockConfirmation)
+        assertEquals(NfcWriteContent.CustomText("valor personalizado"), state.writeSuccessContent)
     }
 
     @Test
@@ -115,8 +151,8 @@ class NfcViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(
-            "https://baila.space/qr/?id=abc123&utm_source=print&source=nfc",
-            lastWrittenUrl
+            NfcWriteContent.Url("https://baila.space/qr/?id=abc123&utm_source=print&source=nfc"),
+            lastWrittenContent
         )
     }
 
@@ -166,6 +202,38 @@ class NfcViewModelTest {
         assertEquals(NfcMode.READING, state.mode)
         assertTrue(state.isWaitingForTag)
         assertEquals(null, state.lastReadContent)
+    }
+
+    @Test
+    fun `editing from the read screen switches to writing mode`() = runTest(testDispatcher) {
+        viewModel.onEvent(NfcEvent.OnStartReading)
+        viewModel.onEvent(NfcEvent.OnTagDiscovered(tag))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onEvent(NfcEvent.OnEditFromRead)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(NfcMode.WRITING, viewModel.uiState.value.mode)
+    }
+
+    @Test
+    fun `locking permanently from the read screen waits for the same tag again`() = runTest(testDispatcher) {
+        viewModel.onEvent(NfcEvent.OnStartReading)
+        viewModel.onEvent(NfcEvent.OnTagDiscovered(tag))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onEvent(NfcEvent.OnLockPermanentlyFromRead)
+
+        var state = viewModel.uiState.value
+        assertTrue(state.pendingLock)
+        assertTrue(state.isWaitingForTag)
+
+        viewModel.onEvent(NfcEvent.OnTagDiscovered(tag))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        state = viewModel.uiState.value
+        assertFalse(state.pendingLock)
+        assertEquals(false, state.lastReadContent?.isWritable)
     }
 
     @Test

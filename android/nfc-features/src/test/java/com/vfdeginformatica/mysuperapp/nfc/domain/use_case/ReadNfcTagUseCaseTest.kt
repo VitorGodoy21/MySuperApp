@@ -2,9 +2,11 @@ package com.vfdeginformatica.mysuperapp.nfc.domain.use_case
 
 import android.nfc.Tag
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcContentType
 import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcOperationError
 import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcOperationResult
 import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcTagContent
+import com.vfdeginformatica.mysuperapp.nfc.domain.model.NfcWriteContent
 import com.vfdeginformatica.mysuperapp.nfc.domain.repository.NfcTagRepository
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -20,14 +22,15 @@ class ReadNfcTagUseCaseTest {
     @Test
     fun `invoke emits Loading then Success when repository read succeeds`() = runTest {
         val content = NfcTagContent(
-            url = "https://baila.space/qr/?id=abc123&source=nfc",
+            value = "https://baila.space/qr/?id=abc123&source=nfc",
+            contentType = NfcContentType.URL,
             isWritable = true,
             maxSizeBytes = 144,
             usedSizeBytes = 48
         )
         val repository = object : NfcTagRepository {
             override suspend fun read(tag: Tag) = NfcOperationResult.Success(content)
-            override suspend fun write(tag: Tag, url: String) = error("not used")
+            override suspend fun write(tag: Tag, content: NfcWriteContent) = error("not used")
             override suspend fun lock(tag: Tag) = error("not used")
         }
         val useCase = ReadNfcTagUseCase(repository)
@@ -43,7 +46,7 @@ class ReadNfcTagUseCaseTest {
     fun `invoke emits Loading then Error with friendly message when repository read fails`() = runTest {
         val repository = object : NfcTagRepository {
             override suspend fun read(tag: Tag) = NfcOperationResult.Failure(NfcOperationError.TagLost)
-            override suspend fun write(tag: Tag, url: String) = error("not used")
+            override suspend fun write(tag: Tag, content: NfcWriteContent) = error("not used")
             override suspend fun lock(tag: Tag) = error("not used")
         }
         val useCase = ReadNfcTagUseCase(repository)

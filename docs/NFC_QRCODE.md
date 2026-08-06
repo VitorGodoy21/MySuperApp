@@ -19,20 +19,36 @@ Celular le NFC --> https://baila.space/qr/?id={qrCodeId} --> resolvem o conteudo
 
 ## O que gravar na tag
 
-Grave **um unico NDEF URI Record** com a `staticUrl` do QR Code acrescida do
-parametro `source=nfc`. Exemplo:
+O app permite dois tipos de conteúdo ao gravar uma tag:
 
-```text
-https://baila.space/qr/?id=XTF9FopziwTWxRRscDkv&source=nfc
-```
+1. **URL de um QR Code existente (recomendado para a maioria dos casos).**
+   Grave **um único NDEF URI Record** com a `staticUrl` do QR Code acrescida
+   do parâmetro `source=nfc`. Exemplo:
 
-NDEF (NFC Data Exchange Format) e o formato padrao de mensagens NFC. Um URI Record informa ao celular que o conteudo e uma URL; Android e iPhones modernos normalmente oferecem ou abrem o navegador ao aproximar uma tag com uma URL HTTPS.
+   ```text
+   https://baila.space/qr/?id=XTF9FopziwTWxRRscDkv&source=nfc
+   ```
+
+   NDEF (NFC Data Exchange Format) e o formato padrao de mensagens NFC. Um
+   URI Record informa ao celular que o conteudo e uma URL; Android e iPhones
+   modernos normalmente oferecem ou abrem o navegador ao aproximar uma tag
+   com uma URL HTTPS.
+
+2. **Valor de texto personalizado.** O app também permite gravar um valor
+   de texto livre, definido pelo usuário, como um **NDEF Text Record**. Use
+   este modo para conteúdos que não dependem da resolução dinâmica via
+   Firestore (ex.: um texto fixo, um telefone, um Wi-Fi SSID simples). Ao
+   contrário da URL de um QR Code, o valor de texto **não pode ser
+   atualizado remotamente**: qualquer mudança exige regravar a tag
+   fisicamente.
 
 Nao grave:
 
 - O `redirectUrl` final, pois ele muda e eliminaria o controle centralizado.
 - O texto ou o conteudo de um mural, pois eles tambem podem mudar.
-- Credenciais, tokens, IDs internos de usuarios ou dados sensiveis.
+- Credenciais, tokens, IDs internos de usuarios ou dados sensiveis, mesmo no
+  modo de valor personalizado — a tag e publica e pode ser lida por qualquer
+  pessoa com acesso fisico a ela.
 
 **Atualizacao de decisao de produto:** diferente da versao anterior deste
 documento, QR e NFC **nao** usam mais a URL canonica identica. A tag NFC leva
@@ -111,18 +127,44 @@ Android `android/nfc-features`, consumido tanto por `:app` quanto por
 
 1. Verifica se o aparelho possui NFC e se ele esta ativado.
 2. Solicita a aproximacao de uma tag NDEF (foreground dispatch).
-3. **Leitura:** decodifica o primeiro `NdefRecord` como URI e mostra o
-   conteudo, incluindo se a tag esta bloqueada (somente leitura).
-4. **Gravacao:** o usuario escolhe um QR Code existente na lista (mesma base
-   usada pelo `feature-qrcode`); o app monta
-   `"${qrCode.staticUrl}&source=nfc"`, valida se a mensagem NDEF cabe na
-   capacidade da tag (NTAG213 possui ~144 bytes de memoria de usuario) e
-   grava um unico URI Record.
-5. **Bloqueio:** apos uma gravacao bem-sucedida, o app oferece um passo
-   opcional para bloquear a tag (`Ndef.makeReadOnly()`), deixando claro que a
-   acao e irreversivel antes de confirmar.
-6. Erros claros sao reportados para tags sem NDEF, sem espaco, bloqueadas,
+3. **Leitura:** decodifica o primeiro `NdefRecord` da tag — seja um URI
+   Record ou um Text Record — e mostra o conteudo, seu tipo (URL ou Texto)
+   e se a tag esta bloqueada (somente leitura).
+4. **Gravacao:** o usuario escolhe entre duas fontes de conteudo:
+   - **QR Code existente:** o app monta `"${qrCode.staticUrl}&source=nfc"` e
+     grava um unico URI Record.
+   - **Valor personalizado:** o usuario digita um texto livre, gravado como
+     um unico Text Record (`NdefRecord.createTextRecord`).
+
+   Em ambos os casos, antes de gravar o app valida se a mensagem NDEF
+   resultante cabe na capacidade real da tag (`Ndef.maxSize`), reportando o
+   erro `TagTooSmall` (com os bytes necessarios e disponiveis) caso nao
+   caiba. Para o valor personalizado, a tela tambem exibe, em tempo real
+   enquanto o usuario digita, um contador de bytes comparado a capacidade da
+   tag minima recomendada (NTAG213, ~144 bytes de memoria de usuario) e um
+   aviso caso o conteudo provavelmente nao caiba nela — sem bloquear a
+   digitacao, ja que tags maiores (NTAG215/216) podem comportar mais dados.
+5. **Bloqueio:** apos gravar o conteudo, o usuario escolhe se quer bloquear
+   a tag definitivamente (`Ndef.makeReadOnly()`). O app exige aproximar a
+   mesma tag novamente e deixa explicito, antes de confirmar, que a acao e
+   **irreversivel**: uma vez bloqueada, nenhum app ou aparelho consegue
+   regravar a tag. Nao existe uma opcao de bloqueio "temporario": qualquer
+   marcacao que nao altere a memoria fisica da tag seria apenas uma
+   preferencia local deste app/aparelho, sem nenhum efeito real sobre a tag
+   em si, por isso essa opcao nao e oferecida.
+6. **Ler/editar:** ao ler uma tag regravavel (nao bloqueada), a tela de
+   leitura oferece os botoes **"Editar conteudo"** (leva o usuario direto ao
+   fluxo de gravacao) e **"Bloquear definitivamente"** (aplica o bloqueio de
+   hardware apos aproximar a tag novamente). Tags ja bloqueadas continuam
+   mostrando apenas o aviso "Tag bloqueada (somente leitura)", sem acoes de
+   edicao ou bloqueio.
+7. Erros claros sao reportados para tags sem NDEF, sem espaco, bloqueadas,
    incompativeis, perdidas durante a operacao ou ausentes.
+
+Na tela inicial do modulo, os botoes de acesso a cada fluxo se chamam
+**"Ler/editar tag NFC"** (leitura, com as acoes de edicao/bloqueio acima) e
+**"Gravar nova tag NFC"** (gravacao de uma tag ainda sem conteudo ou que sera
+substituido).
 
 Nenhuma mudanca no modelo Firestore ou no fluxo de resolucao de conteudo
 (texto, redirect, mural) foi necessaria; apenas o novo campo `source` no
