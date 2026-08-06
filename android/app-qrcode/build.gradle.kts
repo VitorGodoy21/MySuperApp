@@ -84,7 +84,7 @@ android {
 
 dependencies {
     implementation(project(":feature-qrcode"))
-    implementation(project(":nfc-features"))
+    implementation(project(":feature-nfc"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

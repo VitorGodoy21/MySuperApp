@@ -119,10 +119,10 @@ Use a URL HTTPS completa. Embora o NDEF possa codificar prefixos de URL para eco
 - Um adesivo pode conter QR e NFC, mas materiais metalicos, agua, dobra e a posicao da antena podem degradar a leitura NFC mesmo quando o QR continua visivel.
 - O redirecionamento depende da disponibilidade do dominio, Firebase Hosting e Firestore, exatamente como o QR atual.
 
-## Integracao no Android (modulo `nfc-features`)
+## Integracao no Android (modulo `feature-nfc`)
 
 A leitura, gravacao e bloqueio de tags NFC estao centralizadas no modulo
-Android `android/nfc-features`, consumido tanto por `:app` quanto por
+Android `android/feature-nfc`, consumido tanto por `:app` quanto por
 `:app-qrcode`. O fluxo implementado:
 
 1. Verifica se o aparelho possui NFC e se ele esta ativado.
