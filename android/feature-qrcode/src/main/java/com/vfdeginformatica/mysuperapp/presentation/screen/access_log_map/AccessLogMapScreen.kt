@@ -100,6 +100,15 @@ private fun formatAccessSource(source: String): String = when (source.lowercase(
     else -> "—"
 }
 
+/**
+ * Short label used for the per-log source badge (list items).
+ * Logs without a recorded source predate NFC support and are treated as QR accesses.
+ */
+private fun formatAccessSourceBadge(source: String): String = when (source.lowercase(Locale.ROOT)) {
+    "nfc" -> "NFC"
+    else -> "QR"
+}
+
 private fun Context.hasConfiguredMapsApiKey(): Boolean {
     val appInfo = try {
         packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
@@ -480,6 +489,12 @@ private fun CityListViewContent(
             }
         }
 
+        AccessSourceSummary(
+            qrCount = uiState.qrAccessCount,
+            nfcCount = uiState.nfcAccessCount,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+        )
+
         if (uiState.cityStatistics.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Nenhuma cidade encontrada")
@@ -504,6 +519,52 @@ private fun CityListViewContent(
                 }
             }
         }
+    }
+}
+
+// ─── Access Source Summary ───────────────────────────────────────────────────
+
+/**
+ * Panorama geral mostrando quantos acessos vieram de QR Code e quantos vieram de NFC.
+ */
+@Composable
+private fun AccessSourceSummary(
+    qrCount: Int,
+    nfcCount: Int,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AccessSourceSummaryItem(label = "QR Code", count = qrCount)
+            Spacer(modifier = Modifier.width(16.dp))
+            AccessSourceSummaryItem(label = "NFC", count = nfcCount)
+        }
+    }
+}
+
+@Composable
+private fun AccessSourceSummaryItem(label: String, count: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
     }
 }
 
@@ -581,6 +642,12 @@ private fun LogListViewContent(
             }
         }
 
+        AccessSourceSummary(
+            qrCount = uiState.qrAccessCount,
+            nfcCount = uiState.nfcAccessCount,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+        )
+
         if (uiState.isDeleting) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -640,14 +707,19 @@ private fun LogListItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = log.scanId.ifEmpty { log.id },
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = log.scanId.ifEmpty { log.id },
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    AccessSourceBadge(source = log.source)
+                }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = formatLoggedAt(log.loggedAt),
@@ -670,6 +742,23 @@ private fun LogListItem(
             }
         }
     }
+}
+
+@Composable
+private fun AccessSourceBadge(source: String) {
+    val isNfc = source.equals("nfc", ignoreCase = true)
+    Text(
+        text = formatAccessSourceBadge(source),
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.Bold,
+        color = if (isNfc) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer,
+        modifier = Modifier
+            .background(
+                color = if (isNfc) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer,
+                shape = MaterialTheme.shapes.small
+            )
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    )
 }
 
 // ─── Log Detail Bottom Sheet ─────────────────────────────────────────────────

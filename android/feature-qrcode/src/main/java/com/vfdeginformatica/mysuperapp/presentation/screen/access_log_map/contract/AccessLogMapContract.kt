@@ -12,7 +12,20 @@ data class AccessLogMapUiState(
     val viewMode: MapViewMode = MapViewMode.MAP,
     val selectedLog: AccessLog? = null,
     val isDeleting: Boolean = false
-)
+) {
+    /**
+     * Number of accesses originated from an NFC tap.
+     */
+    val nfcAccessCount: Int
+        get() = accessLogs.count { it.source.equals("nfc", ignoreCase = true) }
+
+    /**
+     * Number of accesses originated from a QR code scan.
+     * Logs without a recorded source (created before NFC support existed) are treated as QR accesses.
+     */
+    val qrAccessCount: Int
+        get() = accessLogs.size - nfcAccessCount
+}
 
 enum class MapViewMode {
     MAP,
