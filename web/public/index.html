@@ -1,89 +1,1380 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baila QR — QR Code dinâmico para o seu negócio</title>
+    <meta name="description" content="Imprima um QR Code uma única vez e mude o conteúdo quando quiser pelo app. Redirecione para cardápios, promoções, WhatsApp, mostre textos ou abra um mural — e acompanhe cada leitura.">
+    <meta property="og:title" content="Baila QR — QR Code dinâmico para o seu negócio">
+    <meta property="og:description" content="Um QR Code impresso uma vez, conteúdo que você muda quando quiser. Redirecionamento, texto, mural e métricas de acesso.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://baila.space/">
+    <meta property="og:locale" content="pt_BR">
+    <meta name="theme-color" content="#667eea">
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
-    </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+    <style>
+        :root {
+            --grad-start: #667eea;
+            --grad-end: #764ba2;
+            --grad: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-end) 100%);
+            --text: #333;
+            --muted: #666;
+            --light: #f5f6fb;
+            --card-radius: 20px;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+            --shadow-sm: 0 8px 24px rgba(102, 126, 234, 0.18);
         }
-      });
-    </script>
-  </body>
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: var(--text);
+            background: var(--light);
+            line-height: 1.6;
+        }
+
+        a { color: var(--grad-start); }
+
+        h1, h2, h3 { line-height: 1.2; font-weight: 700; }
+
+        .wrap {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section { padding: 80px 0; scroll-margin-top: 70px; }
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(28px, 4vw, 38px);
+            margin-bottom: 14px;
+        }
+
+        .section-sub {
+            text-align: center;
+            color: var(--muted);
+            font-size: 18px;
+            max-width: 680px;
+            margin: 0 auto 50px;
+        }
+
+        /* === HEADER === */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .logo {
+            width: 42px;
+            height: 42px;
+            background: var(--grad);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--muted);
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .nav-links a:hover { color: var(--grad-start); }
+
+        .nav-links a.btn-primary,
+        .nav-links a.btn-primary:hover { color: white; }
+
+        /* === BUTTONS === */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            text-decoration: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .btn:hover { transform: translateY(-2px); }
+
+        .btn-primary {
+            background: var(--grad);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover { box-shadow: 0 14px 34px rgba(102, 126, 234, 0.35); }
+
+        .btn-ghost {
+            background: white;
+            color: var(--grad-start);
+            border-color: var(--grad-start);
+        }
+
+        .btn-light {
+            background: white;
+            color: var(--grad-end);
+        }
+
+        .btn:focus-visible, a:focus-visible {
+            outline: 3px solid #ffb547;
+            outline-offset: 3px;
+        }
+
+        .btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+
+        /* === HERO === */
+        .hero {
+            background: var(--grad);
+            color: white;
+            padding: 90px 0 110px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 60px;
+            background: var(--light);
+            clip-path: polygon(0 100%, 100% 0, 100% 100%);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(34px, 5vw, 54px);
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 19px;
+            opacity: 0.94;
+            margin-bottom: 34px;
+            max-width: 540px;
+        }
+
+        .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 22px;
+        }
+
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            animation: slideIn 0.7s ease-out;
+        }
+
+        .qr-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 22px;
+            box-shadow: var(--shadow);
+            color: var(--text);
+            text-align: center;
+        }
+
+        .qr-card svg { width: 150px; height: 150px; display: block; }
+
+        .qr-card small {
+            display: block;
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .arrow {
+            font-size: 34px;
+            opacity: 0.9;
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        .phone {
+            width: 150px;
+            background: #1b1b2f;
+            border-radius: 26px;
+            padding: 12px 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .phone-screen {
+            background: white;
+            border-radius: 18px;
+            min-height: 230px;
+            padding: 14px 10px;
+            color: var(--text);
+            font-size: 11px;
+        }
+
+        .phone-screen .chip {
+            display: inline-block;
+            background: var(--grad);
+            color: white;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .phone-screen .line {
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin: 7px 0;
+        }
+
+        .phone-screen .line.short { width: 60%; }
+
+        .phone-screen .cta-line {
+            margin-top: 14px;
+            background: var(--grad);
+            color: white;
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* === PRODUTOS === */
+        .products { background: white; }
+
+        .kicker {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--grad-start);
+            margin-bottom: 10px;
+        }
+
+        .products .kicker { display: block; text-align: center; }
+
+        .product-hero {
+            background: var(--grad);
+            color: white;
+            border-radius: var(--card-radius);
+            padding: 50px;
+            display: grid;
+            grid-template-columns: 0.9fr 1.1fr;
+            gap: 50px;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .product-hero h3 { font-size: clamp(24px, 3vw, 32px); margin-bottom: 14px; }
+        .product-hero p { opacity: 0.94; font-size: 17px; margin-bottom: 20px; }
+
+        .product-hero ul { list-style: none; margin-bottom: 30px; }
+
+        .product-hero li {
+            padding: 7px 0 7px 32px;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .product-hero li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            background: rgba(255, 255, 255, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .plate-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .plate {
+            background: white;
+            color: var(--text);
+            border-radius: 18px;
+            padding: 22px 22px 16px;
+            width: 100%;
+            max-width: 340px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+            position: relative;
+        }
+
+        .plate::after {
+            content: '';
+            position: absolute;
+            left: 30px; right: 30px; bottom: -14px;
+            height: 14px;
+            background: #d9dbe6;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .plate-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .plate-brand .plate-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #1b1b2f;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+        }
+
+        .plate-brand strong { font-size: 15px; display: block; }
+        .plate-brand small { color: var(--muted); font-size: 11.5px; }
+
+        .plate-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .plate-qr {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .plate-qr svg { width: 74px; height: 74px; display: block; margin: 0 auto 6px; }
+
+        .plate-qr span { display: block; color: var(--muted); font-weight: 400; font-size: 10.5px; }
+
+        .plate-nfc {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 11.5px;
+            color: var(--grad-start);
+            font-weight: 600;
+        }
+
+        .plate-nfc svg { width: 18px; height: 18px; }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 60px;
+        }
+
+        .model { position: relative; }
+
+        .model .badge {
+            position: absolute;
+            top: 22px;
+            right: 22px;
+            background: #eef0fd;
+            color: var(--grad-start);
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .model .type-icon { margin-bottom: 16px; }
+        .model .size { color: var(--grad-start); font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+
+        .model .price {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .model .price strong { color: var(--text); }
+
+        .custom-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .custom-item {
+            background: var(--light);
+            border-radius: 16px;
+            padding: 22px;
+        }
+
+        .custom-item span { font-size: 28px; display: block; margin-bottom: 10px; }
+        .custom-item strong { display: block; font-size: 16px; margin-bottom: 6px; }
+        .custom-item p { color: var(--muted); font-size: 14.5px; }
+
+        .sub-title {
+            font-size: 24px;
+            text-align: center;
+            margin-top: 70px;
+        }
+
+        .products .steps { margin-top: 24px; }
+
+        .products-cta {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .products-cta small {
+            display: block;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .btn-whats {
+            background: #25d366;
+            color: white;
+            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.3);
+        }
+
+        .btn-whats:hover { box-shadow: 0 14px 34px rgba(37, 211, 102, 0.4); }
+
+        /* === STEPS === */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 34px 28px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+        }
+
+        .step-num {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: var(--grad);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 18px;
+        }
+
+        .card h3 { font-size: 20px; margin-bottom: 10px; }
+        .card p { color: var(--muted); font-size: 15.5px; }
+
+        .compare {
+            margin-top: 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .compare .card { position: relative; }
+
+        .compare .tag {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 4px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .tag-old { background: #f2f2f2; color: #777; }
+        .tag-new { background: #eef0fd; color: var(--grad-start); }
+
+        .compare ul { list-style: none; }
+
+        .compare li {
+            padding: 8px 0 8px 30px;
+            position: relative;
+            color: var(--muted);
+            font-size: 15.5px;
+        }
+
+        .compare li::before {
+            position: absolute;
+            left: 0;
+            top: 8px;
+            font-weight: 700;
+        }
+
+        .compare .no li::before { content: '✕'; color: #d66; }
+        .compare .yes li::before { content: '✓'; color: #4a4; }
+
+        /* === TYPES === */
+        .types { background: white; }
+
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .type-card {
+            border-radius: var(--card-radius);
+            padding: 34px 28px;
+            background: var(--light);
+            border: 2px solid transparent;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .type-card:hover {
+            border-color: var(--grad-start);
+            transform: translateY(-4px);
+        }
+
+        .type-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .type-card h3 { font-size: 21px; margin-bottom: 10px; }
+        .type-card p { color: var(--muted); font-size: 15.5px; }
+
+        .type-card .ex {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--grad-start);
+            font-weight: 500;
+        }
+
+        /* === EXAMPLES === */
+        .example {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 44px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+            margin-bottom: 30px;
+        }
+
+        .example:nth-child(even) .example-visual { order: -1; }
+
+        .example .kicker { margin-bottom: 10px; }
+
+        .example h3 { font-size: 26px; margin-bottom: 14px; }
+        .example p { color: var(--muted); margin-bottom: 18px; }
+
+        .example ul { list-style: none; }
+
+        .example li {
+            padding: 6px 0 6px 30px;
+            position: relative;
+            color: var(--text);
+            font-size: 15.5px;
+        }
+
+        .example li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 13px;
+            width: 16px;
+            height: 16px;
+            border-radius: 5px;
+            background: var(--grad);
+        }
+
+        .example-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .scene {
+            background: var(--grad);
+            border-radius: var(--card-radius);
+            padding: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            min-height: 300px;
+        }
+
+        .scene .phone { width: 140px; }
+        .scene .phone-screen { min-height: 210px; }
+
+        .sticker {
+            background: white;
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .sticker svg { width: 84px; height: 84px; display: block; margin: 0 auto 6px; }
+
+        .sticker .nfc {
+            display: inline-block;
+            margin-top: 4px;
+            background: #eef0fd;
+            color: var(--grad-start);
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-weight: 600;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10.5px;
+            padding: 5px 0;
+        }
+
+        .stat b { color: var(--grad-start); font-size: 13px; }
+
+        .bar {
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin: 4px 0 8px;
+            overflow: hidden;
+        }
+
+        .bar span {
+            display: block;
+            height: 100%;
+            background: var(--grad);
+        }
+
+        .variations {
+            margin-top: 44px;
+            text-align: center;
+        }
+
+        .variations h3 { font-size: 22px; margin-bottom: 20px; }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .chip-card {
+            background: white;
+            border-radius: 14px;
+            padding: 14px 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            max-width: 340px;
+        }
+
+        .chip-card span:first-child { font-size: 26px; }
+        .chip-card strong { display: block; font-size: 15px; }
+        .chip-card small { color: var(--muted); font-size: 13.5px; }
+
+        /* === FEATURES === */
+        .features { background: white; }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature {
+            padding: 28px;
+            border-radius: var(--card-radius);
+            background: var(--light);
+        }
+
+        .feature .type-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+        }
+
+        .feature h3 { font-size: 18px; margin-bottom: 8px; }
+        .feature p { color: var(--muted); font-size: 15px; }
+
+        /* === CTA === */
+        .cta {
+            background: var(--grad);
+            color: white;
+            text-align: center;
+        }
+
+        .cta h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 14px; }
+
+        .cta p {
+            font-size: 18px;
+            opacity: 0.94;
+            max-width: 600px;
+            margin: 0 auto 34px;
+        }
+
+        .cta small {
+            display: block;
+            margin-top: 18px;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(6px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 900px) {
+            section { padding: 60px 0; }
+            .hero { padding: 60px 0 90px; }
+            .hero-grid, .compare, .example { grid-template-columns: 1fr; }
+            .hero-visual { margin-top: 10px; }
+            .example:nth-child(even) .example-visual { order: 0; }
+            .steps, .types-grid, .features-grid, .models-grid { grid-template-columns: 1fr; }
+            .product-hero { grid-template-columns: 1fr; padding: 34px 26px; gap: 34px; }
+            .plate-wrap { order: -1; }
+            .custom-grid { grid-template-columns: 1fr 1fr; }
+            .models-grid { margin-top: 44px; }
+            .sub-title { margin-top: 50px; }
+            .nav-links li:not(:last-child) { display: none; }
+            .example { padding: 30px 24px; }
+        }
+
+        @media (max-width: 480px) {
+            .hero-visual { gap: 10px; }
+            .qr-card { padding: 14px; }
+            .qr-card svg { width: 100px; height: 100px; }
+            .phone { width: 120px; }
+            .arrow { font-size: 24px; }
+            .scene { padding: 20px 14px; gap: 10px; }
+            .scene .phone { width: 120px; }
+            .sticker svg { width: 64px; height: 64px; }
+            .custom-grid { grid-template-columns: 1fr; }
+            .plate { padding: 16px 14px 12px; }
+            .plate-qr svg { width: 60px; height: 60px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- QR Code decorativo reutilizado nas ilustrações (SVG inline para respeitar o CSP) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="qr" viewBox="0 0 21 21" shape-rendering="crispEdges">
+        <rect width="21" height="21" fill="#fff"/>
+        <path fill="#1b1b2f" d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2zM14 0h7v7h-7zM15 1v5h5V1zM16 2h3v3h-3zM0 14h7v7H0zM1 15v5h5v-5zM2 16h3v3H2zM8 0h1v1H8zM10 0h1v2h-1zM12 0h1v1h-1zM8 2h2v1H8zM11 2h2v1h-2zM8 4h1v1H8zM10 4h1v1h-1zM12 4h1v1h-1zM9 5h1v2H9zM11 6h2v1h-2zM0 8h1v1H0zM2 8h2v1H2zM5 8h1v1H5zM7 8h1v2H7zM9 8h1v1H9zM11 8h2v1h-2zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h2v1h-2zM1 10h1v1H1zM3 10h1v1H3zM5 10h2v1H5zM9 10h2v1H9zM12 10h1v1h-1zM15 10h1v1h-1zM17 10h1v1h-1zM20 10h1v1h-1zM0 12h1v1H0zM2 12h1v1H2zM4 12h2v1H4zM7 12h1v1H7zM9 12h1v1H9zM11 12h2v1h-2zM14 12h1v1h-1zM16 12h2v1h-2zM19 12h2v1h-2zM8 14h1v1H8zM10 14h2v1h-2zM13 14h1v2h-1zM15 14h1v1h-1zM17 14h1v1h-1zM19 14h2v1h-2zM9 16h1v1H9zM11 16h1v1h-1zM14 16h3v1h-3zM18 16h1v1h-1zM20 16h1v1h-1zM8 18h2v1H8zM11 18h2v1h-2zM14 18h1v1h-1zM16 18h1v1h-1zM18 18h2v1h-2zM9 20h1v1H9zM12 20h1v1h-1zM14 20h3v1h-3zM19 20h2v1h-2z"/>
+    </symbol>
+</svg>
+
+<header>
+    <div class="wrap nav">
+        <a class="brand" href="#top">
+            <span class="logo" aria-hidden="true">QR</span>
+            <span>Baila QR</span>
+        </a>
+        <nav aria-label="Navegação principal">
+            <ul class="nav-links">
+                <li><a href="#produtos">Produtos</a></li>
+                <li><a href="#como-funciona">Como funciona</a></li>
+                <li><a href="#tipos">Tipos</a></li>
+                <li><a href="#exemplos">Exemplos</a></li>
+                <li><a href="#recursos">Recursos</a></li>
+                <li><a class="btn btn-primary" style="padding: 10px 18px; font-size: 14px;" href="#baixar">Baixar app</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<main id="top">
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="wrap hero-grid">
+            <div>
+                <span class="hero-badge">QR Code dinâmico + NFC</span>
+                <h1>Imprima um QR Code uma vez. Mude o conteúdo quando quiser.</h1>
+                <p>
+                    O Baila QR gera QR Codes que apontam para um endereço fixo. O que o cliente vê
+                    ao escanear — cardápio, promoção, WhatsApp, aviso ou mural — você escolhe e
+                    altera pelo app, sem reimprimir nada.
+                </p>
+                <div class="hero-actions">
+                    <!-- TODO: substituir REPLACE_ME pelo ID real do app na Play Store -->
+                    <a class="btn btn-light" href="https://play.google.com/store/apps/details?id=REPLACE_ME" rel="noopener" target="_blank">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#34a853" d="M3.6 2.3 13.5 12 3.6 21.7c-.4-.2-.6-.7-.6-1.2V3.5c0-.5.2-1 .6-1.2z"/><path fill="#fbbc04" d="m17 8.5 3.4 1.9c1 .6 1 1.6 0 2.2L17 14.5 13.5 12z"/><path fill="#4285f4" d="M3.6 2.3c.4-.3 1-.3 1.6 0L17 8.5 13.5 12z"/><path fill="#ea4335" d="M13.5 12 17 15.5 5.2 21.7c-.6.3-1.2.3-1.6 0z"/></svg>
+                        Baixar na Play Store
+                    </a>
+                    <a class="btn btn-ghost" style="background: transparent; color: white; border-color: rgba(255,255,255,0.7);" href="#exemplos">Ver exemplos de uso</a>
+                </div>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+                <div class="qr-card">
+                    <svg><use href="#qr"/></svg>
+                    <small>baila.space/qr/?id=…</small>
+                </div>
+                <div class="arrow">➜</div>
+                <div class="phone">
+                    <div class="phone-screen">
+                        <span class="chip">Cardápio</span>
+                        <div class="line"></div>
+                        <div class="line short"></div>
+                        <div class="line"></div>
+                        <div class="line short"></div>
+                        <div class="cta-line">Pedir agora</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRODUTOS -->
+    <section id="produtos" class="products">
+        <div class="wrap">
+            <span class="kicker">Produto</span>
+            <h2 class="section-title">Placa de divulgação com QR Codes dinâmicos e NFC</h2>
+            <p class="section-sub">
+                Uma única placa com a sua marca reúne Instagram, Pix, site, cardápio, WhatsApp e o que mais
+                você precisar. Cada QR Code é dinâmico: mude o destino depois, pelo app, sem trocar a placa.
+            </p>
+
+            <div class="product-hero">
+                <div class="plate-wrap" aria-hidden="true">
+                    <div class="plate">
+                        <div class="plate-brand">
+                            <div class="plate-logo">LOGO</div>
+                            <div>
+                                <strong>Sua marca aqui</strong>
+                                <small>Siga, pague e peça pelo celular</small>
+                            </div>
+                        </div>
+                        <div class="plate-grid">
+                            <div class="plate-qr"><svg><use href="#qr"/></svg>Instagram<span>@suamarca</span></div>
+                            <div class="plate-qr"><svg><use href="#qr"/></svg>Pix<span>pague aqui</span></div>
+                            <div class="plate-qr"><svg><use href="#qr"/></svg>Cardápio<span>veja o menu</span></div>
+                            <div class="plate-qr"><svg><use href="#qr"/></svg>WhatsApp<span>fale conosco</span></div>
+                        </div>
+                        <div class="plate-nfc">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8.5a6 6 0 0 1 0 7"/><path d="M9.5 6a10 10 0 0 1 0 12"/><path d="M13 3.5a14 14 0 0 1 0 17"/></svg>
+                            Aproxime o celular · NFC embutido
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Toda a sua divulgação em um só lugar, com a sua identidade</h3>
+                    <p>
+                        Aquelas placas de mesa ou quadros cheios de QR Codes — só que inteligentes.
+                        Nós produzimos a placa com o seu logo, suas cores e os QR Codes que você quiser,
+                        e você continua no controle de cada um pelo app.
+                    </p>
+                    <ul>
+                        <li>Todos os QR Codes são dinâmicos: troque destinos sem trocar a placa</li>
+                        <li>Chip NFC embutido: basta aproximar o celular</li>
+                        <li>Sua marca, suas cores, seus ícones e textos</li>
+                        <li>Métricas separadas por QR: quantos foram ao Pix, ao Instagram, ao cardápio…</li>
+                    </ul>
+                    <div class="hero-actions">
+                        <!-- TODO: substituir REPLACE_ME pelo número do WhatsApp com DDI+DDD (ex.: 5511999999999) -->
+                        <a class="btn btn-light" href="https://wa.me/55REPLACE_ME?text=Ol%C3%A1!%20Quero%20um%20or%C3%A7amento%20da%20placa%20QR%20%2B%20NFC." rel="noopener" target="_blank">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#25d366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path fill="#fff" d="M17 14.4c-.3-.1-1.6-.8-1.9-.9s-.4-.1-.6.1-.7.9-.9 1.1-.3.2-.6.1a7 7 0 0 1-3.5-3c-.3-.5.3-.4.8-1.5.1-.2 0-.4 0-.5l-.9-2c-.2-.5-.4-.5-.6-.5h-.5a1 1 0 0 0-.8.4 3.1 3.1 0 0 0-1 2.4c0 1.4 1 2.8 1.2 3s2 3.1 4.9 4.3c1.8.7 2.5.7 3.4.6s1.6-.7 1.8-1.3.2-1.1.1-1.3-.2-.2-.5-.3z"/></svg>
+                            Pedir orçamento no WhatsApp
+                        </a>
+                        <a class="btn btn-ghost" style="background: transparent; color: white; border-color: rgba(255,255,255,0.7);" href="#modelos">Ver modelos</a>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="sub-title" id="modelos">Modelos disponíveis</h3>
+            <p class="section-sub" style="margin-bottom: 0;">Todos com NFC embutido e QR Codes dinâmicos gerenciados pelo app.</p>
+
+            <div class="models-grid">
+                <article class="card model">
+                    <span class="badge">NFC embutido</span>
+                    <div class="type-icon" aria-hidden="true">🪧</div>
+                    <h3>Placa de mesa</h3>
+                    <div class="size">Display A6 ou A5 · acrílico ou PVC</div>
+                    <p>Fica em pé na mesa, no balcão ou no caixa. Ideal para restaurantes, cafés, bares e salões.</p>
+                    <div class="price"><strong>Sob orçamento</strong> · personalizada com a sua marca</div>
+                </article>
+                <article class="card model">
+                    <span class="badge">NFC embutido</span>
+                    <div class="type-icon" aria-hidden="true">🖼️</div>
+                    <h3>Quadro de parede ou balcão</h3>
+                    <div class="size">A4 ou A3 · com moldura ou placa rígida</div>
+                    <p>Para entrada, vitrine, recepção ou área de espera. Reúne vários QR Codes em destaque.</p>
+                    <div class="price"><strong>Sob orçamento</strong> · personalizado com a sua marca</div>
+                </article>
+                <article class="card model">
+                    <span class="badge">NFC embutido</span>
+                    <div class="type-icon" aria-hidden="true">🏷️</div>
+                    <h3>Adesivo ou etiqueta</h3>
+                    <div class="size">Tamanhos variados · vinil resistente</div>
+                    <p>Para embalagens, vidros, produtos e equipamentos. Leve, discreto e fácil de aplicar.</p>
+                    <div class="price"><strong>Sob orçamento</strong> · personalizado com a sua marca</div>
+                </article>
+            </div>
+
+            <h3 class="sub-title">Personalize do seu jeito</h3>
+            <div class="custom-grid">
+                <div class="custom-item">
+                    <span aria-hidden="true">🎨</span>
+                    <strong>Logo e cores</strong>
+                    <p>Sua identidade visual aplicada na placa inteira.</p>
+                </div>
+                <div class="custom-item">
+                    <span aria-hidden="true">🔢</span>
+                    <strong>Quantidade de QR Codes</strong>
+                    <p>De um a vários: Instagram, Pix, site, cardápio, avaliação, WhatsApp…</p>
+                </div>
+                <div class="custom-item">
+                    <span aria-hidden="true">✍️</span>
+                    <strong>Textos e ícones</strong>
+                    <p>Chamadas, legendas e ícones para cada QR Code.</p>
+                </div>
+                <div class="custom-item">
+                    <span aria-hidden="true">🧱</span>
+                    <strong>Material e acabamento</strong>
+                    <p>Acrílico, PVC, vinil, com ou sem moldura.</p>
+                </div>
+            </div>
+
+            <h3 class="sub-title">Como pedir</h3>
+            <div class="steps">
+                <article class="card">
+                    <div class="step-num">1</div>
+                    <h3>Envie sua marca e seus links</h3>
+                    <p>Pelo WhatsApp, mande o logo, as cores e quais QR Codes você quer na placa.</p>
+                </article>
+                <article class="card">
+                    <div class="step-num">2</div>
+                    <h3>Aprove o layout</h3>
+                    <p>Você recebe uma prévia da placa para ajustar e aprovar antes da produção.</p>
+                </article>
+                <article class="card">
+                    <div class="step-num">3</div>
+                    <h3>Receba e gerencie pelo app</h3>
+                    <p>A placa chega pronta. Os QR Codes já aparecem no seu app para você acompanhar e alterar quando quiser.</p>
+                </article>
+            </div>
+
+            <div class="products-cta">
+                <!-- TODO: substituir REPLACE_ME pelo número do WhatsApp com DDI+DDD (ex.: 5511999999999) -->
+                <a class="btn btn-whats" href="https://wa.me/55REPLACE_ME?text=Ol%C3%A1!%20Quero%20um%20or%C3%A7amento%20da%20placa%20QR%20%2B%20NFC." rel="noopener" target="_blank">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path fill="#25d366" d="M17 14.4c-.3-.1-1.6-.8-1.9-.9s-.4-.1-.6.1-.7.9-.9 1.1-.3.2-.6.1a7 7 0 0 1-3.5-3c-.3-.5.3-.4.8-1.5.1-.2 0-.4 0-.5l-.9-2c-.2-.5-.4-.5-.6-.5h-.5a1 1 0 0 0-.8.4 3.1 3.1 0 0 0-1 2.4c0 1.4 1 2.8 1.2 3s2 3.1 4.9 4.3c1.8.7 2.5.7 3.4.6s1.6-.7 1.8-1.3.2-1.1.1-1.3-.2-.2-.5-.3z"/></svg>
+                    Pedir orçamento no WhatsApp
+                </a>
+                <small>Orçamento sem compromisso. Respondemos com prévia do layout.</small>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMO FUNCIONA -->
+    <section id="como-funciona">
+        <div class="wrap">
+            <h2 class="section-title">O que é um QR Code dinâmico?</h2>
+            <p class="section-sub">
+                Um QR Code comum guarda o link "dentro" do desenho: se o link muda, o QR morre.
+                No QR dinâmico, o desenho aponta para um endereço fixo da Baila e <strong>nós decidimos
+                na hora</strong> o que mostrar — com base no que você configurou no app.
+            </p>
+
+            <div class="steps">
+                <article class="card">
+                    <div class="step-num">1</div>
+                    <h3>Crie e imprima</h3>
+                    <p>Gere o QR Code no app e imprima em adesivo, cartaz, mesa, embalagem ou cartão. Ele nunca mais precisa mudar.</p>
+                </article>
+                <article class="card">
+                    <div class="step-num">2</div>
+                    <h3>Defina o conteúdo</h3>
+                    <p>Escolha o que acontece ao escanear: abrir um link, mostrar um texto ou exibir um mural de comentários.</p>
+                </article>
+                <article class="card">
+                    <div class="step-num">3</div>
+                    <h3>Mude quando quiser</h3>
+                    <p>Nova promoção? Cardápio do dia? Troque o destino pelo celular e o QR impresso passa a mostrar o novo conteúdo na mesma hora.</p>
+                </article>
+            </div>
+
+            <div class="compare">
+                <article class="card no">
+                    <span class="tag tag-old">QR Code comum</span>
+                    <ul>
+                        <li>O link fica gravado no desenho</li>
+                        <li>Mudou o link? Reimprima tudo</li>
+                        <li>Você não sabe quantas pessoas escanearam</li>
+                        <li>Serve para uma única coisa</li>
+                    </ul>
+                </article>
+                <article class="card yes">
+                    <span class="tag tag-new">QR Code Baila</span>
+                    <ul>
+                        <li>O desenho é permanente, o conteúdo é seu</li>
+                        <li>Troque destino, texto ou tipo pelo app</li>
+                        <li>Veja cada leitura: quando, de onde e por qual canal</li>
+                        <li>Funciona também como tag NFC no mesmo adesivo</li>
+                    </ul>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- TIPOS -->
+    <section id="tipos" class="types">
+        <div class="wrap">
+            <h2 class="section-title">Três formas de usar o mesmo QR</h2>
+            <p class="section-sub">Você pode alternar entre elas a qualquer momento, sem trocar o código impresso.</p>
+
+            <div class="types-grid">
+                <article class="type-card">
+                    <div class="type-icon" aria-hidden="true">🔗</div>
+                    <h3>Redirecionar</h3>
+                    <p>Ao escanear, o cliente vai direto para o link que você definiu: site, cardápio digital, Instagram, WhatsApp, formulário ou página de promoção.</p>
+                    <div class="ex">Ex.: mesa do restaurante → cardápio de hoje</div>
+                </article>
+                <article class="type-card">
+                    <div class="type-icon" aria-hidden="true">📝</div>
+                    <h3>Mostrar texto</h3>
+                    <p>Exibe uma mensagem simples na tela, sem precisar de site. Ideal para avisos rápidos que mudam com frequência.</p>
+                    <div class="ex">Ex.: senha do Wi-Fi, horário de funcionamento, instruções</div>
+                </article>
+                <article class="type-card">
+                    <div class="type-icon" aria-hidden="true">💬</div>
+                    <h3>Mural de comentários</h3>
+                    <p>Abre um quadro onde os clientes deixam recados, sugestões ou avaliações. Você recebe cada comentário no celular, com proteção anti-spam.</p>
+                    <div class="ex">Ex.: "como foi sua experiência hoje?"</div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXEMPLOS -->
+    <section id="exemplos">
+        <div class="wrap">
+            <h2 class="section-title">Exemplos de uso no seu comércio</h2>
+            <p class="section-sub">Situações reais em que um único QR Code impresso resolve vários problemas ao longo do tempo.</p>
+
+            <article class="example">
+                <div>
+                    <span class="kicker">Restaurante · Bar · Lanchonete</span>
+                    <h3>Um QR na mesa que sempre mostra o cardápio certo</h3>
+                    <p>Cole um adesivo em cada mesa. Hoje ele abre o cardápio completo; na sexta, a promoção de happy hour; no domingo, o menu de almoço.</p>
+                    <ul>
+                        <li>Troque para "cardápio do dia" sem reimprimir os adesivos</li>
+                        <li>Alterne para um mural e colete sugestões e avaliações dos clientes</li>
+                        <li>Descubra quais mesas e horários geram mais leituras</li>
+                    </ul>
+                </div>
+                <div class="example-visual" aria-hidden="true">
+                    <div class="scene">
+                        <div class="sticker">
+                            <svg><use href="#qr"/></svg>
+                            Mesa 07
+                        </div>
+                        <div class="phone">
+                            <div class="phone-screen">
+                                <span class="chip">Cardápio do dia</span>
+                                <div class="menu-item"><span>Prato executivo</span><b>R$ 32</b></div>
+                                <div class="menu-item"><span>Feijoada</span><b>R$ 38</b></div>
+                                <div class="menu-item"><span>Suco natural</span><b>R$ 9</b></div>
+                                <div class="menu-item"><span>Sobremesa</span><b>R$ 12</b></div>
+                                <div class="cta-line">Chamar garçom</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="example">
+                <div>
+                    <span class="kicker">Loja de roupas · Varejo</span>
+                    <h3>Promoção na vitrine que muda toda semana — e mostra resultado</h3>
+                    <p>Um cartaz fixo com QR Code na vitrine ou na etiqueta. Cada semana você aponta para a campanha atual e acompanha quantas pessoas se interessaram.</p>
+                    <ul>
+                        <li>Redirecione para a promoção da semana, cupom ou catálogo</li>
+                        <li>Veja quantas leituras cada campanha teve, por dia e por local</li>
+                        <li>Compare o cartaz da vitrine com a etiqueta da peça pelo mesmo painel</li>
+                    </ul>
+                </div>
+                <div class="example-visual" aria-hidden="true">
+                    <div class="scene">
+                        <div class="phone">
+                            <div class="phone-screen">
+                                <span class="chip">Acessos · Vitrine</span>
+                                <div class="stat"><span>Hoje</span><b>48</b></div>
+                                <div class="bar"><span style="width: 80%"></span></div>
+                                <div class="stat"><span>Esta semana</span><b>312</b></div>
+                                <div class="bar"><span style="width: 62%"></span></div>
+                                <div class="stat"><span>Campanha "Inverno"</span><b>1.204</b></div>
+                                <div class="bar"><span style="width: 95%"></span></div>
+                                <div class="cta-line">Ver no mapa</div>
+                            </div>
+                        </div>
+                        <div class="sticker">
+                            <svg><use href="#qr"/></svg>
+                            Escaneie e ganhe 10%
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="example">
+                <div>
+                    <span class="kicker">Embalagem · Produto · Equipamento</span>
+                    <h3>Um adesivo QR + NFC que acompanha o produto pela vida toda</h3>
+                    <p>Na caixa ou no próprio produto, o cliente escaneia o QR ou aproxima o celular da tag NFC. O conteúdo evolui: hoje é o vídeo de lançamento, depois o manual, depois o suporte.</p>
+                    <ul>
+                        <li>QR e NFC gravados com o mesmo endereço, gerenciados juntos</li>
+                        <li>Mude de "conheça o produto" para "manual e garantia" após a compra</li>
+                        <li>Saiba quantos clientes usaram QR e quantos usaram NFC</li>
+                    </ul>
+                </div>
+                <div class="example-visual" aria-hidden="true">
+                    <div class="scene">
+                        <div class="sticker">
+                            <svg><use href="#qr"/></svg>
+                            Manual &amp; garantia
+                            <span class="nfc">))) NFC</span>
+                        </div>
+                        <div class="phone">
+                            <div class="phone-screen">
+                                <span class="chip">Suporte</span>
+                                <div class="line"></div>
+                                <div class="line short"></div>
+                                <div class="line"></div>
+                                <div class="line short"></div>
+                                <div class="line"></div>
+                                <div class="cta-line">Falar no WhatsApp</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <div class="variations">
+                <h3>E também funciona para…</h3>
+                <div class="chips">
+                    <div class="chip-card">
+                        <span aria-hidden="true">💇</span>
+                        <div>
+                            <strong>Salão de beleza</strong>
+                            <small>QR no balcão redireciona para o agendamento no WhatsApp; mude o número sem reimprimir.</small>
+                        </div>
+                    </div>
+                    <div class="chip-card">
+                        <span aria-hidden="true">🛒</span>
+                        <div>
+                            <strong>Mercado e padaria</strong>
+                            <small>Mostre a senha do Wi-Fi, o horário especial do feriado ou a oferta do dia como texto simples.</small>
+                        </div>
+                    </div>
+                    <div class="chip-card">
+                        <span aria-hidden="true">🏢</span>
+                        <div>
+                            <strong>Feira e evento corporativo</strong>
+                            <small>Um QR no estande que abre a programação e, no fim do dia, vira um mural para feedback dos visitantes.</small>
+                        </div>
+                    </div>
+                    <div class="chip-card">
+                        <span aria-hidden="true">🏠</span>
+                        <div>
+                            <strong>Imobiliária</strong>
+                            <small>Placa "vende-se" com QR fixo; troque as fotos e o valor do imóvel pelo app quando mudar.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RECURSOS -->
+    <section id="recursos" class="features">
+        <div class="wrap">
+            <h2 class="section-title">Tudo que vem junto</h2>
+            <p class="section-sub">Gerencie pelo app Android e acompanhe o que acontece com cada QR Code.</p>
+
+            <div class="features-grid">
+                <article class="feature">
+                    <div class="type-icon" aria-hidden="true">📊</div>
+                    <h3>Métricas de acesso</h3>
+                    <p>Cada leitura registra data, canal (QR ou NFC), idioma, plataforma e campanha. Veja lista e mapa direto no app.</p>
+                </article>
+                <article class="feature">
+                    <div class="type-icon" aria-hidden="true">🔔</div>
+                    <h3>Notificação a cada leitura</h3>
+                    <p>Receba um aviso no celular quando alguém escanear seu QR ou deixar um comentário no mural.</p>
+                </article>
+                <article class="feature">
+                    <div class="type-icon" aria-hidden="true">📡</div>
+                    <h3>Tag NFC no mesmo adesivo</h3>
+                    <p>Grave a mesma URL em uma tag NFC pelo app. Aproximar o celular ou escanear o QR leva ao mesmo conteúdo.</p>
+                </article>
+                <article class="feature">
+                    <div class="type-icon" aria-hidden="true">🛡️</div>
+                    <h3>Mural com proteção</h3>
+                    <p>Limite de envios por pessoa, filtro de caracteres e reset semanal automático para manter o mural saudável.</p>
+                </article>
+                <article class="feature">
+                    <div class="type-icon" aria-hidden="true">⚡</div>
+                    <h3>Redirecionamento instantâneo</h3>
+                    <p>O cliente é levado ao destino imediatamente; o registro da leitura acontece em segundo plano.</p>
+                </article>
+                <article class="feature">
+                    <div class="type-icon" aria-hidden="true">🖨️</div>
+                    <h3>Nunca mais reimprima</h3>
+                    <p>Adesivos, cartazes e embalagens continuam válidos mesmo quando o seu conteúdo muda.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section id="baixar" class="cta">
+        <div class="wrap">
+            <h2>Comece agora com o seu primeiro QR Code</h2>
+            <p>Baixe o app, crie um QR Code em segundos e imprima. O resto você ajusta pelo celular, quando quiser.</p>
+            <!-- TODO: substituir REPLACE_ME pelo ID real do app na Play Store -->
+            <a class="btn btn-light" href="https://play.google.com/store/apps/details?id=REPLACE_ME" rel="noopener" target="_blank">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#34a853" d="M3.6 2.3 13.5 12 3.6 21.7c-.4-.2-.6-.7-.6-1.2V3.5c0-.5.2-1 .6-1.2z"/><path fill="#fbbc04" d="m17 8.5 3.4 1.9c1 .6 1 1.6 0 2.2L17 14.5 13.5 12z"/><path fill="#4285f4" d="M3.6 2.3c.4-.3 1-.3 1.6 0L17 8.5 13.5 12z"/><path fill="#ea4335" d="M13.5 12 17 15.5 5.2 21.7c-.6.3-1.2.3-1.6 0z"/></svg>
+                Baixar na Play Store
+            </a>
+            <small>Disponível para Android.</small>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    © <span id="year">2026</span> Baila QR · baila.space
+</footer>
+
+<script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
 </html>
