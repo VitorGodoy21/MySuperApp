@@ -7,6 +7,8 @@ sealed interface QrCodeListEvent {
     data class OnSelectQrCode(val qrCode: QrCode) : QrCodeListEvent
     data class OnCreateQrCode(
         val type: QrCodeType,
-        val identifier: String
+        val identifier: String,
+        val redirectUrl: String = "",
+        val text: String = ""
     ) : QrCodeListEvent
 }

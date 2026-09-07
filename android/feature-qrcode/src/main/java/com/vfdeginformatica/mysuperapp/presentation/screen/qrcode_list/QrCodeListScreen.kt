@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -45,12 +47,21 @@ fun QrCodeListScreen(
     innerPadding: PaddingValues,
     showCreateDialog: Boolean = false,
     onDismissCreateDialog: () -> Unit = {},
-    onConfirmCreateQrCode: (QrCodeType, String) -> Unit = { _, _ -> }
+    onConfirmCreateQrCode: (QrCodeType, String, String, String) -> Unit = { _, _, _, _ -> }
 ) {
     var typeDropdownExpanded by remember(showCreateDialog) { mutableStateOf(false) }
     var selectedType by remember(showCreateDialog) { mutableStateOf(QrCodeType.REDIRECT) }
     var identifier by remember(showCreateDialog) { mutableStateOf("") }
+    var redirectUrl by remember(showCreateDialog) { mutableStateOf("") }
+    var text by remember(showCreateDialog) { mutableStateOf("") }
     val trimmedIdentifier = identifier.trim()
+    val trimmedRedirectUrl = redirectUrl.trim()
+    val trimmedText = text.trim()
+    val isTypeValueValid = when (selectedType) {
+        QrCodeType.REDIRECT -> trimmedRedirectUrl.isNotEmpty()
+        QrCodeType.TEXT -> trimmedText.isNotEmpty()
+        QrCodeType.MURAL -> true
+    }
 
     if (showCreateDialog) {
         AlertDialog(
@@ -106,13 +117,42 @@ fun QrCodeListScreen(
                                 }
                             }
                         }
+                        when (selectedType) {
+                            QrCodeType.REDIRECT -> OutlinedTextField(
+                                value = redirectUrl,
+                                onValueChange = { redirectUrl = it },
+                                label = { Text("URL de redirecionamento") },
+                                placeholder = { Text("https://...") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+
+                            QrCodeType.TEXT -> OutlinedTextField(
+                                value = text,
+                                onValueChange = { text = it },
+                                label = { Text("Texto") },
+                                placeholder = { Text("Texto exibido ao escanear") },
+                                modifier = Modifier.fillMaxWidth(),
+                                minLines = 3
+                            )
+
+                            QrCodeType.MURAL -> Unit
+                        }
                     }
                 }
             },
             confirmButton = {
                 Button(
-                    onClick = { onConfirmCreateQrCode(selectedType, trimmedIdentifier) },
-                    enabled = !uiState.isCreating && trimmedIdentifier.isNotEmpty()
+                    onClick = {
+                        onConfirmCreateQrCode(
+                            selectedType,
+                            trimmedIdentifier,
+                            trimmedRedirectUrl,
+                            trimmedText
+                        )
+                    },
+                    enabled = !uiState.isCreating && trimmedIdentifier.isNotEmpty() && isTypeValueValid
                 ) {
                     Text("Criar")
                 }

@@ -31,7 +31,21 @@ service cloud.firestore {
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == resource.data.userId;
 
-      allow create, delete: if false;
+      // O usuário autenticado pode criar QR Codes próprios com os campos esperados
+      // (o campo id é @DocumentId no app e não é gravado no documento)
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.identifier is string
+        && request.resource.data.identifier.size() > 0
+        && request.resource.data.type is string
+        && request.resource.data.staticUrl is string
+        && request.resource.data.redirectUrl is string
+        && request.resource.data.text is string;
+
+      // O dono autenticado pode excluir o próprio QR Code
+      // (subcoleções comments/access_logs não são apagadas automaticamente)
+      allow delete: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
 
       // Comentários: leitura pública; moderação/edição permitida ao dono do QR autenticado
       match /comments/{commentId} {

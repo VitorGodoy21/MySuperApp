@@ -72,12 +72,17 @@ class QrCodeListViewModel @Inject constructor(
             }
 
             is QrCodeListEvent.OnCreateQrCode -> {
-                createQrCode(event.type, event.identifier)
+                createQrCode(event.type, event.identifier, event.redirectUrl, event.text)
             }
         }
     }
 
-    private fun createQrCode(type: QrCodeType, identifier: String) {
+    private fun createQrCode(
+        type: QrCodeType,
+        identifier: String,
+        redirectUrl: String,
+        text: String
+    ) {
         if (_uiState.value.isCreating) return
 
         val trimmedIdentifier = identifier.trim()
@@ -85,10 +90,10 @@ class QrCodeListViewModel @Inject constructor(
         val pendingQrCode = QrCode(
             id = "",
             identifier = trimmedIdentifier,
-            redirectUrl = "",
+            redirectUrl = if (type == QrCodeType.REDIRECT) redirectUrl.trim() else "",
             staticUrl = "",
             type = type,
-            text = "",
+            text = if (type == QrCodeType.TEXT) text.trim() else "",
             userId = ""
         )
 
@@ -100,11 +105,10 @@ class QrCodeListViewModel @Inject constructor(
 
                 is Resource.Success -> {
                     _uiState.value = _uiState.value.copy(isCreating = false, error = "")
-                    val createdQrCode = result.data ?: return@onEach
                     viewModelScope.launch {
                         _effect.emit(QrCodeListEffect.ShowToast("QR Code criado com sucesso"))
-                        _effect.emit(QrCodeListEffect.NavigateToQrCode(createdQrCode))
                     }
+                    refresh()
                 }
 
                 is Resource.Error -> {
