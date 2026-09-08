@@ -1,0 +1,15 @@
+package com.vfdeginformatica.mysuperapp.data.remote.dto
+
+import com.google.firebase.firestore.DocumentId
+
+data class CardDto(
+    @DocumentId
+    var id: String = "",
+    var bank: String = "",
+    var finalCode: String = "",
+    var paymentMethods: List<String> = listOf(),
+    var invoiceDueDate: Int = 0,
+    var allowsDeposit: Boolean = false,
+    // Dia de fechamento da fatura (seed manual no console). 0 = sem fechamento definido.
+    var closingDay: Int = 0
+)

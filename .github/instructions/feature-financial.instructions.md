@@ -1,0 +1,54 @@
+---
+applyTo: "android/feature-financial/**"
+---
+
+# feature-financial module instructions
+
+## Purpose and scope
+
+- `android/feature-financial` is the finance feature library used only by the `:app` application module. It owns the financial home screen, the new-transaction flow, and all transaction/card/transaction-category data access.
+- It is an Android library without product flavors. Build and test it with `.\gradlew.bat -p android :feature-financial:compileDebugKotlin` and `.\gradlew.bat -p android :feature-financial:testDebugUnitTest`.
+
+## Structure
+
+- Kotlin packages stay under `com.vfdeginformatica.mysuperapp...` (matching `:app`) even though the Gradle namespace is `com.vfdeginformatica.feature.financial`. Do not change package names when adding or moving files; app-side DI, imports, and navigation depend on them.
+- Follow the repository-wide layering inside this module:
+  - `data/remote/datasource` — Firestore DAOs (`TransactionDao`, `CardDao`, `CategoryTransactionDao`) and their `*Impl` classes receiving `FirebaseFirestore` via constructor.
+  - `data/remote/dto` — Firestore DTOs (`TransactionDto`, `CardDto`, `CategoryTransactionDto`).
+  - `data/remote/repository` — repository implementations wrapping DAOs.
+  - `data/mapper` — explicit DTO↔domain conversions (`TransactionMapper`); never expose DTOs to presentation code.
+  - `domain/model`, `domain/repository`, `domain/use_case/financial/...` — models, repository interfaces, and use cases returning `Flow<Resource<T>>`.
+  - `presentation/screen/<screen>` — `*Route.kt` (navigation/composition), `*Screen.kt` (UI), `*ViewModel.kt` (behavior), and `contract/` with `UiState`, `Event`, `Effect` types.
+
+## Dependencies and wiring
+
+- The module depends on `:feature-qrcode` only for shared infrastructure: the `common.Resource` wrapper and the `AppScaffold` composable. Do not add QR business logic dependencies; if more shared pieces are needed, prefer extracting a `:core` module.
+- Hilt wiring is app-local: `android/app/di/DaoModule.kt` and `RepositoryModule.kt` provide the DAOs and repositories implemented here. When adding a new DAO/repository, add the corresponding `@Provides` bindings in `android/app/di`, not in this module.
+- Navigation routes for this module's screens (`financial_screen`, `new_transaction_screen`) are declared in the shared `Screen` sealed class and composed into the nav graph in `android/app` (`MySuperApp.kt`). New screens need a route there plus a `composable(...)` entry in the app nav graph.
+
+## Domain model (validated against the app flow)
+
+- A transaction is either **INCOME (Receita)** or **EXPENSE (Despesa)** (`TransactionType`), chosen via chips on the new-transaction screen.
+  - **INCOME**: title, amount, optional description, the destination card, and an optional "Receita recorrente" switch (e.g. salary) used by the projection tab. Only cards with `allowsDeposit == true` are selectable, and a card is required.
+  - **EXPENSE**: title, amount, optional description, a required card, a payment method (`DEBIT`/`CREDIT`) constrained by the card's `paymentMethods`, and multi-select categories. When the method is `CREDIT`, the user picks either a number of installments (1–12 or 24) or "Compra Recorrente" (`isRecurring = true`).
+- `installments` is persisted only for non-recurring CREDIT expenses; otherwise it is `null`.
+- `CardDto` (`cards` collection): `bank`, `finalCode`, `paymentMethods` (list of `DEBIT`/`CREDIT`), `invoiceDueDate`, `allowsDeposit`, `closingDay` (invoice closing day; `0` means "no closing day configured"). Cards and transaction categories (`transactions_category`: `title`, `description`) are seeded manually in the Firebase console; the app only reads them (Firestore rules deny client writes).
+- `transactions` documents carry: `title`, `description`, `transactionType`, `paymentMethod`, `amount`, `isRecurring`, `transactionDate`, `category` (list of category ids), `status`, `cardId`, `invoiceMonth`, `installmentGroupId`, `installments`, `installmentNumber`.
+
+### Credit-card invoice logic
+
+- On save, `NewTransactionUseCase` computes `invoiceMonth` (format `yyyy-MM`) for CREDIT expenses from the card's `closingDay`: purchases on or after the closing day go to next month's invoice; before it, to the current month's. `closingDay == 0` keeps the purchase in the current month.
+- Non-recurring CREDIT purchases with N > 1 installments are split into **N transaction documents** (amount/N with rounding on the last installment), one per sequential `invoiceMonth`, sharing an `installmentGroupId` (UUID) and carrying `installmentNumber` (1..N). They are written atomically with a Firestore `WriteBatch` (`TransactionDao.addTransactions`).
+- Recurring transactions (`isRecurring == true`) exist as a single document and are projected into every month by the projection tab.
+
+### Financial screen
+
+- The financial home screen (`FinancialScreen`) has two tabs (`FinancialTab`):
+  - **Mês**: the month-based dashboard — month navigation, period balance (income − expense), income/expense totals, and the transaction list filtered client-side by type, category, and card. Month data is fetched with a `transactionDate` range query (`GetTransactionsUseCase`).
+  - **Fatura / Projeção**: projection for a target month (defaults to next month). `GetInvoiceProjectionUseCase` combines two equality queries — `invoiceMonth == target` and `isRecurring == true` (no composite indexes needed). The UI shows projected balance (recurring income − projected invoice − recurring debit expenses), per-card invoice totals ("fecha dia X • vence dia Y"), recurring incomes, and the invoice item list. Recurring CREDIT expenses join the invoice for every month, deduplicated against the `invoiceMonth` query by excluding items whose own `invoiceMonth` equals the target.
+- Tapping a transaction (month list, recurring incomes, or invoice items) opens an edit dialog to adjust `title`/`amount` or delete the document (`UpdateTransactionUseCase`/`DeleteTransactionUseCase`). This is how the projected salary is adjusted when the real payment arrives; editing a recurring document changes all future projections.
+- Known limitations (current behavior, not bugs to "fix" silently): the new-transaction screen has no date picker (`transactionDate` is always "now"); `status` is always saved as `"pending"`; installment documents created before the split feature are not migrated.
+
+## Data
+
+- Financial data lives in Firestore collections accessed directly from the client with the authenticated user. Any new collection access must be paired with a matching rule update in `web/firestore.rules` (deployed via `firebase deploy --only firestore:rules` from `web\`), otherwise reads/writes fail with `PERMISSION_DENIED`. Current rules: authenticated users can read `transactions`/`cards`/`transactions_category`, create `transactions`, update only `title`/`amount` of a transaction, and delete `transactions`; all other client writes are denied.
