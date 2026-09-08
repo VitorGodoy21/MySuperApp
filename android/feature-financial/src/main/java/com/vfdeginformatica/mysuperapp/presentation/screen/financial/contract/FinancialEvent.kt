@@ -9,6 +9,7 @@ sealed interface FinancialEvent {
     data class OnTypeFilterChanged(val filter: TransactionTypeFilter) : FinancialEvent
     data class OnCategoryFilterChanged(val categoryId: String?) : FinancialEvent
     data class OnCardFilterChanged(val cardId: String?) : FinancialEvent
+    data object OnRecurringExpensesFilterToggled : FinancialEvent
 
     // Aba Projeção
     data class OnTabChanged(val tab: FinancialTab) : FinancialEvent

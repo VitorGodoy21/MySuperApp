@@ -13,6 +13,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.Fi
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialTab
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialUiState
+import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.TransactionTypeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -92,7 +93,14 @@ class FinancialViewModel @Inject constructor(
             FinancialEvent.OnDeleteTransaction -> deleteTransaction()
 
             is FinancialEvent.OnTypeFilterChanged -> {
-                _uiState.update { it.copy(typeFilter = event.filter) }
+                _uiState.update {
+                    it.copy(
+                        typeFilter = event.filter,
+                        // O filtro de recorrentes só faz sentido junto com despesas
+                        recurringExpensesOnly = it.recurringExpensesOnly &&
+                                event.filter == TransactionTypeFilter.EXPENSE
+                    )
+                }
             }
 
             is FinancialEvent.OnCategoryFilterChanged -> {
@@ -101,6 +109,21 @@ class FinancialViewModel @Inject constructor(
 
             is FinancialEvent.OnCardFilterChanged -> {
                 _uiState.update { it.copy(cardFilterId = event.cardId) }
+            }
+
+            FinancialEvent.OnRecurringExpensesFilterToggled -> {
+                _uiState.update {
+                    val enabled = !it.recurringExpensesOnly
+                    it.copy(
+                        recurringExpensesOnly = enabled,
+                        // Ao ativar, força o filtro de tipo para despesas
+                        typeFilter = if (enabled) {
+                            TransactionTypeFilter.EXPENSE
+                        } else {
+                            it.typeFilter
+                        }
+                    )
+                }
             }
         }
     }

@@ -92,22 +92,22 @@ class NewTransactionUseCase @Inject constructor(
         }
     }
 
-    /**
-     * Fatura de destino de uma compra no crédito: compras no dia de fechamento
-     * ou depois dele entram na fatura do mês seguinte.
-     */
-    private fun computeInvoiceMonth(date: Timestamp, closingDay: Int): YearMonth {
-        val localDate: LocalDate = date.toDate().toInstant()
-            .atZone(ZoneId.systemDefault()).toLocalDate()
-        val month = YearMonth.from(localDate)
-        return if (closingDay in 1..31 && localDate.dayOfMonth >= closingDay) {
-            month.plusMonths(1)
-        } else {
-            month
-        }
-    }
-
     companion object {
         val INVOICE_MONTH_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
+
+        /**
+         * Fatura de destino de uma compra no crédito: compras no dia de fechamento
+         * ou depois dele entram na fatura do mês seguinte.
+         */
+        fun computeInvoiceMonth(date: Timestamp, closingDay: Int): YearMonth {
+            val localDate: LocalDate = date.toDate().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDate()
+            val month = YearMonth.from(localDate)
+            return if (closingDay in 1..31 && localDate.dayOfMonth >= closingDay) {
+                month.plusMonths(1)
+            } else {
+                month
+            }
+        }
     }
 }

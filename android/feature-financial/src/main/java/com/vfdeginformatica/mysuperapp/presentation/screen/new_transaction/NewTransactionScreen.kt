@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.vfdeginformatica.mysuperapp.presentation.common.CurrencyVisualTransformation
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionUiState
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
@@ -45,6 +46,7 @@ fun NewTransactionScreen(
     uiState: NewTransactionUiState,
     onEvent: (NewTransactionEvent) -> Unit,
     modifier: Modifier = Modifier,
+    onNewCard: () -> Unit = {},
 ) {
     var cardMenuExpanded by remember { mutableStateOf(false) }
     var paymentMethodMenuExpanded by remember { mutableStateOf(false) }
@@ -104,8 +106,8 @@ fun NewTransactionScreen(
                 onValueChange = { onEvent(NewTransactionEvent.AmountChanged(it)) },
                 label = { Text("Valor") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                prefix = { Text("R$ ") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                visualTransformation = remember { CurrencyVisualTransformation() },
                 singleLine = true
             )
 
@@ -151,11 +153,23 @@ fun NewTransactionScreen(
                             }
                         )
                     }
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "＋ Cadastrar novo cartão",
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        onClick = {
+                            cardMenuExpanded = false
+                            onNewCard()
+                        }
+                    )
                 }
             }
 
-            // 3. Método de Pagamento
-            if (uiState.cardId.isNotBlank()) {
+            // 3. Método de Pagamento (apenas para Despesas)
+            if (uiState.transactionType == TransactionType.EXPENSE && uiState.cardId.isNotBlank()) {
                 if (availablePaymentMethods.size > 1) {
                     ExposedDropdownMenuBox(
                         expanded = paymentMethodMenuExpanded,
@@ -225,6 +239,31 @@ fun NewTransactionScreen(
 
             // Campos Adicionais (Apenas para Despesas)
             if (uiState.transactionType == TransactionType.EXPENSE) {
+                // Recorrência para Débito (ex.: assinatura debitada em conta)
+                if (uiState.paymentMethod == "DEBIT") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Compra recorrente",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                            Text(
+                                text = "Repete todo mês. Entra na projeção dos próximos meses.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = uiState.isRecurring,
+                            onCheckedChange = { onEvent(NewTransactionEvent.RecurringChanged(it)) }
+                        )
+                    }
+                }
+
                 // 4. Campo de Parcelas e Recorrência (Apenas para CRÉDITO)
                 if (uiState.paymentMethod == "CREDIT") {
                     val installmentOptions = listOf("Compra Recorrente") + (1..12).map { it.toString() } + listOf("24")

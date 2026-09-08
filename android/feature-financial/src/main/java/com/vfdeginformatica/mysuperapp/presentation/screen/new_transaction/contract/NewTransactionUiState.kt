@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.cont
 
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
+import com.vfdeginformatica.mysuperapp.presentation.common.CurrencyVisualTransformation
 import java.time.LocalDate
 
 data class NewTransactionUiState(
@@ -11,6 +12,7 @@ data class NewTransactionUiState(
     val errorMessage: String? = null,
     val transactionType: TransactionType = TransactionType.EXPENSE,
     val title: String = "",
+    // Valor em centavos, apenas dígitos (ex.: "12480" = R$ 124,80)
     val amount: String = "",
     val description: String = "",
     val date: LocalDate = LocalDate.now(),
@@ -25,11 +27,13 @@ data class NewTransactionUiState(
     val availableCards: List<CardDto>? = null,
     val isSubmitEnabled: Boolean = false
 ) {
-    /** Cards selectable for the current type: income only allows deposit-enabled cards. */
+    /** Todos os cartões são elegíveis como destino/origem, para receita e despesa. */
     val selectableCards: List<CardDto>
-        get() = availableCards.orEmpty().filter {
-            transactionType != TransactionType.INCOME || it.allowsDeposit
-        }
+        get() = availableCards.orEmpty()
+
+    /** Valor em reais (Double, formato aceito pelo Firestore). */
+    val amountValue: Double
+        get() = CurrencyVisualTransformation.centsToDouble(amount)
 }
 
 enum class TransactionType {

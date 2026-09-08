@@ -83,7 +83,23 @@ service cloud.firestore {
 
     match /cards/{cardId} {
       allow read: if isAuthenticated();
-      allow write: if false;
+      // Cadastro de cartão pelo app
+      allow create: if isAuthenticated()
+        && request.resource.data.bank is string
+        && request.resource.data.paymentMethods is list
+        && request.resource.data.allowsDeposit is bool
+        && request.resource.data.closingDay is number
+        && request.resource.data.invoiceDueDate is number;
+      // Edição de cartão pelo app: somente campos de configuração
+      allow update: if isAuthenticated()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['bank', 'paymentMethods', 'finalCode', 'closingDay', 'invoiceDueDate'])
+        && request.resource.data.bank is string
+        && request.resource.data.paymentMethods is list
+        && request.resource.data.finalCode is string
+        && request.resource.data.closingDay is number
+        && request.resource.data.invoiceDueDate is number;
+      allow delete: if false;
     }
 
     match /transactions_category/{categoryId} {

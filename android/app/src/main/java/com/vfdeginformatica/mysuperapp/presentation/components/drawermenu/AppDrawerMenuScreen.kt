@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Person
@@ -26,7 +30,11 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -44,6 +52,7 @@ fun AppDrawerMenuScreen(
     onLogout: () -> Unit,
     onHome: () -> Unit,
     onFinancialManagement: () -> Unit,
+    onFinancialCards: () -> Unit,
     onQrCode: () -> Unit,
     onNfc: () -> Unit,
     onSettings: () -> Unit,
@@ -113,17 +122,61 @@ fun AppDrawerMenuScreen(
                     }
                 )
 
+                var isFinancialExpanded by rememberSaveable { mutableStateOf(false) }
+
                 NavigationDrawerItem(
                     label = { Text("Controle Financeiro") },
                     selected = false,
-                    onClick = { onFinancialManagement.invoke() },
+                    onClick = { isFinancialExpanded = !isFinancialExpanded },
                     icon = {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "FinancialManagement"
                         )
+                    },
+                    badge = {
+                        Icon(
+                            imageVector = if (isFinancialExpanded) {
+                                Icons.Default.ExpandLess
+                            } else {
+                                Icons.Default.ExpandMore
+                            },
+                            contentDescription = if (isFinancialExpanded) {
+                                "Recolher finanças"
+                            } else {
+                                "Expandir finanças"
+                            }
+                        )
                     }
                 )
+
+                if (isFinancialExpanded) {
+                    NavigationDrawerItem(
+                        label = { Text("Dashboard") },
+                        selected = false,
+                        onClick = { onFinancialManagement.invoke() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.BarChart,
+                                contentDescription = "FinancialDashboard"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+
+                    NavigationDrawerItem(
+                        label = { Text("Cartões") },
+                        selected = false,
+                        onClick = { onFinancialCards.invoke() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.CreditCard,
+                                contentDescription = "FinancialCards"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+                }
 
                 NavigationDrawerItem(
                     label = { Text("QR Code") },

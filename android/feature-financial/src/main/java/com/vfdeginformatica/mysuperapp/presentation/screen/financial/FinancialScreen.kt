@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
+import com.vfdeginformatica.mysuperapp.presentation.common.CurrencyVisualTransformation
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialTab
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialUiState
@@ -55,6 +56,7 @@ import java.text.SimpleDateFormat
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlin.math.roundToLong
 
 private val ptBr: Locale = Locale.forLanguageTag("pt-BR")
 
@@ -242,6 +244,28 @@ private fun TypeFilterChips(
             label = { Text("Despesas") },
             modifier = Modifier.weight(1f)
         )
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterChip(
+            selected = uiState.recurringExpensesOnly,
+            onClick = { onEvent(FinancialEvent.OnRecurringExpensesFilterToggled) },
+            label = { Text("Só recorrentes", style = MaterialTheme.typography.labelMedium) }
+        )
+        if (uiState.recurringExpensesOnly) {
+            Text(
+                text = "Total recorrente: ${formatCurrency(uiState.monthRecurringExpenseTotal)}",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.End
+            )
+        }
     }
 }
 
@@ -636,8 +660,13 @@ private fun EditTransactionDialog(
     onEvent: (FinancialEvent) -> Unit
 ) {
     var title by remember(transaction.id) { mutableStateOf(transaction.title) }
-    var amount by remember(transaction.id) { mutableStateOf(transaction.amount.toString()) }
-    val parsedAmount = amount.replace(",", ".").toDoubleOrNull()
+    // Valor em centavos (apenas dígitos), exibido pela máscara de moeda
+    var amountCents by remember(transaction.id) {
+        mutableStateOf(
+            (transaction.amount * 100).roundToLong().toString().trimStart('0')
+        )
+    }
+    val parsedAmount = CurrencyVisualTransformation.centsToDouble(amountCents)
 
     AlertDialog(
         onDismissRequest = { if (!isSaving) onEvent(FinancialEvent.OnEditDismiss) },
@@ -652,11 +681,13 @@ private fun EditTransactionDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it },
+                    value = amountCents,
+                    onValueChange = { input ->
+                        amountCents = input.filter { it.isDigit() }.trimStart('0').take(12)
+                    },
                     label = { Text("Valor") },
-                    prefix = { Text("R$ ") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    visualTransformation = remember { CurrencyVisualTransformation() },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -671,11 +702,9 @@ private fun EditTransactionDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = !isSaving && title.isNotBlank() && parsedAmount != null,
+                enabled = !isSaving && title.isNotBlank() && parsedAmount > 0.0,
                 onClick = {
-                    parsedAmount?.let {
-                        onEvent(FinancialEvent.OnEditConfirm(title.trim(), it))
-                    }
+                    onEvent(FinancialEvent.OnEditConfirm(title.trim(), parsedAmount))
                 }
             ) {
                 Text(if (isSaving) "Salvando..." else "Salvar")

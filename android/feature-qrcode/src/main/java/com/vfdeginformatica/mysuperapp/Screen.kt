@@ -9,6 +9,12 @@ sealed class Screen(val route: String) {
     object LoginScreen : Screen("login_screen")
     object FinancialScreen : Screen("financial_screen")
     object NewTransactionScreen : Screen("new_transaction_screen")
+    object NewCardScreen : Screen("new_card_screen")
+    object CardListScreen : Screen("card_list_screen")
+    object CardDetailScreen : Screen("card_detail_screen/{cardId}") {
+        const val CARD_ID = "cardId"
+        fun createRoute(cardId: String): String = "card_detail_screen/$cardId"
+    }
     object QrCodeListScreen : Screen(SharedQrCodeRoutes.QR_CODE_LIST)
     object QrCodeScreen : Screen(SharedQrCodeRoutes.QR_CODE_DETAIL) {
         const val QR_CODE_DATA = SharedQrCodeRoutes.QR_CODE_DATA

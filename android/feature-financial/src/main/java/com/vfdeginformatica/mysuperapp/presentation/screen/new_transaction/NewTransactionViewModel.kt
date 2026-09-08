@@ -111,23 +111,32 @@ class NewTransactionViewModel @Inject constructor(
 
     fun onEvent(event: NewTransactionEvent) {
         when (event) {
-            is NewTransactionEvent.AmountChanged -> updateForm(amount = event.amount)
+            is NewTransactionEvent.AmountChanged -> updateForm(
+                // Máscara de centavos: só dígitos, sem zeros à esquerda, até 12 dígitos
+                amount = event.amount.filter { it.isDigit() }.trimStart('0').take(12)
+            )
             is NewTransactionEvent.CardIdChanged -> {
-                val selectedCard = _uiState.value.availableCards?.find { it.id == event.cardId }
-                val methods = selectedCard?.paymentMethods ?: emptyList()
+                if (_uiState.value.transactionType == TransactionType.INCOME) {
+                    // Receita: só o cartão de destino importa, sem método de pagamento
+                    updateForm(cardId = event.cardId, paymentMethod = "", installments = "")
+                } else {
+                    val selectedCard = _uiState.value.availableCards?.find { it.id == event.cardId }
+                    val methods = selectedCard?.paymentMethods ?: emptyList()
 
-                val defaultMethod = when {
-                    methods.size == 1 -> methods.first()
-                    methods.contains("DEBIT") -> "DEBIT"
-                    methods.isNotEmpty() -> methods.first()
-                    else -> ""
+                    val defaultMethod = when {
+                        methods.size == 1 -> methods.first()
+                        methods.contains("DEBIT") -> "DEBIT"
+                        methods.isNotEmpty() -> methods.first()
+                        else -> ""
+                    }
+
+                    updateForm(
+                        cardId = event.cardId,
+                        paymentMethod = defaultMethod,
+                        installments = if (defaultMethod == "CREDIT") "1" else "",
+                        recurring = false
+                    )
                 }
-
-                updateForm(
-                    cardId = event.cardId,
-                    paymentMethod = defaultMethod,
-                    installments = if (defaultMethod == "CREDIT") "1" else ""
-                )
             }
 
             is NewTransactionEvent.CategoryToggled -> {
@@ -151,7 +160,9 @@ class NewTransactionViewModel @Inject constructor(
             is NewTransactionEvent.PaymentMethodChanged -> {
                 updateForm(
                     paymentMethod = event.method,
-                    installments = if (event.method == "CREDIT") "1" else ""
+                    installments = if (event.method == "CREDIT") "1" else "",
+                    // Recorrência não deve vazar entre CREDIT/DEBIT
+                    recurring = false
                 )
             }
 
@@ -170,6 +181,8 @@ class NewTransactionViewModel @Inject constructor(
             }
 
             is NewTransactionEvent.InstallmentsChanged -> updateForm(installments = event.installments)
+
+            NewTransactionEvent.ReloadCards -> loadCards()
         }
     }
 
@@ -222,7 +235,7 @@ class NewTransactionViewModel @Inject constructor(
 
             new.copy(
                 isSubmitEnabled = new.title.isNotBlank() &&
-                        new.amount.isNotBlank() &&
+                        new.amountValue > 0.0 &&
                         (!isCardRequired || (new.cardId.isNotBlank() && isPaymentMethodValid && isInstallmentsValid))
             )
         }
@@ -242,7 +255,7 @@ class NewTransactionViewModel @Inject constructor(
                 description = state.description,
                 transactionType = state.transactionType.name,
                 paymentMethod = state.paymentMethod,
-                amount = state.amount.toDoubleOrNull() ?: 0.0,
+                amount = state.amountValue,
                 isRecurring = state.isRecurring,
                 transactionDate = Timestamp(Date()),
                 category = state.selectedCategories.map { it.id },

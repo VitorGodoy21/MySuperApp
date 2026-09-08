@@ -11,14 +11,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEffect
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
 
 @Composable
 fun NewTransactionRoute(
     viewModel: NewTransactionViewModel = hiltViewModel(),
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    onNewCard: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
+
+    // Recarrega os cartões ao (re)entrar na tela (ex.: após cadastrar um novo cartão)
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(NewTransactionEvent.ReloadCards)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -38,6 +45,7 @@ fun NewTransactionRoute(
         NewTransactionScreen(
             uiState = state,
             onEvent = viewModel::onEvent,
+            onNewCard = onNewCard,
             modifier = Modifier.padding(padding)
         )
     }

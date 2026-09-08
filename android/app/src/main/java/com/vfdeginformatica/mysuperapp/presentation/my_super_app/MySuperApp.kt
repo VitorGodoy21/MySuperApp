@@ -19,10 +19,13 @@ import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
 import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.accessLogMapRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.card_detail.CardDetailRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.card_list.CardListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.muralCommentsRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_card.NewCardRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.NewTransactionRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
@@ -94,6 +97,46 @@ fun MySuperApp(
 
                 composable(route = Screen.NewTransactionScreen.route) {
                     NewTransactionRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
+                        },
+                        onNewCard = {
+                            navController.navigate(Screen.NewCardScreen.route)
+                        }
+                    )
+                }
+
+                composable(route = Screen.NewCardScreen.route) {
+                    NewCardRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
+                        }
+                    )
+                }
+
+                composable(route = Screen.CardListScreen.route) {
+                    CardListRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
+                        },
+                        onNavigateToCardDetail = { cardId ->
+                            navController.navigate(Screen.CardDetailScreen.createRoute(cardId))
+                        },
+                        onNavigateToNewCard = {
+                            navController.navigate(Screen.NewCardScreen.route)
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.CardDetailScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.CardDetailScreen.CARD_ID) {
+                            type = NavType.StringType
+                        }
+                    )
+                ) {
+                    CardDetailRoute(
                         onNavigateUp = {
                             navController.navigateUp()
                         }

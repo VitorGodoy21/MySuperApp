@@ -16,6 +16,8 @@ data class FinancialUiState(
     val typeFilter: TransactionTypeFilter = TransactionTypeFilter.ALL,
     val categoryFilterId: String? = null,
     val cardFilterId: String? = null,
+    // Filtro discreto: somente despesas recorrentes do mês
+    val recurringExpensesOnly: Boolean = false,
     // Aba Projeção
     val selectedTab: FinancialTab = FinancialTab.MONTH,
     val projectionMonth: YearMonth = YearMonth.now().plusMonths(1),
@@ -37,8 +39,22 @@ data class FinancialUiState(
             val matchesCategory =
                 categoryFilterId == null || transaction.categoryIds.contains(categoryFilterId)
             val matchesCard = cardFilterId == null || transaction.cardId == cardFilterId
-            matchesType && matchesCategory && matchesCard
+            val matchesRecurring = !recurringExpensesOnly ||
+                    (transaction.isRecurring && transaction.type == TransactionType.EXPENSE)
+            matchesType && matchesCategory && matchesCard && matchesRecurring
         }
+
+    /** Total das despesas recorrentes do mês (respeitando filtros de categoria/cartão). */
+    val monthRecurringExpenseTotal: Double
+        get() = transactions
+            .filter { transaction ->
+                transaction.type == TransactionType.EXPENSE &&
+                        transaction.isRecurring &&
+                        (categoryFilterId == null ||
+                                transaction.categoryIds.contains(categoryFilterId)) &&
+                        (cardFilterId == null || transaction.cardId == cardFilterId)
+            }
+            .sumOf { it.amount }
 
     val totalIncome: Double
         get() = filteredTransactions
