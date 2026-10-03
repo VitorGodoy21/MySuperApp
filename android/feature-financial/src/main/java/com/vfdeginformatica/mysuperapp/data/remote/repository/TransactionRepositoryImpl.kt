@@ -29,6 +29,10 @@ class TransactionRepositoryImpl(
         return transactionDao.deleteTransaction(id)
     }
 
+    override suspend fun removeCategoryFromTransactions(categoryId: String): Resource<Unit> {
+        return transactionDao.removeCategoryFromTransactions(categoryId)
+    }
+
     override suspend fun getTransactions(
         start: Timestamp,
         end: Timestamp

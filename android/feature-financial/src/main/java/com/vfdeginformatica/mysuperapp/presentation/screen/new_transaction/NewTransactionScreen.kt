@@ -304,8 +304,10 @@ fun NewTransactionScreen(
                         }
                     }
                 }
+            }
 
-                // Categorias
+            // Categorias (filtradas pelo tipo: despesa ou receita)
+            if (uiState.categoriesForType.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "Categorias",
@@ -317,7 +319,7 @@ fun NewTransactionScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        uiState.availableCategories?.forEach { category ->
+                        uiState.categoriesForType.forEach { category ->
                             val isSelected = uiState.selectedCategories.any { it.id == category.id }
                             FilterChip(
                                 selected = isSelected,

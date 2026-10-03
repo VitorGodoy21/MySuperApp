@@ -15,6 +15,14 @@ sealed class Screen(val route: String) {
         const val CARD_ID = "cardId"
         fun createRoute(cardId: String): String = "card_detail_screen/$cardId"
     }
+    object CategoryListScreen : Screen("category_list_screen")
+    object CategoryDetailScreen : Screen("category_detail_screen?categoryId={categoryId}") {
+        const val CATEGORY_ID = "categoryId"
+        // Sem categoryId a tela abre em modo "nova categoria"
+        fun createRoute(categoryId: String? = null): String =
+            if (categoryId.isNullOrBlank()) "category_detail_screen"
+            else "category_detail_screen?categoryId=$categoryId"
+    }
     object QrCodeListScreen : Screen(SharedQrCodeRoutes.QR_CODE_LIST)
     object QrCodeScreen : Screen(SharedQrCodeRoutes.QR_CODE_DETAIL) {
         const val QR_CODE_DATA = SharedQrCodeRoutes.QR_CODE_DATA

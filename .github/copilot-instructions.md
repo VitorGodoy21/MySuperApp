@@ -23,6 +23,8 @@
 - Run the Functions emulator: `npm --prefix web\functions run serve`
 - Deploy Functions: `npm --prefix web\functions run deploy`
 - Read Functions logs: `npm --prefix web\functions run logs`
+- Backfill `transactionType` (one-shot migration, Admin SDK credentials required): `npm --prefix web\functions run migrate:transaction-type -- --dry-run` to preview, then `npm --prefix web\functions run migrate:transaction-type` to apply.
+- Deploy Firestore rules: `firebase deploy --only firestore:rules` (run from `web\`).
 
 ## High-level architecture
 
@@ -30,8 +32,8 @@
 - `android/app` and `android/app-qrcode` are separate Android application modules. Both depend on the shared library modules `android/feature-qrcode` and `android/feature-nfc`; `android/app` additionally depends on `android/feature-financial`.
 - `android/feature-qrcode` contains most QR-specific code: Firebase-backed data sources and repositories, domain models and use cases, and reusable Compose screens such as login, QR detail, QR list, mural comments, and access-log map flows.
 - `android/feature-nfc` contains the NFC tag reading/writing/locking feature: reading and writing NDEF records (URL or custom text), validating tag capacity, and locking a tag permanently (`Ndef.makeReadOnly()`). It has no product flavors, unlike `:app`/`:app-qrcode`.
-- `android/feature-financial` contains the finance feature used only by `:app`: the financial home and new-transaction Compose screens, transaction/card/transaction-category domain repositories and use cases, and Firestore-backed DAOs/DTOs (`TransactionDao`, `CardDao`, `CategoryTransactionDao`). It has no product flavors and depends on `:feature-qrcode` for the shared `common.Resource` wrapper and `AppScaffold` composable (a future `:core` module is the natural home for those shared pieces).
-- `android/app` is the broader app shell. It adds the main app navigation, home, and biometric authentication, and wires the financial feature module screens (`financial_screen`, `new_transaction_screen`) into its nav graph.
+- `android/feature-financial` contains the finance feature used only by `:app`: the financial home, new-transaction, card (`card_list`/`card_detail`/`new_card`) and transaction-category (`category_list`/`category_detail`) Compose screens, transaction/card/transaction-category domain repositories and use cases, and Firestore-backed DAOs/DTOs (`TransactionDao`, `CardDao`, `CategoryTransactionDao`). Both `transactions` and `transactions_category` documents carry `transactionType` = `EXPENSE` (despesa) | `INCOME` (receita); missing values are read as `EXPENSE`. It has no product flavors and depends on `:feature-qrcode` for the shared `common.Resource` wrapper and `AppScaffold` composable (a future `:core` module is the natural home for those shared pieces).
+- `android/app` is the broader app shell. It adds the main app navigation, home, and biometric authentication, and wires the financial feature module screens (`financial_screen`, `new_transaction_screen`, card and category screens) into its nav graph and drawer ("Controle Financeiro" → Dashboard / Cartões / Categorias).
 - `android/app-qrcode` is a dedicated QR manager shell. It reuses the shared QR feature module and adds its own nav graph, session flow, profile, notifications, and FCM service.
 - The web side is not a bundled frontend app. `web/public/qr/index.html` is a static Firebase Hosting page with inline JavaScript that initializes Firebase directly in the browser.
 - Firebase Hosting rewrites `/api/log-qr-scan` and `/api/add-mural-comment` to HTTPS Cloud Functions in `web/functions/index.js`.

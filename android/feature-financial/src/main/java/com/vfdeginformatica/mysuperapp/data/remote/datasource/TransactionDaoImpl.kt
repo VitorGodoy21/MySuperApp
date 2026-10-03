@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.vfdeginformatica.mysuperapp.common.Resource
@@ -11,6 +12,10 @@ import kotlinx.coroutines.tasks.await
 class TransactionDaoImpl(
     private val db: FirebaseFirestore,
 ) : TransactionDao {
+
+    private companion object {
+        const val MAX_BATCH_OPERATIONS = 500
+    }
 
     private fun TransactionDto.toMap(): Map<String, Any?> = mapOf(
         "title" to title,
@@ -83,6 +88,27 @@ class TransactionDaoImpl(
         } catch (e: Exception) {
             Log.e("Firebase", "Erro ao excluir transação $id", e)
             Resource.Error(e.message ?: "Erro inesperado ao excluir transação")
+        }
+    }
+
+    override suspend fun removeCategoryFromTransactions(categoryId: String): Resource<Unit> {
+        return try {
+            val snap = db.collection("transactions")
+                .whereArrayContains("category", categoryId)
+                .get().await()
+            // WriteBatch aceita no máximo 500 operações por commit
+            snap.documents.chunked(MAX_BATCH_OPERATIONS).forEach { chunk ->
+                val batch = db.batch()
+                chunk.forEach { doc ->
+                    batch.update(doc.reference, "category", FieldValue.arrayRemove(categoryId))
+                }
+                batch.commit().await()
+            }
+            Log.d("Firebase", "Categoria $categoryId removida de ${snap.size()} transações")
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao remover categoria $categoryId das transações", e)
+            Resource.Error(e.message ?: "Erro inesperado ao remover categoria das transações")
         }
     }
 

@@ -31,6 +31,10 @@ data class NewTransactionUiState(
     val selectableCards: List<CardDto>
         get() = availableCards.orEmpty()
 
+    /** Categorias compatíveis com o tipo de transação selecionado (despesa ou receita). */
+    val categoriesForType: List<CategoryTransactionDto>
+        get() = availableCategories.orEmpty().filter { it.transactionType == transactionType.name }
+
     /** Valor em reais (Double, formato aceito pelo Firestore). */
     val amountValue: Double
         get() = CurrencyVisualTransformation.centsToDouble(amount)

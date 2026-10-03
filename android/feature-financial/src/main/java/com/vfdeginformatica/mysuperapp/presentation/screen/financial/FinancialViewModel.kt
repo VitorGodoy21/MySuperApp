@@ -93,13 +93,17 @@ class FinancialViewModel @Inject constructor(
             FinancialEvent.OnDeleteTransaction -> deleteTransaction()
 
             is FinancialEvent.OnTypeFilterChanged -> {
-                _uiState.update {
-                    it.copy(
+                _uiState.update { state ->
+                    val next = state.copy(
                         typeFilter = event.filter,
                         // O filtro de recorrentes só faz sentido junto com despesas
-                        recurringExpensesOnly = it.recurringExpensesOnly &&
+                        recurringExpensesOnly = state.recurringExpensesOnly &&
                                 event.filter == TransactionTypeFilter.EXPENSE
                     )
+                    // Limpa a categoria selecionada se ela não pertence ao novo tipo
+                    val categoryStillValid = next.categoryFilterId == null ||
+                            next.categoriesForFilter.any { it.id == next.categoryFilterId }
+                    if (categoryStillValid) next else next.copy(categoryFilterId = null)
                 }
             }
 

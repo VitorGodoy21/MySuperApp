@@ -28,6 +28,16 @@ data class FinancialUiState(
     val editingTransaction: Transaction? = null,
     val isSavingEdit: Boolean = false
 ) {
+    /** Categorias exibidas no filtro, compatíveis com o filtro de tipo ativo. */
+    val categoriesForFilter: List<CategoryTransactionDto>
+        get() = when (typeFilter) {
+            TransactionTypeFilter.ALL -> availableCategories
+            TransactionTypeFilter.INCOME ->
+                availableCategories.filter { it.transactionType == TransactionType.INCOME.name }
+            TransactionTypeFilter.EXPENSE ->
+                availableCategories.filter { it.transactionType == TransactionType.EXPENSE.name }
+        }
+
     /** Transactions of the selected month with all active filters applied. */
     val filteredTransactions: List<Transaction>
         get() = transactions.filter { transaction ->

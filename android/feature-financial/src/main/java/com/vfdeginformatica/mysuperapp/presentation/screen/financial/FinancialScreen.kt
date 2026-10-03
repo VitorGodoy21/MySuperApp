@@ -315,7 +315,7 @@ private fun FilterDropdowns(
                         categoryExpanded = false
                     }
                 )
-                uiState.availableCategories.forEach { category ->
+                uiState.categoriesForFilter.forEach { category ->
                     DropdownMenuItem(
                         text = { Text(category.title) },
                         onClick = {

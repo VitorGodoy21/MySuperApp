@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -53,6 +54,7 @@ fun AppDrawerMenuScreen(
     onHome: () -> Unit,
     onFinancialManagement: () -> Unit,
     onFinancialCards: () -> Unit,
+    onFinancialCategories: () -> Unit,
     onQrCode: () -> Unit,
     onNfc: () -> Unit,
     onSettings: () -> Unit,
@@ -172,6 +174,19 @@ fun AppDrawerMenuScreen(
                             Icon(
                                 imageVector = Icons.Default.CreditCard,
                                 contentDescription = "FinancialCards"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+
+                    NavigationDrawerItem(
+                        label = { Text("Categorias") },
+                        selected = false,
+                        onClick = { onFinancialCategories.invoke() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Category,
+                                contentDescription = "FinancialCategories"
                             )
                         },
                         modifier = Modifier.padding(start = 24.dp)

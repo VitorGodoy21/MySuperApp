@@ -175,7 +175,10 @@ class NewTransactionViewModel @Inject constructor(
                     cardId = "",
                     paymentMethod = "",
                     installments = "",
-                    recurring = false
+                    recurring = false,
+                    // Categorias são por tipo: limpa as que não pertencem ao novo tipo
+                    selectedCategories = _uiState.value.selectedCategories
+                        .filter { it.transactionType == event.type.name }
                 )
                 loadCards()
             }

@@ -72,12 +72,25 @@ service cloud.firestore {
       allow create: if isAuthenticated()
         && request.resource.data.amount is number
         && request.resource.data.paymentMethod is string
-        && request.resource.data.isRecurring is bool;
-      // Ajustes pelo app (ex.: valor real do salário) — apenas título e valor
+        && request.resource.data.isRecurring is bool
+        && request.resource.data.transactionType in ['EXPENSE', 'INCOME'];
+      // Ajustes pelo app:
+      //  - título e valor (ex.: valor real do salário)
+      //  - category: apenas remoção de ids (exclusão de categoria via arrayRemove)
       allow update: if isAuthenticated()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'amount'])
-        && request.resource.data.amount is number
-        && request.resource.data.title is string;
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'amount', 'category'])
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['title', 'amount'])
+          || (request.resource.data.amount is number && request.resource.data.title is string)
+        )
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['category'])
+          || (
+            request.resource.data.category is list
+            && resource.data.category is list
+            && request.resource.data.category.size() <= resource.data.category.size()
+          )
+        );
       allow delete: if isAuthenticated();
     }
 
@@ -102,9 +115,24 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Categorias de transação gerenciadas pelo app (tela "Categorias")
+    // transactionType: 'EXPENSE' (despesa) | 'INCOME' (receita)
     match /transactions_category/{categoryId} {
       allow read: if isAuthenticated();
-      allow write: if false;
+      allow create: if isAuthenticated()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.description is string
+        && request.resource.data.transactionType in ['EXPENSE', 'INCOME'];
+      allow update: if isAuthenticated()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['title', 'description', 'transactionType'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.description is string
+        && request.resource.data.transactionType in ['EXPENSE', 'INCOME'];
+      // A exclusão remove antes o id da categoria do campo `category` das transações (app)
+      allow delete: if isAuthenticated();
     }
 
     // Política definitiva: qualquer caminho não tratado explicitamente fica negado

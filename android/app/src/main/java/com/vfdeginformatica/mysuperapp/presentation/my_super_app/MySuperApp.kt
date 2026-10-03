@@ -21,6 +21,8 @@ import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTh
 import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.accessLogMapRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_detail.CardDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_list.CardListRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.category_detail.CategoryDetailRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.category_list.CategoryListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
@@ -137,6 +139,39 @@ fun MySuperApp(
                     )
                 ) {
                     CardDetailRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
+                        }
+                    )
+                }
+
+                composable(route = Screen.CategoryListScreen.route) {
+                    CategoryListRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
+                        },
+                        onNavigateToCategoryDetail = { categoryId ->
+                            navController.navigate(
+                                Screen.CategoryDetailScreen.createRoute(categoryId)
+                            )
+                        },
+                        onNavigateToNewCategory = {
+                            navController.navigate(Screen.CategoryDetailScreen.createRoute())
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.CategoryDetailScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.CategoryDetailScreen.CATEGORY_ID) {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) {
+                    CategoryDetailRoute(
                         onNavigateUp = {
                             navController.navigateUp()
                         }

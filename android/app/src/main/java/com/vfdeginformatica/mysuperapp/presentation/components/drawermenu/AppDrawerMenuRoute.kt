@@ -78,6 +78,7 @@ fun AppDrawerMenuRoute(
         onHome = { viewModel.goHome() },
         onFinancialManagement = { viewModel.navigate(Screen.FinancialScreen.route) },
         onFinancialCards = { viewModel.navigate(Screen.CardListScreen.route) },
+        onFinancialCategories = { viewModel.navigate(Screen.CategoryListScreen.route) },
         onQrCode = { viewModel.navigateWithBiometric(Screen.QrCodeListScreen.route, activity = activity) },
         onNfc = { viewModel.navigateWithBiometric(SharedNfcRoutes.NFC_SCREEN, activity = activity) },
         onSettings = {},
