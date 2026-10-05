@@ -49,4 +49,39 @@ class TransactionRepositoryImpl(
     override suspend fun getRecurringTransactions(): Resource<List<TransactionDto>> {
         return transactionDao.getRecurringTransactions()
     }
+
+    override suspend fun excludeRecurrenceMonth(id: String, month: String): Resource<Unit> {
+        return transactionDao.excludeRecurrenceMonth(id, month)
+    }
+
+    override suspend fun endRecurrence(id: String, lastMonth: String): Resource<Unit> {
+        return transactionDao.endRecurrence(id, lastMonth)
+    }
+
+    override suspend fun overrideRecurrenceMonth(
+        id: String,
+        month: String,
+        title: String,
+        amount: Double
+    ): Resource<Unit> {
+        return transactionDao.overrideRecurrenceMonth(id, month, title, amount)
+    }
+
+    override suspend fun updateRecurrenceTemplate(
+        id: String,
+        title: String,
+        amount: Double,
+        excludedMonths: List<String>,
+        overrides: Map<String, Map<String, Any>>
+    ): Resource<Unit> {
+        return transactionDao.updateRecurrenceTemplate(id, title, amount, excludedMonths, overrides)
+    }
+
+    override suspend fun splitRecurrence(
+        originalId: String,
+        lastMonthOfOriginal: String,
+        newTransaction: TransactionDto
+    ): Resource<Unit> {
+        return transactionDao.splitRecurrence(originalId, lastMonthOfOriginal, newTransaction)
+    }
 }

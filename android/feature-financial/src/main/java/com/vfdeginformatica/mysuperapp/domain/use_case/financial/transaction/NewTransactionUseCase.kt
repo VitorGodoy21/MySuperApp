@@ -3,6 +3,7 @@ package com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction
 import com.google.firebase.Timestamp
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.TransactionDto
+import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceRules
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -56,6 +57,16 @@ class NewTransactionUseCase @Inject constructor(
             invoiceMonth = baseInvoiceMonth?.format(INVOICE_MONTH_FORMAT),
             installmentGroupId = null,
             installments = installments,
+            // Recorrência: começa no mês da data da transação e não tem fim
+            recurrenceStart = if (isRecurring) {
+                RecurrenceRules.monthOf(transactionDate ?: Timestamp.now())
+                    ?.let { RecurrenceRules.formatMonth(it) }
+            } else {
+                null
+            },
+            recurrenceEnd = null,
+            excludedMonths = if (isRecurring) emptyList() else null,
+            overrides = if (isRecurring) emptyMap() else null,
         )
 
         val totalInstallments = installments ?: 1

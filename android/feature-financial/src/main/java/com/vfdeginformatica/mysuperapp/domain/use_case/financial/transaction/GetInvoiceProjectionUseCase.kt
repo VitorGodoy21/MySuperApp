@@ -3,6 +3,8 @@ package com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.mapper.toModel
 import com.vfdeginformatica.mysuperapp.domain.model.InvoiceProjection
+import com.vfdeginformatica.mysuperapp.domain.model.materializeFor
+import com.vfdeginformatica.mysuperapp.domain.model.occursIn
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -33,7 +35,11 @@ class GetInvoiceProjectionUseCase @Inject constructor(
             Resource.Success(
                 InvoiceProjection(
                     invoiceTransactions = invoiceResult.data.orEmpty().map { it.toModel() },
-                    recurringTransactions = recurringResult.data.orEmpty().map { it.toModel() }
+                    // Só recorrentes com ocorrência no mês alvo, já com override/exclusão aplicados
+                    recurringTransactions = recurringResult.data.orEmpty()
+                        .map { it.toModel() }
+                        .filter { it.occursIn(targetMonth) }
+                        .map { it.materializeFor(targetMonth) }
                 )
             )
         )

@@ -13,4 +13,28 @@ interface TransactionRepository {
     suspend fun getTransactions(start: Timestamp, end: Timestamp): Resource<List<TransactionDto>>
     suspend fun getTransactionsByInvoiceMonth(invoiceMonth: String): Resource<List<TransactionDto>>
     suspend fun getRecurringTransactions(): Resource<List<TransactionDto>>
+
+    // ---- Recorrência (meses no formato yyyy-MM) ----
+    suspend fun excludeRecurrenceMonth(id: String, month: String): Resource<Unit>
+    suspend fun endRecurrence(id: String, lastMonth: String): Resource<Unit>
+    suspend fun overrideRecurrenceMonth(
+        id: String,
+        month: String,
+        title: String,
+        amount: Double
+    ): Resource<Unit>
+
+    suspend fun updateRecurrenceTemplate(
+        id: String,
+        title: String,
+        amount: Double,
+        excludedMonths: List<String>,
+        overrides: Map<String, Map<String, Any>>
+    ): Resource<Unit>
+
+    suspend fun splitRecurrence(
+        originalId: String,
+        lastMonthOfOriginal: String,
+        newTransaction: TransactionDto
+    ): Resource<Unit>
 }

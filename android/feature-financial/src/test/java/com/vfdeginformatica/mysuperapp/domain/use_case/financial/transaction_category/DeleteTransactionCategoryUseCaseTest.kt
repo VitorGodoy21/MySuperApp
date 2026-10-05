@@ -3,9 +3,7 @@ package com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_ca
 import com.google.firebase.Timestamp
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
-import com.vfdeginformatica.mysuperapp.data.remote.dto.TransactionDto
 import com.vfdeginformatica.mysuperapp.domain.repository.CategoryTransactionRepository
-import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -33,32 +31,8 @@ class DeleteTransactionCategoryUseCaseTest {
         }
     }
 
-    private class FakeTransactionRepository : TransactionRepository {
-        var cleanedIds = mutableListOf<String>()
-        var cleanupResult: Resource<Unit> = Resource.Success(Unit)
-
-        override suspend fun removeCategoryFromTransactions(categoryId: String): Resource<Unit> {
-            cleanedIds += categoryId
-            return cleanupResult
-        }
-
-        override suspend fun newTransaction(transaction: TransactionDto) = Resource.Success(Unit)
-        override suspend fun newTransactions(transactions: List<TransactionDto>) =
-            Resource.Success(Unit)
-
-        override suspend fun updateTransaction(id: String, title: String, amount: Double) =
-            Resource.Success(Unit)
-
-        override suspend fun deleteTransaction(id: String) = Resource.Success(Unit)
-        override suspend fun getTransactions(start: Timestamp, end: Timestamp) =
-            Resource.Success(emptyList<TransactionDto>())
-
-        override suspend fun getTransactionsByInvoiceMonth(invoiceMonth: String) =
-            Resource.Success(emptyList<TransactionDto>())
-
-        override suspend fun getRecurringTransactions() =
-            Resource.Success(emptyList<TransactionDto>())
-    }
+    private class FakeTransactionRepository :
+        com.vfdeginformatica.mysuperapp.domain.repository.FakeTransactionRepository()
 
     @Test
     fun `removes category from transactions before deleting it`() = runTest {

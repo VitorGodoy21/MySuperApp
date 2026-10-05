@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -32,6 +33,10 @@ class TransactionDaoImpl(
         "installmentGroupId" to installmentGroupId,
         "installments" to installments,
         "installmentNumber" to installmentNumber,
+        "recurrenceStart" to recurrenceStart,
+        "recurrenceEnd" to recurrenceEnd,
+        "excludedMonths" to excludedMonths,
+        "overrides" to overrides,
     )
 
     override suspend fun addTransaction(transaction: TransactionDto): Resource<Unit> {
@@ -174,6 +179,93 @@ class TransactionDaoImpl(
         } catch (e: Exception) {
             Log.e("Firebase", "Erro ao buscar transações recorrentes", e)
             Resource.Error(e.message ?: "Erro inesperado ao buscar recorrentes")
+        }
+    }
+
+    override suspend fun excludeRecurrenceMonth(id: String, month: String): Resource<Unit> {
+        return try {
+            db.collection("transactions").document(id)
+                .update("excludedMonths", FieldValue.arrayUnion(month))
+                .await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao excluir ocorrência $month da transação $id", e)
+            Resource.Error(e.message ?: "Erro inesperado ao excluir ocorrência")
+        }
+    }
+
+    override suspend fun endRecurrence(id: String, lastMonth: String): Resource<Unit> {
+        return try {
+            db.collection("transactions").document(id)
+                .update("recurrenceEnd", lastMonth)
+                .await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao encerrar recorrência $id em $lastMonth", e)
+            Resource.Error(e.message ?: "Erro inesperado ao encerrar recorrência")
+        }
+    }
+
+    override suspend fun overrideRecurrenceMonth(
+        id: String,
+        month: String,
+        title: String,
+        amount: Double
+    ): Resource<Unit> {
+        return try {
+            db.collection("transactions").document(id)
+                .update(
+                    FieldPath.of("overrides", month),
+                    mapOf("amount" to amount, "title" to title)
+                )
+                .await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao ajustar ocorrência $month da transação $id", e)
+            Resource.Error(e.message ?: "Erro inesperado ao ajustar ocorrência")
+        }
+    }
+
+    override suspend fun updateRecurrenceTemplate(
+        id: String,
+        title: String,
+        amount: Double,
+        excludedMonths: List<String>,
+        overrides: Map<String, Map<String, Any>>
+    ): Resource<Unit> {
+        return try {
+            db.collection("transactions").document(id)
+                .update(
+                    mapOf(
+                        "title" to title,
+                        "amount" to amount,
+                        "excludedMonths" to excludedMonths,
+                        "overrides" to overrides,
+                    )
+                )
+                .await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao atualizar recorrência $id", e)
+            Resource.Error(e.message ?: "Erro inesperado ao atualizar recorrência")
+        }
+    }
+
+    override suspend fun splitRecurrence(
+        originalId: String,
+        lastMonthOfOriginal: String,
+        newTransaction: TransactionDto
+    ): Resource<Unit> {
+        return try {
+            val collection = db.collection("transactions")
+            val batch = db.batch()
+            batch.update(collection.document(originalId), "recurrenceEnd", lastMonthOfOriginal)
+            batch.set(collection.document(), newTransaction.toMap())
+            batch.commit().await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao dividir recorrência $originalId em $lastMonthOfOriginal", e)
+            Resource.Error(e.message ?: "Erro inesperado ao atualizar recorrência")
         }
     }
 }

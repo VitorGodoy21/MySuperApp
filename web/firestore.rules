@@ -77,8 +77,12 @@ service cloud.firestore {
       // Ajustes pelo app:
       //  - título e valor (ex.: valor real do salário)
       //  - category: apenas remoção de ids (exclusão de categoria via arrayRemove)
+      //  - recorrência: recurrenceEnd (encerrar), excludedMonths (só cresce, via arrayUnion)
+      //    e overrides (ajustes por mês {yyyy-MM: {amount, title}})
       allow update: if isAuthenticated()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'amount', 'category'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+          ['title', 'amount', 'category', 'recurrenceEnd', 'excludedMonths', 'overrides']
+        )
         && (
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['title', 'amount'])
           || (request.resource.data.amount is number && request.resource.data.title is string)
@@ -90,6 +94,24 @@ service cloud.firestore {
             && resource.data.category is list
             && request.resource.data.category.size() <= resource.data.category.size()
           )
+        )
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(
+            ['recurrenceEnd', 'excludedMonths', 'overrides']
+          )
+          || resource.data.isRecurring == true
+        )
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['recurrenceEnd'])
+          || request.resource.data.recurrenceEnd is string
+        )
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['excludedMonths'])
+          || request.resource.data.excludedMonths is list
+        )
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['overrides'])
+          || request.resource.data.overrides is map
         );
       allow delete: if isAuthenticated();
     }

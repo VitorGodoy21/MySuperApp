@@ -26,4 +26,11 @@ data class TransactionDto(
     var installmentGroupId: String? = null,
     var installments: Int? = null,
     var installmentNumber: Int? = null,
+    // Recorrência (apenas quando isRecurring == true). Meses no formato yyyy-MM.
+    // recurrenceStart ausente => mês da transactionDate (compat com documentos antigos).
+    var recurrenceStart: String? = null,
+    var recurrenceEnd: String? = null,
+    var excludedMonths: List<String>? = null,
+    // overrides[yyyy-MM] = { "amount": Double, "title": String }
+    var overrides: Map<String, Map<String, Any>>? = null,
 )
