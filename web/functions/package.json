@@ -9,7 +9,8 @@
     "serve": "firebase emulators:start --only functions",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "migrate:transaction-type": "node scripts/backfillTransactionType.js"
+    "migrate:transaction-type": "node scripts/backfillTransactionType.js",
+    "copy:workout-data": "node scripts/copyWorkoutData.js"
   },
   "dependencies": {
     "firebase-admin": "^12.2.0",

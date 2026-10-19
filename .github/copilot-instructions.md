@@ -26,6 +26,7 @@
 - Deploy Functions: `npm --prefix web\functions run deploy`
 - Read Functions logs: `npm --prefix web\functions run logs`
 - Backfill `transactionType` (one-shot migration, Admin SDK credentials required): `npm --prefix web\functions run migrate:transaction-type -- --dry-run` to preview, then `npm --prefix web\functions run migrate:transaction-type` to apply.
+- Copy gym catalog/workouts (`exercises`, `workouts`, IDs preserved) from the dev Firebase project to prd (ADC with access to both projects): `npm --prefix web\functions run copy:workout-data -- --dry-run` to preview, then `npm --prefix web\functions run copy:workout-data` to apply. Accepts `--source=`/`--target=`/`--collections=`.
 - Deploy Firestore rules: `firebase deploy --only firestore:rules` (run from `web\`).
 
 ## High-level architecture

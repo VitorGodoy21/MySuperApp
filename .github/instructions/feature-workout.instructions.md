@@ -38,6 +38,7 @@ applyTo: "android/feature-workout/**"
   - The same exercise may appear more than once in a workout; an item whose exercise no longer exists is rendered as "Exercício removido".
 - `workout_sessions/{id}`: `workoutId: string` (required), `date: timestamp` (day of the gym visit, local start of day), `durationMinutes: int | null`, `calories: int | null`, `createdAt` (server). Add/delete only (no update). Queried with `whereEqualTo("workoutId", id)`; `GetWorkoutSessionsUseCase` sorts newest first in memory. Non-positive stats are read as `null`. Deleting a workout does **not** cascade to its sessions.
 - Rules are in `web/firestore.rules` (`body_measurements`, `exercises`, `workouts`, `workout_sessions`). Deploy with `firebase deploy --only firestore:rules` from `web\`.
+- To replicate the catalog and workouts between Firebase projects (dev `my-super-app-dev-d6819` → prd `baila-675c6`) use `npm --prefix web\functions run copy:workout-data -- --dry-run` / without `--dry-run` (`web/functions/scripts/copyWorkoutData.js`). It copies `exercises` then `workouts` preserving document IDs and overwrites existing ones; sessions and measurements are not copied.
 
 ## Business rules
 
