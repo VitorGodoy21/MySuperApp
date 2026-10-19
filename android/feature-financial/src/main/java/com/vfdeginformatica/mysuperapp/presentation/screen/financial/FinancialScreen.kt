@@ -51,7 +51,14 @@ import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.domain.model.hasOverrideForOccurrence
-import com.vfdeginformatica.mysuperapp.presentation.common.CurrencyVisualTransformation
+import com.vfdeginformatica.mysuperapp.presentation.common.EditTransactionDialog
+import com.vfdeginformatica.mysuperapp.presentation.common.RecurrenceScopeDialog
+import com.vfdeginformatica.mysuperapp.presentation.common.formatCurrency
+import com.vfdeginformatica.mysuperapp.presentation.common.formatPercent
+import com.vfdeginformatica.mysuperapp.presentation.common.incomeColor
+import com.vfdeginformatica.mysuperapp.presentation.common.monthLabel
+import com.vfdeginformatica.mysuperapp.presentation.common.ptBr
+import com.vfdeginformatica.mysuperapp.presentation.common.shortMonthLabel
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FilterGroupBy
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialTab
@@ -61,24 +68,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.Pa
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.PendingRecurringAction
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.TransactionTypeFilter
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.time.YearMonth
-import java.time.format.TextStyle
-import java.util.Locale
-import kotlin.math.roundToLong
-
-private val ptBr: Locale = Locale.forLanguageTag("pt-BR")
-private val incomeColor = Color(0xFF2E7D32)
-
-private fun formatCurrency(value: Double): String =
-    NumberFormat.getCurrencyInstance(ptBr).format(value)
-
-private fun formatPercent(value: Double): String = "%.0f%%".format(ptBr, value)
-
-private fun monthLabel(month: YearMonth): String =
-    month.month.getDisplayName(TextStyle.FULL, ptBr)
-        .replaceFirstChar { it.uppercase(ptBr) } + " " + month.year
 
 @Composable
 fun FinancialScreen(
@@ -122,14 +112,17 @@ fun FinancialScreen(
         EditTransactionDialog(
             transaction = transaction,
             isSaving = uiState.isSavingEdit,
-            onEvent = onEvent
+            onDismiss = { onEvent(FinancialEvent.OnEditDismiss) },
+            onConfirm = { title, amount -> onEvent(FinancialEvent.OnEditConfirm(title, amount)) },
+            onDelete = { onEvent(FinancialEvent.OnDeleteTransaction) }
         )
         uiState.pendingRecurringAction?.let { action ->
             RecurrenceScopeDialog(
                 transaction = transaction,
-                action = action,
+                isDelete = action is PendingRecurringAction.Delete,
                 isSaving = uiState.isSavingEdit,
-                onEvent = onEvent
+                onScope = { onEvent(FinancialEvent.OnRecurringScopeConfirm(it)) },
+                onDismiss = { onEvent(FinancialEvent.OnRecurringScopeDismiss) }
             )
         }
     }
@@ -198,7 +191,7 @@ private fun MonthContent(
         item { SummaryCard(uiState) }
 
         if (uiState.invoiceByCard.isNotEmpty()) {
-            item { InvoiceByCardCard(uiState) }
+            item { InvoiceByCardCard(uiState, onEvent) }
         }
 
         if (uiState.totalExpense > 0.0) {
@@ -265,12 +258,25 @@ private fun SummaryCard(uiState: FinancialUiState) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(text = "Despesas", style = MaterialTheme.typography.labelMedium)
                     Text(
-                        text = formatCurrency(uiState.totalExpense),
+                        text = formatCurrency(uiState.cashExpense),
                         color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
+            Text(
+                text = "Débito ${formatCurrency(uiState.debitExpense)} • " +
+                        "Fatura de ${shortMonthLabel(uiState.paidInvoiceMonth)} " +
+                        formatCurrency(uiState.paidInvoiceTotal),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "Compras no crédito do mês: ${formatCurrency(uiState.creditExpense)} " +
+                        "(entram na próxima fatura)",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -343,29 +349,43 @@ private fun ProportionBar(fraction: Double) {
 }
 
 @Composable
-private fun InvoiceByCardCard(uiState: FinancialUiState) {
+private fun InvoiceByCardCard(uiState: FinancialUiState, onEvent: (FinancialEvent) -> Unit) {
     SectionCard(
         title = "Fatura por cartão",
-        subtitle = "Compras e parcelas que vencem neste mês, incluindo recorrentes de crédito"
+        subtitle = "Compras e parcelas que vencem neste mês, incluindo recorrentes de crédito. " +
+                "Toque num cartão para ver os lançamentos."
     ) {
         uiState.invoiceByCard.entries.forEach { entry ->
             val card = uiState.availableCards.find { it.id == entry.key }
             val closing = card?.takeIf { it.closingDay > 0 }?.let { "fecha dia ${it.closingDay}" }
             val due = card?.takeIf { it.invoiceDueDate > 0 }?.let { "vence dia ${it.invoiceDueDate}" }
-            Column {
-                AmountLine(
-                    label = card?.bank ?: "Cartão",
-                    value = entry.value,
-                    color = MaterialTheme.colorScheme.error
-                )
-                val info = listOfNotNull(closing, due).joinToString(" • ")
-                if (info.isNotEmpty()) {
-                    Text(
-                        text = info,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEvent(FinancialEvent.OnCardInvoiceClicked(entry.key)) }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    AmountLine(
+                        label = card?.bank ?: "Cartão",
+                        value = entry.value,
+                        color = MaterialTheme.colorScheme.error
                     )
+                    val info = listOfNotNull(closing, due).joinToString(" • ")
+                    if (info.isNotEmpty()) {
+                        Text(
+                            text = info,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Ver fatura",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         if (uiState.invoiceByCard.size > 1) {
@@ -853,147 +873,6 @@ private fun TransactionListItem(
             }
         }
     }
-}
-
-@Composable
-private fun EditTransactionDialog(
-    transaction: Transaction,
-    isSaving: Boolean,
-    onEvent: (FinancialEvent) -> Unit
-) {
-    var title by remember(transaction.id) { mutableStateOf(transaction.title) }
-    // Valor em centavos (apenas dígitos), exibido pela máscara de moeda
-    var amountCents by remember(transaction.id) {
-        mutableStateOf(
-            (transaction.amount * 100).roundToLong().toString().trimStart('0')
-        )
-    }
-    val parsedAmount = CurrencyVisualTransformation.centsToDouble(amountCents)
-
-    AlertDialog(
-        onDismissRequest = { if (!isSaving) onEvent(FinancialEvent.OnEditDismiss) },
-        title = { Text("Editar transação") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Título") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = amountCents,
-                    onValueChange = { input ->
-                        amountCents = input.filter { it.isDigit() }.trimStart('0').take(12)
-                    },
-                    label = { Text("Valor") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                    visualTransformation = remember { CurrencyVisualTransformation() },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                if (transaction.isRecurring) {
-                    Text(
-                        text = "Transação recorrente: ao salvar ou excluir, você escolhe se a " +
-                                "alteração vale só para este mês ou para este e os próximos.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = !isSaving && title.isNotBlank() && parsedAmount > 0.0,
-                onClick = {
-                    onEvent(FinancialEvent.OnEditConfirm(title.trim(), parsedAmount))
-                }
-            ) {
-                Text(if (isSaving) "Salvando..." else "Salvar")
-            }
-        },
-        dismissButton = {
-            Row {
-                TextButton(
-                    enabled = !isSaving,
-                    onClick = { onEvent(FinancialEvent.OnDeleteTransaction) }
-                ) {
-                    Text("Excluir", color = MaterialTheme.colorScheme.error)
-                }
-                TextButton(
-                    enabled = !isSaving,
-                    onClick = { onEvent(FinancialEvent.OnEditDismiss) }
-                ) {
-                    Text("Cancelar")
-                }
-            }
-        }
-    )
-}
-
-@Composable
-private fun RecurrenceScopeDialog(
-    transaction: Transaction,
-    action: PendingRecurringAction,
-    isSaving: Boolean,
-    onEvent: (FinancialEvent) -> Unit
-) {
-    val isDelete = action is PendingRecurringAction.Delete
-    val monthText = transaction.occurrenceMonth?.let { monthLabel(it) } ?: "este mês"
-
-    AlertDialog(
-        onDismissRequest = { if (!isSaving) onEvent(FinancialEvent.OnRecurringScopeDismiss) },
-        title = { Text(if (isDelete) "Excluir recorrente" else "Atualizar recorrente") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = if (isDelete) {
-                        "\"${transaction.title}\" é uma transação recorrente. O que deseja excluir?"
-                    } else {
-                        "\"${transaction.title}\" é uma transação recorrente. Onde aplicar a alteração?"
-                    }
-                )
-                TextButton(
-                    enabled = !isSaving,
-                    onClick = {
-                        onEvent(FinancialEvent.OnRecurringScopeConfirm(RecurrenceEditScope.THIS_MONTH))
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Somente $monthText")
-                }
-                TextButton(
-                    enabled = !isSaving,
-                    onClick = {
-                        onEvent(
-                            FinancialEvent.OnRecurringScopeConfirm(RecurrenceEditScope.THIS_AND_FUTURE)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Este e os próximos meses",
-                        color = if (isDelete) MaterialTheme.colorScheme.error else Color.Unspecified
-                    )
-                }
-                Text(
-                    text = "Os meses anteriores são mantidos.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(
-                enabled = !isSaving,
-                onClick = { onEvent(FinancialEvent.OnRecurringScopeDismiss) }
-            ) {
-                Text(if (isSaving) "Salvando..." else "Cancelar")
-            }
-        }
-    )
 }
 
 @Preview(showBackground = true)

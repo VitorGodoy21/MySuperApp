@@ -49,6 +49,7 @@ class FinancialViewModel @Inject constructor(
 
     private var loadTransactionsJob: Job? = null
     private var loadProjectionJob: Job? = null
+    private var loadPaidInvoiceJob: Job? = null
 
     init {
         loadFilterSources()
@@ -75,6 +76,17 @@ class FinancialViewModel @Inject constructor(
 
             FinancialEvent.OnToggleMonthList -> {
                 _uiState.update { it.copy(isMonthListExpanded = !it.isMonthListExpanded) }
+            }
+
+            is FinancialEvent.OnCardInvoiceClicked -> {
+                viewModelScope.launch {
+                    _effect.emit(
+                        FinancialEffect.NavigateToCardInvoice(
+                            cardId = event.cardId,
+                            invoiceMonth = _uiState.value.selectedMonthKey
+                        )
+                    )
+                }
             }
 
             is FinancialEvent.OnTransactionClicked -> {
@@ -242,6 +254,40 @@ class FinancialViewModel @Inject constructor(
         }
     }
 
+    /** Fatura fechada no mês anterior: é o que sai da conta no mês selecionado. */
+    private fun loadPaidInvoice() {
+        loadPaidInvoiceJob?.cancel()
+        loadPaidInvoiceJob = viewModelScope.launch {
+            val paidMonth = _uiState.value.selectedMonth.minusMonths(1)
+            getInvoiceProjectionUseCase(paidMonth).collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoadingPaidInvoice = true) }
+                    }
+
+                    is Resource.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoadingPaidInvoice = false,
+                                paidInvoiceTransactions = result.data?.invoiceTransactions.orEmpty(),
+                                paidInvoiceRecurringTransactions = result.data?.recurringTransactions.orEmpty()
+                            )
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(isLoadingPaidInvoice = false) }
+                        _effect.emit(
+                            FinancialEffect.ShowToast(
+                                result.message ?: "Erro ao carregar fatura anterior"
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun updateTransaction(title: String, amount: Double) {
         val transaction = _uiState.value.editingTransaction ?: return
         viewModelScope.launch {
@@ -352,6 +398,7 @@ class FinancialViewModel @Inject constructor(
     private fun reloadAll() {
         loadTransactions()
         loadProjection()
+        loadPaidInvoice()
     }
 
     private fun loadFilterSources() {

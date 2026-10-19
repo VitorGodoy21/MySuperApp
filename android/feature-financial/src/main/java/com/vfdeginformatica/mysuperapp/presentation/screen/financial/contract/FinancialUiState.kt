@@ -26,6 +26,10 @@ data class FinancialUiState(
     val isLoadingProjection: Boolean = false,
     val invoiceTransactions: List<Transaction> = emptyList(),
     val recurringTransactions: List<Transaction> = emptyList(),
+    // Fatura fechada no mês anterior (paga neste mês) — compõe o saldo de caixa
+    val isLoadingPaidInvoice: Boolean = false,
+    val paidInvoiceTransactions: List<Transaction> = emptyList(),
+    val paidInvoiceRecurringTransactions: List<Transaction> = emptyList(),
     // Aba Filtros
     val typeFilter: TransactionTypeFilter = TransactionTypeFilter.ALL,
     val paymentMethodFilter: PaymentMethodFilter = PaymentMethodFilter.ALL,
@@ -56,14 +60,23 @@ data class FinancialUiState(
     val totalExpense: Double
         get() = expenses.sumOf { it.amount }
 
+    /**
+     * Saldo de caixa do mês: receitas menos o que efetivamente sai da conta no mês —
+     * compras no débito e a fatura fechada no mês anterior. Compras no crédito do mês
+     * só debitam no mês seguinte, quando a fatura é paga.
+     */
     val balance: Double
-        get() = totalIncome - totalExpense
+        get() = totalIncome - cashExpense
 
     val creditExpense: Double
         get() = expenses.filter { it.paymentMethod == CREDIT }.sumOf { it.amount }
 
     val debitExpense: Double
         get() = expenses.filter { it.paymentMethod != CREDIT }.sumOf { it.amount }
+
+    /** Despesas que saem da conta no mês: débito + fatura paga (fechada em M-1). */
+    val cashExpense: Double
+        get() = debitExpense + paidInvoiceTotal
 
     val recurringExpense: Double
         get() = expenses.filter { it.isRecurring }.sumOf { it.amount }
@@ -111,7 +124,7 @@ data class FinancialUiState(
 
     // ---- Fatura do mês selecionado ----
 
-    private val selectedMonthKey: String
+    val selectedMonthKey: String
         get() = "%04d-%02d".format(selectedMonth.year, selectedMonth.monthValue)
 
     /**
@@ -137,6 +150,25 @@ data class FinancialUiState(
 
     val projectedInvoiceTotal: Double
         get() = projectedInvoiceItems.sumOf { it.amount }
+
+    // ---- Fatura paga no mês (fechada em M-1) ----
+
+    val paidInvoiceMonth: YearMonth
+        get() = selectedMonth.minusMonths(1)
+
+    private val paidInvoiceMonthKey: String
+        get() = "%04d-%02d".format(paidInvoiceMonth.year, paidInvoiceMonth.monthValue)
+
+    /** Itens da fatura de M-1 (compras/parcelas + recorrentes de crédito, sem duplicar). */
+    val paidInvoiceItems: List<Transaction>
+        get() = paidInvoiceTransactions + paidInvoiceRecurringTransactions.filter {
+            it.type == TransactionType.EXPENSE &&
+                    it.paymentMethod == CREDIT &&
+                    it.invoiceMonth != paidInvoiceMonthKey
+        }
+
+    val paidInvoiceTotal: Double
+        get() = paidInvoiceItems.sumOf { it.amount }
 
     // ---- Aba Filtros ----
 

@@ -20,6 +20,7 @@ import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
 import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.accessLogMapRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_detail.CardDetailRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.CardInvoiceRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_list.CardListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.category_detail.CategoryDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.category_list.CategoryListRoute
@@ -93,6 +94,29 @@ fun MySuperApp(
                         },
                         onNewTransaction = {
                             navController.navigate(Screen.NewTransactionScreen.route)
+                        },
+                        onCardInvoice = { cardId, invoiceMonth ->
+                            navController.navigate(
+                                Screen.CardInvoiceScreen.createRoute(cardId, invoiceMonth)
+                            )
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.CardInvoiceScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.CardInvoiceScreen.CARD_ID) {
+                            type = NavType.StringType
+                        },
+                        navArgument(Screen.CardInvoiceScreen.INVOICE_MONTH) {
+                            type = NavType.StringType
+                        }
+                    )
+                ) {
+                    CardInvoiceRoute(
+                        onNavigateUp = {
+                            navController.navigateUp()
                         }
                     )
                 }

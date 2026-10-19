@@ -15,6 +15,13 @@ sealed class Screen(val route: String) {
         const val CARD_ID = "cardId"
         fun createRoute(cardId: String): String = "card_detail_screen/$cardId"
     }
+    object CardInvoiceScreen : Screen("card_invoice_screen/{cardId}/{invoiceMonth}") {
+        const val CARD_ID = "cardId"
+        const val INVOICE_MONTH = "invoiceMonth"
+        /** [invoiceMonth] no formato yyyy-MM. */
+        fun createRoute(cardId: String, invoiceMonth: String): String =
+            "card_invoice_screen/$cardId/$invoiceMonth"
+    }
     object CategoryListScreen : Screen("category_list_screen")
     object CategoryDetailScreen : Screen("category_detail_screen?categoryId={categoryId}") {
         const val CATEGORY_ID = "categoryId"

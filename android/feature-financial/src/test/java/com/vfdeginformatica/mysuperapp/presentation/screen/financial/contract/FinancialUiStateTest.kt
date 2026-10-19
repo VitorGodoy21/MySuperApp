@@ -59,7 +59,53 @@ class FinancialUiStateTest {
         val state = base.copy(typeFilter = TransactionTypeFilter.INCOME, recurringOnly = true)
         assertEquals(5000.0, state.totalIncome, 0.001)
         assertEquals(850.0, state.totalExpense, 0.001)
-        assertEquals(4150.0, state.balance, 0.001)
+        assertEquals(4500.0, state.balance, 0.001)
+    }
+
+    // ---- Saldo de caixa (débito + fatura de M-1) ----
+
+    @Test
+    fun `balance ignores credit purchases of the month`() {
+        assertEquals(500.0, base.cashExpense, 0.001)
+        assertEquals(4500.0, base.balance, 0.001)
+        assertEquals(0.0, base.paidInvoiceTotal, 0.001)
+    }
+
+    @Test
+    fun `balance includes invoice closed in previous month`() {
+        val state = base.copy(
+            paidInvoiceTransactions = listOf(
+                tx("tv-prev", 300.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-09"),
+                tx("shoes", 200.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-09")
+            )
+        )
+        assertEquals(YearMonth.of(2026, 9), state.paidInvoiceMonth)
+        assertEquals(500.0, state.paidInvoiceTotal, 0.001)
+        assertEquals(1000.0, state.cashExpense, 0.001)
+        assertEquals(4000.0, state.balance, 0.001)
+        assertEquals(5000.0, state.totalIncome, 0.001)
+        assertEquals(500.0, state.debitExpense, 0.001)
+    }
+
+    @Test
+    fun `paid invoice adds recurring credit without duplicating items already in invoice`() {
+        val state = base.copy(
+            paidInvoiceTransactions = listOf(
+                tx("tv-prev", 300.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-09")
+            ),
+            paidInvoiceRecurringTransactions = listOf(
+                // já contado em paidInvoiceTransactions
+                tx("netflix-dup", 50.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1", invoiceMonth = "2026-09"),
+                // recorrente de crédito materializado, entra
+                tx("spotify", 20.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1", invoiceMonth = "2026-10"),
+                // débito/receita recorrentes não entram na fatura
+                tx("rent", 1500.0, paymentMethod = "DEBIT", isRecurring = true),
+                tx("bonus", 100.0, type = TransactionType.INCOME, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1")
+            )
+        )
+        assertEquals(listOf("tv-prev", "spotify"), state.paidInvoiceItems.map { it.id })
+        assertEquals(320.0, state.paidInvoiceTotal, 0.001)
+        assertEquals(5000.0 - 500.0 - 320.0, state.balance, 0.001)
     }
 
     @Test

@@ -17,13 +17,17 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.Upd
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.UpdateTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_category.GetTransactionsCategoriesUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FilterGroupBy
+import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialTab
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.PaymentMethodFilter
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.TransactionTypeFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -70,6 +74,8 @@ class FinancialViewModelTest {
     private class CountingTransactionRepository : FakeTransactionRepository() {
         var monthQueries = 0
         var invoiceQueries = 0
+        val requestedInvoiceMonths = mutableListOf<String>()
+        var invoicesByMonth: Map<String, List<TransactionDto>> = emptyMap()
 
         override suspend fun getTransactions(start: Timestamp, end: Timestamp): Resource<List<TransactionDto>> {
             monthQueries++
@@ -78,7 +84,8 @@ class FinancialViewModelTest {
 
         override suspend fun getTransactionsByInvoiceMonth(invoiceMonth: String): Resource<List<TransactionDto>> {
             invoiceQueries++
-            return super.getTransactionsByInvoiceMonth(invoiceMonth)
+            requestedInvoiceMonths += invoiceMonth
+            return Resource.Success(invoicesByMonth[invoiceMonth].orEmpty())
         }
     }
 
@@ -110,7 +117,39 @@ class FinancialViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, repo.monthQueries)
-        assertEquals(1, repo.invoiceQueries)
+        // fatura do mês selecionado (projeção) + fatura de M-1 (paga no mês)
+        assertEquals(2, repo.invoiceQueries)
+    }
+
+    @Test
+    fun `paid invoice loads documents whose invoiceMonth is the previous month`() = runTest {
+        val repo = CountingTransactionRepository()
+        val now = java.time.YearMonth.now()
+        val prev = now.minusMonths(1)
+        val key = { m: java.time.YearMonth -> "%04d-%02d".format(m.year, m.monthValue) }
+        repo.invoicesByMonth = mapOf(
+            key(prev) to listOf(
+                TransactionDto(
+                    id = "prev-credit", title = "TV", transactionType = "EXPENSE",
+                    paymentMethod = "CREDIT", amount = 300.0, cardId = "c1", invoiceMonth = key(prev)
+                )
+            ),
+            key(now) to listOf(
+                TransactionDto(
+                    id = "cur-credit", title = "Shoes", transactionType = "EXPENSE",
+                    paymentMethod = "CREDIT", amount = 200.0, cardId = "c1", invoiceMonth = key(now)
+                )
+            )
+        )
+
+        val vm = buildViewModel(repo)
+        advanceUntilIdle()
+
+        assertTrue(repo.requestedInvoiceMonths.contains(key(prev)))
+        assertEquals(listOf("prev-credit"), vm.uiState.value.paidInvoiceTransactions.map { it.id })
+        assertEquals(300.0, vm.uiState.value.paidInvoiceTotal, 0.001)
+        assertEquals(-300.0, vm.uiState.value.balance, 0.001)
+        assertFalse(vm.uiState.value.isLoadingPaidInvoice)
     }
 
     @Test
@@ -125,7 +164,7 @@ class FinancialViewModelTest {
 
         assertEquals(initial.plusMonths(1), vm.uiState.value.selectedMonth)
         assertEquals(2, repo.monthQueries)
-        assertEquals(2, repo.invoiceQueries)
+        assertEquals(4, repo.invoiceQueries)
     }
 
     @Test
@@ -139,7 +178,27 @@ class FinancialViewModelTest {
 
         assertEquals(FinancialTab.FILTERS, vm.uiState.value.selectedTab)
         assertEquals(1, repo.monthQueries)
-        assertEquals(1, repo.invoiceQueries)
+        assertEquals(2, repo.invoiceQueries)
+    }
+
+    @Test
+    fun `clicking a card invoice emits navigation with the selected month`() = runTest(dispatcher) {
+        val vm = buildViewModel(CountingTransactionRepository())
+        val effects = mutableListOf<FinancialEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            vm.effect.toList(effects)
+        }
+        advanceUntilIdle()
+        val month = vm.uiState.value.selectedMonth
+
+        vm.onEvent(FinancialEvent.OnCardInvoiceClicked("c1"))
+        advanceUntilIdle()
+
+        val expectedMonth = "%04d-%02d".format(month.year, month.monthValue)
+        assertEquals(
+            listOf(FinancialEffect.NavigateToCardInvoice("c1", expectedMonth)),
+            effects
+        )
     }
 
     @Test

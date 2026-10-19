@@ -21,7 +21,8 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.Fi
 fun FinancialRoute(
     viewModel: FinancialViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
-    onNewTransaction: () -> Unit
+    onNewTransaction: () -> Unit,
+    onCardInvoice: (cardId: String, invoiceMonth: String) -> Unit = { _, _ -> }
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -34,6 +35,8 @@ fun FinancialRoute(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is FinancialEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
+                is FinancialEffect.NavigateToCardInvoice ->
+                    onCardInvoice(effect.cardId, effect.invoiceMonth)
             }
         }
     }
