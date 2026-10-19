@@ -208,8 +208,8 @@ fun YouTubePlayerDialog(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
                 )
-                // Taller than 16:9 so vertical videos (Shorts) get more room on a phone screen.
-                YouTubePlayer(videoId = videoId, aspectRatio = 4f / 3f)
+                // Taller than wide so vertical videos (Shorts) get more room on a phone screen.
+                YouTubePlayer(videoId = videoId, aspectRatio = 3f / 4f)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
