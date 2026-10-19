@@ -49,6 +49,10 @@ sealed class Screen(val route: String) {
             else "exercise_detail_screen?exerciseId=$exerciseId"
     }
     object WorkoutListScreen : Screen("workout_list_screen")
+object WorkoutViewScreen : Screen("workout_view_screen/{workoutId}") {
+    const val WORKOUT_ID = "workoutId"
+    fun createRoute(workoutId: String): String = "workout_view_screen/$workoutId"
+}
     object WorkoutDetailScreen : Screen("workout_detail_screen?workoutId={workoutId}") {
         const val WORKOUT_ID = "workoutId"
         fun createRoute(workoutId: String? = null): String =

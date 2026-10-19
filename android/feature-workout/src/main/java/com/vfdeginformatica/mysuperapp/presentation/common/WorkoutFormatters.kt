@@ -22,6 +22,19 @@ internal fun formatCm(value: Double): String =
 
 internal fun formatBmi(value: Double): String = String.format(ptBr, "%.1f", value)
 
+/** e.g. "45 min", "1h", "1h 15min". */
+internal fun formatDuration(minutes: Int): String {
+    val h = minutes / 60
+    val m = minutes % 60
+    return when {
+        h == 0 -> "$m min"
+        m == 0 -> "${h}h"
+        else -> "${h}h ${m}min"
+    }
+}
+
+internal fun formatCalories(calories: Int): String = "$calories kcal"
+
 /** Signed difference, e.g. "+1,2 kg" / "-0,5 kg"; null when zero. */
 internal fun formatKgDelta(delta: Double): String? {
     if (delta == 0.0) return null

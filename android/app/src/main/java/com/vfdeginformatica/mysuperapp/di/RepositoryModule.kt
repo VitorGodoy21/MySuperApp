@@ -8,12 +8,15 @@ import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.BodyMeasurementDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.ExerciseDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutSessionDao
 import com.vfdeginformatica.mysuperapp.data.remote.repository.BodyMeasurementRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.ExerciseRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.WorkoutRepositoryImpl
+import com.vfdeginformatica.mysuperapp.data.remote.repository.WorkoutSessionRepositoryImpl
 import com.vfdeginformatica.mysuperapp.domain.repository.BodyMeasurementRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.ExerciseRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.WorkoutRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.WorkoutSessionRepository
 import com.vfdeginformatica.mysuperapp.data.remote.repository.CardRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.CategoryTransactionRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.TransactionRepositoryImpl
@@ -72,6 +75,12 @@ object RepositoryModule {
     @Singleton
     fun provideWorkoutRepository(dao: WorkoutDao): WorkoutRepository {
         return WorkoutRepositoryImpl(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkoutSessionRepository(dao: WorkoutSessionDao): WorkoutSessionRepository {
+        return WorkoutSessionRepositoryImpl(dao)
     }
 
     @Provides

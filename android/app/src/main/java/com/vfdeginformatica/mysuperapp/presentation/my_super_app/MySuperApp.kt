@@ -29,6 +29,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.exercise_detail.Exerc
 import com.vfdeginformatica.mysuperapp.presentation.screen.exercise_list.ExerciseListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.WorkoutDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.WorkoutHubRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.WorkoutViewRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_list.WorkoutListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.category_list.CategoryListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
@@ -213,18 +214,20 @@ fun MySuperApp(
                 composable(route = Screen.WorkoutHubScreen.route) {
                     WorkoutHubRoute(
                         onNavigateUp = { navController.navigateUp() },
-                        onNavigateToBodyMeasurements = {
-                            navController.navigate(Screen.BodyMeasurementListScreen.route)
-                        },
-                        onNavigateToExercises = {
-                            navController.navigate(Screen.ExerciseListScreen.route)
-                        },
-                        onNavigateToWorkouts = {
-                            navController.navigate(Screen.WorkoutListScreen.route)
-                        },
                         onNavigateToWorkout = { workoutId ->
-                            navController.navigate(Screen.WorkoutDetailScreen.createRoute(workoutId))
+                            navController.navigate(Screen.WorkoutViewScreen.createRoute(workoutId))
                         }
+                    )
+                }
+
+                composable(
+                    route = Screen.WorkoutViewScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.WorkoutViewScreen.WORKOUT_ID) { type = NavType.StringType }
+                    )
+                ) {
+                    WorkoutViewRoute(
+                        onNavigateUp = { navController.navigateUp() }
                     )
                 }
 

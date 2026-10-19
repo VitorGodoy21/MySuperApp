@@ -13,6 +13,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.datasource.ExerciseDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.ExerciseDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutSessionDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutSessionDaoImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -63,5 +65,11 @@ object DaoModule {
     @Singleton
     fun provideWorkoutDao(): WorkoutDao {
         return WorkoutDaoImpl(db = FirebaseFirestore.getInstance())
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkoutSessionDao(): WorkoutSessionDao {
+        return WorkoutSessionDaoImpl(db = FirebaseFirestore.getInstance())
     }
 }

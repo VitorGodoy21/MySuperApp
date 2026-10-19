@@ -17,9 +17,6 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.contract.
 fun WorkoutHubRoute(
     viewModel: WorkoutHubViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
-    onNavigateToBodyMeasurements: () -> Unit,
-    onNavigateToExercises: () -> Unit,
-    onNavigateToWorkouts: () -> Unit,
     onNavigateToWorkout: (String) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -28,9 +25,6 @@ fun WorkoutHubRoute(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                WorkoutHubEffect.NavigateToBodyMeasurements -> onNavigateToBodyMeasurements()
-                WorkoutHubEffect.NavigateToExercises -> onNavigateToExercises()
-                WorkoutHubEffect.NavigateToWorkouts -> onNavigateToWorkouts()
                 is WorkoutHubEffect.NavigateToWorkout -> onNavigateToWorkout(effect.workoutId)
                 is WorkoutHubEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
             }
