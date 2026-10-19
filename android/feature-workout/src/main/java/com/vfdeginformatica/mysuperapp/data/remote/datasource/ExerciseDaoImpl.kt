@@ -33,6 +33,7 @@ class ExerciseDaoImpl(
                 "muscleGroup" to exercise.muscleGroup,
                 "description" to exercise.description,
                 "notes" to exercise.notes,
+                "videoUrl" to exercise.videoUrl,
                 "createdAt" to FieldValue.serverTimestamp(),
             )
             val ref = db.collection(COLLECTION).add(data).await()
@@ -51,6 +52,7 @@ class ExerciseDaoImpl(
                     "muscleGroup" to exercise.muscleGroup,
                     "description" to exercise.description,
                     "notes" to exercise.notes,
+                    "videoUrl" to exercise.videoUrl,
                 )
             ).await()
             Resource.Success(Unit)

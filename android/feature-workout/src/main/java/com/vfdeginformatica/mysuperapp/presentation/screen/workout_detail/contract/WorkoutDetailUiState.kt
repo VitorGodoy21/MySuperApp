@@ -20,7 +20,11 @@ data class WorkoutItemRow(
     val exerciseName: String,
     val muscleGroupLabel: String?,
     val prescription: String,
+    val videoId: String? = null,
 )
+
+/** Video currently open in the player dialog. */
+data class VideoPlayback(val exerciseName: String, val videoId: String)
 
 data class WorkoutDetailUiState(
     val workoutId: String? = null,
@@ -34,6 +38,7 @@ data class WorkoutDetailUiState(
     val pickerQuery: String = "",
     val editingItemIndex: Int? = null,
     val itemDraft: ItemDraft? = null,
+    val playingVideo: VideoPlayback? = null,
     val isSaving: Boolean = false,
     val isDeleting: Boolean = false,
     val showDeleteConfirmation: Boolean = false,
@@ -57,6 +62,7 @@ data class WorkoutDetailUiState(
                     exerciseName = exercise?.name ?: REMOVED_EXERCISE_LABEL,
                     muscleGroupLabel = exercise?.muscleGroup?.label,
                     prescription = prescriptionOf(item),
+                    videoId = exercise?.videoId,
                 )
             }
         }

@@ -9,13 +9,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -24,9 +30,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.domain.model.MuscleGroup
+import com.vfdeginformatica.mysuperapp.presentation.common.YouTubePlayer
 import com.vfdeginformatica.mysuperapp.presentation.screen.exercise_detail.contract.ExerciseDetailEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.exercise_detail.contract.ExerciseDetailUiState
 
@@ -111,6 +119,35 @@ fun ExerciseDetailScreen(
             minLines = 2,
             maxLines = 4
         )
+
+        OutlinedTextField(
+            value = uiState.videoUrl,
+            onValueChange = { onEvent(ExerciseDetailEvent.VideoUrlChanged(it)) },
+            label = { Text("Vídeo (link do YouTube, opcional)") },
+            placeholder = { Text("https://youtu.be/...") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            isError = uiState.videoUrlError != null,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            leadingIcon = { Icon(Icons.Default.PlayCircle, contentDescription = null) },
+            trailingIcon = {
+                if (uiState.videoUrl.isNotEmpty()) {
+                    IconButton(onClick = { onEvent(ExerciseDetailEvent.VideoUrlCleared) }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Remover vídeo")
+                    }
+                }
+            },
+            supportingText = {
+                Text(
+                    uiState.videoUrlError
+                        ?: "Cole o link do YouTube; o vídeo aparece abaixo e dentro dos treinos."
+                )
+            }
+        )
+
+        uiState.videoId?.let { videoId ->
+            YouTubePlayer(videoId = videoId)
+        }
 
         Button(
             onClick = { onEvent(ExerciseDetailEvent.SaveClicked) },

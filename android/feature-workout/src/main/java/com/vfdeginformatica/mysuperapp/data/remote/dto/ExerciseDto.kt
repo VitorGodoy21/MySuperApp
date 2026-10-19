@@ -10,5 +10,6 @@ data class ExerciseDto(
     var muscleGroup: String = "",
     var description: String = "",
     var notes: String = "",
+    var videoUrl: String = "",
     var createdAt: Timestamp? = null,
 )

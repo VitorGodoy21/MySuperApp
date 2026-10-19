@@ -14,6 +14,7 @@ import com.vfdeginformatica.mysuperapp.presentation.common.parseDecimal
 import com.vfdeginformatica.mysuperapp.presentation.common.sanitizeDecimalInput
 import com.vfdeginformatica.mysuperapp.presentation.common.sanitizeIntInput
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.ItemDraft
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.VideoPlayback
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailUiState
@@ -120,6 +121,16 @@ class WorkoutDetailViewModel @Inject constructor(
 
             WorkoutDetailEvent.ItemDraftDismissed -> _uiState.update {
                 it.copy(editingItemIndex = null, itemDraft = null)
+            }
+
+            is WorkoutDetailEvent.PlayVideoClicked -> _uiState.update { state ->
+                val row = state.itemRows.getOrNull(event.index)
+                val videoId = row?.videoId ?: return@update state
+                state.copy(playingVideo = VideoPlayback(row.exerciseName, videoId))
+            }
+
+            WorkoutDetailEvent.VideoDialogDismissed -> _uiState.update {
+                it.copy(playingVideo = null)
             }
 
             WorkoutDetailEvent.SaveClicked -> save()

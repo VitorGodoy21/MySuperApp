@@ -189,15 +189,17 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.muscleGroup is string
         && request.resource.data.description is string
-        && request.resource.data.notes is string;
+        && request.resource.data.notes is string
+        && request.resource.data.videoUrl is string;
       allow update: if isAuthenticated()
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['name', 'muscleGroup', 'description', 'notes'])
+          .hasOnly(['name', 'muscleGroup', 'description', 'notes', 'videoUrl'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.muscleGroup is string
         && request.resource.data.description is string
-        && request.resource.data.notes is string;
+        && request.resource.data.notes is string
+        && request.resource.data.videoUrl is string;
       // O app bloqueia a exclusão quando o exercício está em algum treino (workouts.exerciseIds)
       allow delete: if isAuthenticated();
     }

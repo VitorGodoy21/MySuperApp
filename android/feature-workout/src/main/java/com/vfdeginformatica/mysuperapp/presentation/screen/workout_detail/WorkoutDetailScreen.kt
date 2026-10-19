@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -58,6 +59,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.Exercise
 import com.vfdeginformatica.mysuperapp.domain.model.MuscleGroup
 import com.vfdeginformatica.mysuperapp.domain.model.WeekDay
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutItem
+import com.vfdeginformatica.mysuperapp.presentation.common.YouTubePlayerDialog
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.ItemDraft
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailUiState
@@ -106,6 +108,14 @@ fun WorkoutDetailScreen(
             onDraftChanged = { onEvent(WorkoutDetailEvent.ItemDraftChanged(it)) },
             onConfirm = { onEvent(WorkoutDetailEvent.ItemDraftConfirmed) },
             onDismiss = { onEvent(WorkoutDetailEvent.ItemDraftDismissed) },
+        )
+    }
+
+    uiState.playingVideo?.let { playback ->
+        YouTubePlayerDialog(
+            title = playback.exerciseName,
+            videoId = playback.videoId,
+            onDismiss = { onEvent(WorkoutDetailEvent.VideoDialogDismissed) },
         )
     }
 
@@ -202,6 +212,7 @@ fun WorkoutDetailScreen(
                     canMoveDown = uiState.canMoveDown(index),
                     enabled = !uiState.isBusy,
                     onClick = { onEvent(WorkoutDetailEvent.EditItemClicked(index)) },
+                    onPlayVideo = { onEvent(WorkoutDetailEvent.PlayVideoClicked(index)) },
                     onMoveUp = { onEvent(WorkoutDetailEvent.MoveItemUp(index)) },
                     onMoveDown = { onEvent(WorkoutDetailEvent.MoveItemDown(index)) },
                     onRemove = { onEvent(WorkoutDetailEvent.RemoveItem(index)) },
@@ -251,6 +262,7 @@ private fun WorkoutItemCard(
     canMoveDown: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
+    onPlayVideo: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
@@ -293,6 +305,15 @@ private fun WorkoutItemCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+            if (row.videoId != null) {
+                IconButton(onClick = onPlayVideo) {
+                    Icon(
+                        Icons.Default.PlayCircle,
+                        contentDescription = "Assistir vídeo do exercício",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
             Column {
                 IconButton(onClick = onMoveUp, enabled = enabled && canMoveUp, modifier = Modifier.size(32.dp)) {

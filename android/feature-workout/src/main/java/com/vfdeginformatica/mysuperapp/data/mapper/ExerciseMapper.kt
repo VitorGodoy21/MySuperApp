@@ -10,6 +10,7 @@ fun ExerciseDto.toModel(): Exercise = Exercise(
     muscleGroup = if (muscleGroup.isBlank()) null else MuscleGroup.fromName(muscleGroup),
     description = description,
     notes = notes,
+    videoUrl = videoUrl,
 )
 
 fun Exercise.toDto(): ExerciseDto = ExerciseDto(
@@ -18,4 +19,5 @@ fun Exercise.toDto(): ExerciseDto = ExerciseDto(
     muscleGroup = muscleGroup?.name.orEmpty(),
     description = description,
     notes = notes,
+    videoUrl = videoUrl,
 )

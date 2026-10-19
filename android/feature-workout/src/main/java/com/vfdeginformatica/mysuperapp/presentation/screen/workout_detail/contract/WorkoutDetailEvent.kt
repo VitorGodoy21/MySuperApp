@@ -21,6 +21,9 @@ sealed interface WorkoutDetailEvent {
     data object ItemDraftConfirmed : WorkoutDetailEvent
     data object ItemDraftDismissed : WorkoutDetailEvent
 
+    data class PlayVideoClicked(val index: Int) : WorkoutDetailEvent
+    data object VideoDialogDismissed : WorkoutDetailEvent
+
     data object SaveClicked : WorkoutDetailEvent
     data object DeleteClicked : WorkoutDetailEvent
     data object DeleteConfirmed : WorkoutDetailEvent

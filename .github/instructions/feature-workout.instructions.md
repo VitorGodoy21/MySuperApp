@@ -17,9 +17,9 @@ applyTo: "android/feature-workout/**"
   - `data/remote/dto` — `BodyMeasurementDto`, `ExerciseDto`, `WorkoutDto` + nested `WorkoutItemDto`.
   - `data/remote/repository` — `*RepositoryImpl` wrapping DAOs; they map DTO↔domain so repositories and use cases only see domain models.
   - `data/mapper` — `BodyMeasurementMapper`, `ExerciseMapper`, `WorkoutMapper` (`toModel`/`toDto`).
-  - `domain/model` — `BodyMeasurement` (computed `bmi`), `Exercise`, `MuscleGroup` (fixed enum with pt-BR `label`), `Workout`, `WorkoutItem`, `WeekDay`.
+  - `domain/model` — `BodyMeasurement` (computed `bmi`), `Exercise` (computed `videoId`), `MuscleGroup` (fixed enum with pt-BR `label`), `Workout`, `WorkoutItem`, `WeekDay`, `YouTubeVideo` (pure-Kotlin parser: `parseVideoId`, `canonicalUrl`, `embedUrl`).
   - `domain/use_case/workout/{body_measurement,exercise,workout}` — use cases returning `Flow<Resource<T>>` (Loading → Success/Error) built on the `readFlow`/`writeFlow` helpers in `ResourceFlows.kt`.
-  - `presentation/common` — `WorkoutFormatters` (dates, kg/cm, IMC, decimal/int input sanitizers) and `WeightChart` (Canvas line chart, no external lib).
+  - `presentation/common` — `WorkoutFormatters` (dates, kg/cm, IMC, decimal/int input sanitizers), `WeightChart` (Canvas line chart, no external lib) and `YouTubePlayer` / `YouTubePlayerDialog` (16:9 `WebView` running the official YouTube IFrame embed, loaded with `https://www.youtube.com` as base URL; paused/resumed with the host lifecycle and destroyed on release — no YouTube SDK, no download).
   - `presentation/screen/<screen>` — `*Route.kt`, `*Screen.kt`, `*ViewModel.kt` and `contract/` (`UiState`, `Event`, `Effect`). Screens: `workout_hub`, `body_measurement_list`, `body_measurement_detail`, `exercise_list`, `exercise_detail`, `workout_list`, `workout_detail`.
 
 ## Dependencies and wiring
@@ -32,7 +32,7 @@ applyTo: "android/feature-workout/**"
 ## Data model (Firestore, top-level collections, auth-only rules like the financial ones)
 
 - `body_measurements/{id}`: `weightKg: number`, `heightCm: number`, `measuredAt: timestamp` (date of the weigh-in, stored at local start of day), `notes: string`, `createdAt` (server). One document per weigh-in → history. `GetBodyMeasurementsUseCase` returns newest first.
-- `exercises/{id}`: `name` (required, non-empty), `muscleGroup` (enum name or `""`; unknown names map to `OTHER`, blank maps to `null`), `description`, `notes`, `createdAt`.
+- `exercises/{id}`: `name` (required, non-empty), `muscleGroup` (enum name or `""`; unknown names map to `OTHER`, blank maps to `null`), `description`, `notes`, `videoUrl` (canonical `https://www.youtube.com/watch?v=<id>` or `""`; legacy documents without the field read as `""`), `createdAt`.
 - `workouts/{id}`: `name` (required), `dayOfWeek` (`MONDAY`…`SUNDAY` or `null`), `items: list<map>` (ordered; each `exerciseId`, `order`, optional `sets`, `reps` (free text like `"10-12"`), `loadKg`, `restSeconds`, `notes`), `exerciseIds: list<string>`, `notes`, `createdAt`, `updatedAt`.
   - **Invariant:** `exerciseIds` is always derived from `items` in `Workout.toDto()` (never set by hand) so `WorkoutDao.getWorkoutsUsingExercise` can use `whereArrayContains("exerciseIds", id)`. `order` is re-indexed from list position on save and on read.
   - The same exercise may appear more than once in a workout; an item whose exercise no longer exists is rendered as "Exercício removido".
@@ -42,14 +42,15 @@ applyTo: "android/feature-workout/**"
 
 - Body measurement validation (ViewModel): weight > 0 and ≤ 500 kg, height between 50 and 300 cm, date not in the future; decimal inputs accept comma or dot (`parseDecimal`). In create mode the height is prefilled from the latest record.
 - Exercise: name required; a duplicate name (case-insensitive) only shows a warning. **Deleting an exercise that is referenced by any workout is blocked** (`DeleteExerciseUseCase` emits `Resource.Error` listing the workout names); the detail screen disables the delete button and explains which workouts use it.
+- Exercise video: at most one YouTube link per exercise (`videoUrl`). The ViewModel accepts any shape `YouTubeVideo.parseVideoId` understands (`watch?v=`, `youtu.be/`, `shorts/`, `embed/`, `live/`, with or without scheme, extra params ignored); a non-blank value that does not parse shows `VIDEO_URL_INVALID_ERROR` and disables save. On save the URL is normalized with `YouTubeVideo.canonicalUrl`. The detail screen renders `YouTubePlayer` inline as soon as the link is valid; the workout screen shows a ▶ button on items whose exercise has a video (`WorkoutItemRow.videoId`) and opens `YouTubePlayerDialog` (`WorkoutDetailUiState.playingVideo`). Downloading YouTube videos is intentionally not supported (ToS).
 - Workout: name required; items are optional (an empty workout can be saved and filled later); there is no limit on the number of workouts. Reordering is done with ▲/▼ buttons; item prescription (séries/repetições/carga/descanso/observação) is edited in a dialog and is optional.
 - `GetWorkoutsUseCase` orders by `dayOfWeek` (unscheduled last) then name.
 
 ## How to use (user flow)
 
 1. Home → "Academia" (or drawer → Academia). The hub shows the last weigh-in, exercise count and the list of workouts.
-2. **Exercícios** → `+` to register exercises (name, muscle group chips, description, notes). Edit/delete by tapping an item.
-3. **Treinos** → `+` → name (e.g. "Treino A"), optional week day, "Adicionar" to pick exercises from the catalog, reorder with the arrows, tap an item to set sets/reps/load/rest. Save. Repeat for B, C, … as needed.
+2. **Exercícios** → `+` to register exercises (name, muscle group chips, description, notes, optional YouTube link — the video plays right below the field). Edit/delete by tapping an item.
+3. **Treinos** → `+` → name (e.g. "Treino A"), optional week day, "Adicionar" to pick exercises from the catalog, reorder with the arrows, tap an item to set sets/reps/load/rest, tap ▶ to watch the exercise video. Save. Repeat for B, C, … as needed.
 4. **Dados físicos** → `+` to record weight/height/date/notes. The list shows deltas vs. the previous record, IMC and a weight chart; tap a row to edit, trash icon to delete.
 
 ## Tests

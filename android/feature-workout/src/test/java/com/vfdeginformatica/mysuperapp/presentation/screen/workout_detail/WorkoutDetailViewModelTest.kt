@@ -13,6 +13,7 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.DeleteWor
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.GetWorkoutByIdUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.SaveWorkoutUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.ItemDraft
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.VideoPlayback
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,7 +36,12 @@ class WorkoutDetailViewModelTest {
     private val dispatcher = StandardTestDispatcher()
 
     private val exercises = listOf(
-        Exercise(id = "e1", name = "Supino reto", muscleGroup = MuscleGroup.CHEST),
+        Exercise(
+            id = "e1",
+            name = "Supino reto",
+            muscleGroup = MuscleGroup.CHEST,
+            videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        ),
         Exercise(id = "e2", name = "Agachamento", muscleGroup = MuscleGroup.LEGS),
     )
 
@@ -102,6 +108,31 @@ class WorkoutDetailViewModelTest {
         val items = vm.uiState.value.items
         assertEquals(listOf("e2", "e1"), items.map { it.exerciseId })
         assertEquals(listOf(0, 1), items.map { it.order })
+    }
+
+    @Test
+    fun `item rows expose the exercise video id and play opens and closes the dialog`() = runTest {
+        val vm = buildViewModel()
+        advanceUntilIdle()
+
+        vm.onEvent(WorkoutDetailEvent.ExercisePicked("e1"))
+        vm.onEvent(WorkoutDetailEvent.ExercisePicked("e2"))
+
+        val rows = vm.uiState.value.itemRows
+        assertEquals("dQw4w9WgXcQ", rows[0].videoId)
+        assertNull(rows[1].videoId)
+
+        vm.onEvent(WorkoutDetailEvent.PlayVideoClicked(1))
+        assertNull(vm.uiState.value.playingVideo)
+
+        vm.onEvent(WorkoutDetailEvent.PlayVideoClicked(0))
+        assertEquals(
+            VideoPlayback(exerciseName = "Supino reto", videoId = "dQw4w9WgXcQ"),
+            vm.uiState.value.playingVideo,
+        )
+
+        vm.onEvent(WorkoutDetailEvent.VideoDialogDismissed)
+        assertNull(vm.uiState.value.playingVideo)
     }
 
     @Test

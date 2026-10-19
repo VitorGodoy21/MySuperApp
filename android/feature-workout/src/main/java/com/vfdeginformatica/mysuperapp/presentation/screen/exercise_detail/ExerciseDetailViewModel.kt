@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.model.Exercise
+import com.vfdeginformatica.mysuperapp.domain.model.YouTubeVideo
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.exercise.AddExerciseUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.exercise.DeleteExerciseUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.exercise.GetExercisesUseCase
@@ -37,8 +38,10 @@ class ExerciseDetailViewModel @Inject constructor(
         const val MAX_NAME_LENGTH = 60
         const val MAX_DESCRIPTION_LENGTH = 200
         const val MAX_NOTES_LENGTH = 200
+        const val MAX_VIDEO_URL_LENGTH = 300
         const val NAME_REQUIRED_ERROR = "Informe o nome do exercício"
         const val DUPLICATE_WARNING = "Já existe um exercício com esse nome"
+        const val VIDEO_URL_INVALID_ERROR = "Link do YouTube inválido"
     }
 
     private val exerciseId: String? =
@@ -82,6 +85,12 @@ class ExerciseDetailViewModel @Inject constructor(
                 it.copy(notes = event.notes.take(MAX_NOTES_LENGTH))
             }
 
+            is ExerciseDetailEvent.VideoUrlChanged -> updateForm {
+                it.copy(videoUrl = event.url.take(MAX_VIDEO_URL_LENGTH))
+            }
+
+            ExerciseDetailEvent.VideoUrlCleared -> updateForm { it.copy(videoUrl = "") }
+
             ExerciseDetailEvent.SaveClicked -> save()
 
             ExerciseDetailEvent.DeleteClicked -> _uiState.update {
@@ -123,6 +132,7 @@ class ExerciseDetailViewModel @Inject constructor(
                                     muscleGroup = exercise.muscleGroup,
                                     description = exercise.description,
                                     notes = exercise.notes,
+                                    videoUrl = exercise.videoUrl,
                                 )
                             }
                         }
@@ -173,8 +183,9 @@ class ExerciseDetailViewModel @Inject constructor(
                 it.id != new.exerciseId && it.name.trim().equals(trimmed, ignoreCase = true)
             }
             new.copy(
-                isSubmitEnabled = trimmed.isNotEmpty(),
+                isSubmitEnabled = trimmed.isNotEmpty() && new.isVideoUrlValid,
                 duplicateWarning = if (isDuplicate) DUPLICATE_WARNING else null,
+                videoUrlError = if (new.isVideoUrlValid) null else VIDEO_URL_INVALID_ERROR,
             )
         }
     }
@@ -189,6 +200,7 @@ class ExerciseDetailViewModel @Inject constructor(
             muscleGroup = state.muscleGroup,
             description = state.description.trim(),
             notes = state.notes.trim(),
+            videoUrl = state.videoId?.let { YouTubeVideo.canonicalUrl(it) }.orEmpty(),
         )
 
         viewModelScope.launch {

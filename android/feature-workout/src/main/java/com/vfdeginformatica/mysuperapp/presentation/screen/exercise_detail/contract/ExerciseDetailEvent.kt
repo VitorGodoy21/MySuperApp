@@ -7,6 +7,8 @@ sealed interface ExerciseDetailEvent {
     data class MuscleGroupChanged(val muscleGroup: MuscleGroup?) : ExerciseDetailEvent
     data class DescriptionChanged(val description: String) : ExerciseDetailEvent
     data class NotesChanged(val notes: String) : ExerciseDetailEvent
+    data class VideoUrlChanged(val url: String) : ExerciseDetailEvent
+    data object VideoUrlCleared : ExerciseDetailEvent
     data object SaveClicked : ExerciseDetailEvent
     data object DeleteClicked : ExerciseDetailEvent
     data object DeleteConfirmed : ExerciseDetailEvent
