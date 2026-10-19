@@ -1,6 +1,7 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.workout_view
 
 import androidx.lifecycle.SavedStateHandle
+import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.model.Exercise
 import com.vfdeginformatica.mysuperapp.domain.model.MuscleGroup
 import com.vfdeginformatica.mysuperapp.domain.model.Workout
@@ -14,6 +15,7 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.AddWorkou
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.DeleteWorkoutSessionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.GetWorkoutSessionsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.GetWorkoutByIdUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.SaveWorkoutUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.VideoPlayback
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.contract.WorkoutViewEvent
 import kotlinx.coroutines.Dispatchers
@@ -56,9 +58,9 @@ class WorkoutViewViewModelTest {
 
     private fun buildViewModel(
         sessionRepository: FakeWorkoutSessionRepository = FakeWorkoutSessionRepository(),
+        workoutRepository: FakeWorkoutRepository = FakeWorkoutRepository(listOf(workout)),
         workoutId: String = "w1",
     ): WorkoutViewViewModel {
-        val workoutRepository = FakeWorkoutRepository(listOf(workout))
         return WorkoutViewViewModel(
             savedStateHandle = SavedStateHandle(mapOf(WorkoutViewViewModel.WORKOUT_ID_ARG to workoutId)),
             getWorkoutByIdUseCase = GetWorkoutByIdUseCase(workoutRepository),
@@ -66,6 +68,7 @@ class WorkoutViewViewModelTest {
             getWorkoutSessionsUseCase = GetWorkoutSessionsUseCase(sessionRepository),
             addWorkoutSessionUseCase = AddWorkoutSessionUseCase(sessionRepository),
             deleteWorkoutSessionUseCase = DeleteWorkoutSessionUseCase(sessionRepository),
+            saveWorkoutUseCase = SaveWorkoutUseCase(workoutRepository),
         )
     }
 
@@ -172,6 +175,63 @@ class WorkoutViewViewModelTest {
 
         assertEquals(WorkoutViewViewModel.DATE_FUTURE_ERROR, vm.uiState.value.sessionDraft?.dateError)
         assertFalse(vm.uiState.value.sessionDraft!!.isValid)
+    }
+
+    @Test
+    fun `tapping an item edits its prescription and persists the workout`() = runTest {
+        val workoutRepo = FakeWorkoutRepository(listOf(workout))
+        val vm = buildViewModel(workoutRepository = workoutRepo)
+        advanceUntilIdle()
+
+        vm.onEvent(WorkoutViewEvent.ItemClicked(0))
+        val draft = vm.uiState.value.itemDraft
+        assertNotNull(draft)
+        assertEquals(0, vm.uiState.value.editingItemIndex)
+        assertEquals("3", draft!!.sets)
+        assertEquals("10", draft.reps)
+
+        vm.onEvent(WorkoutViewEvent.ItemDraftChanged(draft.copy(sets = "4", reps = "8-10", loadKg = "22,5")))
+        vm.onEvent(WorkoutViewEvent.ItemDraftConfirmed)
+        advanceUntilIdle()
+
+        val saved = workoutRepo.updated.single()
+        assertEquals("w1", saved.id)
+        assertEquals(4, saved.items[0].sets)
+        assertEquals("8-10", saved.items[0].reps)
+        assertEquals(22.5, saved.items[0].loadKg!!, 0.0001)
+        assertEquals(workout.items[1], saved.items[1])
+
+        val state = vm.uiState.value
+        assertNull(state.itemDraft)
+        assertNull(state.editingItemIndex)
+        assertFalse(state.isSavingItem)
+        assertEquals(4, state.workout?.items?.get(0)?.sets)
+        assertEquals("4 x 8-10 • 22,5 kg", state.itemRows[0].prescription)
+    }
+
+    @Test
+    fun `dismissing the item dialog or a failed save keeps the workout unchanged`() = runTest {
+        val workoutRepo = FakeWorkoutRepository(listOf(workout))
+        val vm = buildViewModel(workoutRepository = workoutRepo)
+        advanceUntilIdle()
+
+        vm.onEvent(WorkoutViewEvent.ItemClicked(1))
+        vm.onEvent(WorkoutViewEvent.ItemDraftChanged(vm.uiState.value.itemDraft!!.copy(sets = "5")))
+        vm.onEvent(WorkoutViewEvent.ItemDraftDismissed)
+        assertNull(vm.uiState.value.itemDraft)
+        assertTrue(workoutRepo.updated.isEmpty())
+        assertNull(vm.uiState.value.workout?.items?.get(1)?.sets)
+
+        workoutRepo.writeResult = Resource.Error("boom")
+        vm.onEvent(WorkoutViewEvent.ItemClicked(1))
+        vm.onEvent(WorkoutViewEvent.ItemDraftChanged(vm.uiState.value.itemDraft!!.copy(sets = "5")))
+        vm.onEvent(WorkoutViewEvent.ItemDraftConfirmed)
+        advanceUntilIdle()
+
+        assertEquals(1, workoutRepo.updated.size)
+        assertNull(vm.uiState.value.workout?.items?.get(1)?.sets)
+        assertNotNull(vm.uiState.value.itemDraft)
+        assertFalse(vm.uiState.value.isSavingItem)
     }
 
     @Test

@@ -59,6 +59,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.Exercise
 import com.vfdeginformatica.mysuperapp.domain.model.MuscleGroup
 import com.vfdeginformatica.mysuperapp.domain.model.WeekDay
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutItem
+import com.vfdeginformatica.mysuperapp.presentation.common.ItemDraftDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.YouTubePlayerDialog
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.ItemDraft
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailEvent
@@ -416,74 +417,6 @@ private fun ExercisePickerSheet(
             }
         }
     }
-}
-
-@Composable
-private fun ItemDraftDialog(
-    exerciseName: String,
-    draft: ItemDraft,
-    onDraftChanged: (ItemDraft) -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(exerciseName, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = draft.sets,
-                        onValueChange = { onDraftChanged(draft.copy(sets = it)) },
-                        label = { Text("Séries") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = draft.reps,
-                        onValueChange = { onDraftChanged(draft.copy(reps = it)) },
-                        label = { Text("Repetições") },
-                        placeholder = { Text("10-12") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = draft.loadKg,
-                        onValueChange = { onDraftChanged(draft.copy(loadKg = it)) },
-                        label = { Text("Carga (kg)") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = draft.restSeconds,
-                        onValueChange = { onDraftChanged(draft.copy(restSeconds = it)) },
-                        label = { Text("Descanso (s)") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                OutlinedTextField(
-                    value = draft.notes,
-                    onValueChange = { onDraftChanged(draft.copy(notes = it)) },
-                    label = { Text("Observações") },
-                    minLines = 2,
-                    maxLines = 3,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) { Text("Confirmar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        }
-    )
 }
 
 @Composable

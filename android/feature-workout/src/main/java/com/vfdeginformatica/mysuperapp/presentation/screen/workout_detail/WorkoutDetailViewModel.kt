@@ -10,10 +10,9 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.workout.exercise.GetExerc
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.DeleteWorkoutUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.GetWorkoutByIdUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.SaveWorkoutUseCase
-import com.vfdeginformatica.mysuperapp.presentation.common.parseDecimal
-import com.vfdeginformatica.mysuperapp.presentation.common.sanitizeDecimalInput
-import com.vfdeginformatica.mysuperapp.presentation.common.sanitizeIntInput
-import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.ItemDraft
+import com.vfdeginformatica.mysuperapp.presentation.common.applyDraft
+import com.vfdeginformatica.mysuperapp.presentation.common.sanitizeItemDraft
+import com.vfdeginformatica.mysuperapp.presentation.common.toItemDraft
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.VideoPlayback
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailEvent
@@ -25,7 +24,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,8 +39,8 @@ class WorkoutDetailViewModel @Inject constructor(
         const val WORKOUT_ID_ARG = "workoutId"
         const val MAX_NAME_LENGTH = 40
         const val MAX_NOTES_LENGTH = 200
-        const val MAX_REPS_LENGTH = 10
-        const val MAX_ITEM_NOTES_LENGTH = 100
+        const val MAX_REPS_LENGTH = com.vfdeginformatica.mysuperapp.presentation.common.MAX_REPS_LENGTH
+        const val MAX_ITEM_NOTES_LENGTH = com.vfdeginformatica.mysuperapp.presentation.common.MAX_ITEM_NOTES_LENGTH
         const val NAME_REQUIRED_ERROR = "Informe o nome do treino"
     }
 
@@ -110,11 +108,11 @@ class WorkoutDetailViewModel @Inject constructor(
 
             is WorkoutDetailEvent.EditItemClicked -> _uiState.update {
                 val item = it.items.getOrNull(event.index) ?: return@update it
-                it.copy(editingItemIndex = event.index, itemDraft = item.toDraft())
+                it.copy(editingItemIndex = event.index, itemDraft = item.toItemDraft())
             }
 
             is WorkoutDetailEvent.ItemDraftChanged -> _uiState.update {
-                if (it.itemDraft == null) it else it.copy(itemDraft = sanitize(event.draft))
+                if (it.itemDraft == null) it else it.copy(itemDraft = sanitizeItemDraft(event.draft))
             }
 
             WorkoutDetailEvent.ItemDraftConfirmed -> confirmItemDraft()
@@ -167,28 +165,6 @@ class WorkoutDetailViewModel @Inject constructor(
         }
     }
 
-    private fun WorkoutItem.toDraft(): ItemDraft = ItemDraft(
-        sets = sets?.toString().orEmpty(),
-        reps = reps.orEmpty(),
-        loadKg = loadKg?.let { formatDraftKg(it) }.orEmpty(),
-        restSeconds = restSeconds?.toString().orEmpty(),
-        notes = notes,
-    )
-
-    private fun formatDraftKg(value: Double): String {
-        val text = if (value % 1.0 == 0.0) String.format(Locale.ROOT, "%.0f", value)
-        else String.format(Locale.ROOT, "%.2f", value).trimEnd('0').trimEnd('.')
-        return text.replace('.', ',')
-    }
-
-    private fun sanitize(draft: ItemDraft): ItemDraft = ItemDraft(
-        sets = sanitizeIntInput(draft.sets, maxDigits = 3),
-        reps = draft.reps.take(MAX_REPS_LENGTH),
-        loadKg = sanitizeDecimalInput(draft.loadKg, maxDecimals = 2, maxIntDigits = 3),
-        restSeconds = sanitizeIntInput(draft.restSeconds, maxDigits = 3),
-        notes = draft.notes.take(MAX_ITEM_NOTES_LENGTH),
-    )
-
     private fun confirmItemDraft() {
         _uiState.update { state ->
             val index = state.editingItemIndex ?: return@update state
@@ -196,13 +172,7 @@ class WorkoutDetailViewModel @Inject constructor(
             val item = state.items.getOrNull(index) ?: return@update state.copy(
                 editingItemIndex = null, itemDraft = null
             )
-            val updated = item.copy(
-                sets = draft.sets.trim().toIntOrNull(),
-                reps = draft.reps.trim().takeIf { it.isNotEmpty() },
-                loadKg = parseDecimal(draft.loadKg),
-                restSeconds = draft.restSeconds.trim().toIntOrNull(),
-                notes = draft.notes.trim(),
-            )
+            val updated = item.applyDraft(draft)
             state.copy(
                 items = state.items.toMutableList().also { it[index] = updated },
                 editingItemIndex = null,

@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Schedule
@@ -50,10 +53,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.domain.model.Workout
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutSession
+import com.vfdeginformatica.mysuperapp.presentation.common.ItemDraftDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.YouTubePlayerDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.formatCalories
 import com.vfdeginformatica.mysuperapp.presentation.common.formatDate
 import com.vfdeginformatica.mysuperapp.presentation.common.formatDuration
+import com.vfdeginformatica.mysuperapp.presentation.common.formatKg
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutItemRow
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.contract.SessionDraft
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.contract.WorkoutViewEvent
@@ -81,6 +86,18 @@ fun WorkoutViewScreen(
             title = playback.exerciseName,
             videoId = playback.videoId,
             onDismiss = { onEvent(WorkoutViewEvent.VideoDialogDismissed) },
+        )
+    }
+
+    uiState.itemDraft?.let { draft ->
+        val row = uiState.editingItemIndex?.let { uiState.itemRows.getOrNull(it) }
+        ItemDraftDialog(
+            exerciseName = row?.exerciseName ?: "Exercício",
+            draft = draft,
+            isSaving = uiState.isSavingItem,
+            onDraftChanged = { onEvent(WorkoutViewEvent.ItemDraftChanged(it)) },
+            onConfirm = { onEvent(WorkoutViewEvent.ItemDraftConfirmed) },
+            onDismiss = { onEvent(WorkoutViewEvent.ItemDraftDismissed) },
         )
     }
 
@@ -137,9 +154,18 @@ fun WorkoutViewScreen(
                 )
             }
         } else {
+            item(key = "exercises_hint") {
+                Text(
+                    text = "Toque em um exercício para ajustar séries, repetições e carga.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             itemsIndexed(rows, key = { index, row -> "item_${index}_${row.item.exerciseId}" }) { index, row ->
                 ReadOnlyItemCard(
                     row = row,
+                    enabled = !uiState.isBusy,
+                    onClick = { onEvent(WorkoutViewEvent.ItemClicked(index)) },
                     onPlayVideo = { onEvent(WorkoutViewEvent.PlayVideoClicked(index)) },
                 )
             }
@@ -225,8 +251,17 @@ private fun WorkoutHeader(workout: Workout, uiState: WorkoutViewUiState) {
 }
 
 @Composable
-private fun ReadOnlyItemCard(row: WorkoutItemRow, onPlayVideo: () -> Unit) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+private fun ReadOnlyItemCard(
+    row: WorkoutItemRow,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    onPlayVideo: () -> Unit,
+) {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -237,7 +272,7 @@ private fun ReadOnlyItemCard(row: WorkoutItemRow, onPlayVideo: () -> Unit) {
             Spacer(Modifier.width(12.dp))
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
                     text = row.exerciseName,
@@ -253,15 +288,7 @@ private fun ReadOnlyItemCard(row: WorkoutItemRow, onPlayVideo: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                if (row.prescription.isNotBlank()) {
-                    Text(
-                        text = row.prescription,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                PrescriptionChips(row = row)
                 if (row.item.notes.isNotBlank()) {
                     Text(
                         text = row.item.notes,
@@ -280,6 +307,63 @@ private fun ReadOnlyItemCard(row: WorkoutItemRow, onPlayVideo: () -> Unit) {
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
+            }
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = "Editar séries, repetições e carga",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .size(18.dp),
+            )
+        }
+    }
+}
+
+/** Séries / repetições / carga / descanso as small labelled chips; a hint when nothing is set. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PrescriptionChips(row: WorkoutItemRow) {
+    val item = row.item
+    val chips = buildList {
+        item.sets?.let { add("Séries" to it.toString()) }
+        item.reps?.takeIf { it.isNotBlank() }?.let { add("Reps" to it) }
+        item.loadKg?.let { add("Carga" to formatKg(it)) }
+        item.restSeconds?.let { add("Descanso" to "$it s") }
+    }
+    if (chips.isEmpty()) {
+        Text(
+            text = "Sem séries/repetições/carga definidas",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        return
+    }
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        chips.forEach { (label, value) ->
+            Row(
+                modifier = Modifier
+                    .background(
+                        MaterialTheme.colorScheme.secondaryContainer,
+                        MaterialTheme.shapes.small,
+                    )
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "$label ",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
             }
         }
     }

@@ -10,7 +10,11 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.AddWorkou
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.DeleteWorkoutSessionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.GetWorkoutSessionsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.GetWorkoutByIdUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.SaveWorkoutUseCase
+import com.vfdeginformatica.mysuperapp.presentation.common.applyDraft
 import com.vfdeginformatica.mysuperapp.presentation.common.sanitizeIntInput
+import com.vfdeginformatica.mysuperapp.presentation.common.sanitizeItemDraft
+import com.vfdeginformatica.mysuperapp.presentation.common.toItemDraft
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.VideoPlayback
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.contract.SessionDraft
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.contract.WorkoutViewEffect
@@ -36,6 +40,7 @@ class WorkoutViewViewModel @Inject constructor(
     private val getWorkoutSessionsUseCase: GetWorkoutSessionsUseCase,
     private val addWorkoutSessionUseCase: AddWorkoutSessionUseCase,
     private val deleteWorkoutSessionUseCase: DeleteWorkoutSessionUseCase,
+    private val saveWorkoutUseCase: SaveWorkoutUseCase,
 ) : ViewModel() {
 
     companion object {
@@ -75,6 +80,22 @@ class WorkoutViewViewModel @Inject constructor(
             }
 
             WorkoutViewEvent.VideoDialogDismissed -> _uiState.update { it.copy(playingVideo = null) }
+
+            is WorkoutViewEvent.ItemClicked -> _uiState.update { state ->
+                if (state.isBusy) return@update state
+                val item = state.workout?.items?.getOrNull(event.index) ?: return@update state
+                state.copy(editingItemIndex = event.index, itemDraft = item.toItemDraft())
+            }
+
+            is WorkoutViewEvent.ItemDraftChanged -> _uiState.update {
+                if (it.itemDraft == null) it else it.copy(itemDraft = sanitizeItemDraft(event.draft))
+            }
+
+            WorkoutViewEvent.ItemDraftConfirmed -> saveItemDraft()
+
+            WorkoutViewEvent.ItemDraftDismissed -> _uiState.update {
+                if (it.isSavingItem) it else it.copy(editingItemIndex = null, itemDraft = null)
+            }
 
             WorkoutViewEvent.RegisterSessionClicked -> _uiState.update {
                 it.copy(sessionDraft = validate(SessionDraft()))
@@ -225,6 +246,43 @@ class WorkoutViewViewModel @Inject constructor(
                         _uiState.update { it.copy(isSavingSession = false) }
                         _effect.emit(
                             WorkoutViewEffect.ShowToast(result.message ?: "Erro ao registrar treino")
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun saveItemDraft() {
+        val state = _uiState.value
+        val workout = state.workout ?: return
+        val index = state.editingItemIndex ?: return
+        val draft = state.itemDraft ?: return
+        if (state.isBusy) return
+        val item = workout.items.getOrNull(index) ?: run {
+            _uiState.update { it.copy(editingItemIndex = null, itemDraft = null) }
+            return
+        }
+        val updated = workout.copy(
+            items = workout.items.toMutableList().also { it[index] = item.applyDraft(draft) }
+        )
+
+        viewModelScope.launch {
+            saveWorkoutUseCase(updated).collect { result ->
+                when (result) {
+                    is Resource.Loading -> _uiState.update { it.copy(isSavingItem = true) }
+                    is Resource.Success -> _uiState.update {
+                        it.copy(
+                            isSavingItem = false,
+                            editingItemIndex = null,
+                            itemDraft = null,
+                            workout = updated,
+                        )
+                    }
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(isSavingItem = false) }
+                        _effect.emit(
+                            WorkoutViewEffect.ShowToast(result.message ?: "Erro ao salvar exercício")
                         )
                     }
                 }

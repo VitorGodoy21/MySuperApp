@@ -3,6 +3,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.contrac
 import com.vfdeginformatica.mysuperapp.domain.model.Exercise
 import com.vfdeginformatica.mysuperapp.domain.model.Workout
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutSession
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.ItemDraft
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.VideoPlayback
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailUiState
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutItemRow
@@ -34,9 +35,12 @@ data class WorkoutViewUiState(
     val isSavingSession: Boolean = false,
     val sessionPendingDelete: WorkoutSession? = null,
     val isDeletingSession: Boolean = false,
+    val editingItemIndex: Int? = null,
+    val itemDraft: ItemDraft? = null,
+    val isSavingItem: Boolean = false,
 ) {
     val isBusy: Boolean
-        get() = isSavingSession || isDeletingSession
+        get() = isSavingSession || isDeletingSession || isSavingItem
 
     val itemRows: List<WorkoutItemRow>
         get() {
@@ -69,6 +73,11 @@ sealed interface WorkoutViewEvent {
     data object Reload : WorkoutViewEvent
     data class PlayVideoClicked(val index: Int) : WorkoutViewEvent
     data object VideoDialogDismissed : WorkoutViewEvent
+
+    data class ItemClicked(val index: Int) : WorkoutViewEvent
+    data class ItemDraftChanged(val draft: ItemDraft) : WorkoutViewEvent
+    data object ItemDraftConfirmed : WorkoutViewEvent
+    data object ItemDraftDismissed : WorkoutViewEvent
 
     data object RegisterSessionClicked : WorkoutViewEvent
     data object SessionDialogDismissed : WorkoutViewEvent
