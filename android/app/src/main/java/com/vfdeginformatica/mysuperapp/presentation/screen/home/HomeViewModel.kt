@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.home
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AllInclusive
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.ui.graphics.Color
@@ -90,6 +91,15 @@ class HomeViewModel @Inject constructor(
                     route = SharedNfcRoutes.NFC_SCREEN,
                     backgroundColor = Color.DarkGray,
                     passwordRequired = true,
+                    content = {}
+                ),
+
+                HomeMenuItem(
+                    title = "Academia",
+                    icon = Icons.Default.FitnessCenter,
+                    route = Screen.WorkoutHubScreen.route,
+                    backgroundColor = Color.DarkGray,
+                    passwordRequired = false,
                     content = {}
                 )
             )

@@ -7,6 +7,12 @@ import com.vfdeginformatica.mysuperapp.data.remote.datasource.CategoryTransactio
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CategoryTransactionDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.BodyMeasurementDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.BodyMeasurementDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.ExerciseDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.ExerciseDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutDaoImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,5 +45,23 @@ object DaoModule {
         return CategoryTransactionDaoImpl(
             db = FirebaseFirestore.getInstance()
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideBodyMeasurementDao(): BodyMeasurementDao {
+        return BodyMeasurementDaoImpl(db = FirebaseFirestore.getInstance())
+    }
+
+    @Provides
+    @Singleton
+    fun provideExerciseDao(): ExerciseDao {
+        return ExerciseDaoImpl(db = FirebaseFirestore.getInstance())
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkoutDao(): WorkoutDao {
+        return WorkoutDaoImpl(db = FirebaseFirestore.getInstance())
     }
 }

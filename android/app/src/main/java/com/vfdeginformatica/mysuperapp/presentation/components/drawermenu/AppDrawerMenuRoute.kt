@@ -79,6 +79,15 @@ fun AppDrawerMenuRoute(
         onFinancialManagement = { viewModel.navigateWithBiometric(Screen.FinancialScreen.route, activity = activity) },
         onFinancialCards = { viewModel.navigateWithBiometric(Screen.CardListScreen.route, activity = activity) },
         onFinancialCategories = { viewModel.navigateWithBiometric(Screen.CategoryListScreen.route, activity = activity) },
+        onWorkoutBodyMeasurements = {
+            viewModel.navigateWithBiometric(Screen.BodyMeasurementListScreen.route, passwordRequired = false, activity = activity)
+        },
+        onWorkoutExercises = {
+            viewModel.navigateWithBiometric(Screen.ExerciseListScreen.route, passwordRequired = false, activity = activity)
+        },
+        onWorkoutWorkouts = {
+            viewModel.navigateWithBiometric(Screen.WorkoutListScreen.route, passwordRequired = false, activity = activity)
+        },
         onQrCode = { viewModel.navigateWithBiometric(Screen.QrCodeListScreen.route, activity = activity) },
         onNfc = { viewModel.navigateWithBiometric(SharedNfcRoutes.NFC_SCREEN, activity = activity) },
         onSettings = {},

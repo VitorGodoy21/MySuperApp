@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
@@ -55,6 +59,9 @@ fun AppDrawerMenuScreen(
     onFinancialManagement: () -> Unit,
     onFinancialCards: () -> Unit,
     onFinancialCategories: () -> Unit,
+    onWorkoutBodyMeasurements: () -> Unit,
+    onWorkoutExercises: () -> Unit,
+    onWorkoutWorkouts: () -> Unit,
     onQrCode: () -> Unit,
     onNfc: () -> Unit,
     onSettings: () -> Unit,
@@ -187,6 +194,75 @@ fun AppDrawerMenuScreen(
                             Icon(
                                 imageVector = Icons.Default.Category,
                                 contentDescription = "FinancialCategories"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+                }
+
+                var isWorkoutExpanded by rememberSaveable { mutableStateOf(false) }
+
+                NavigationDrawerItem(
+                    label = { Text("Academia") },
+                    selected = false,
+                    onClick = { isWorkoutExpanded = !isWorkoutExpanded },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.FitnessCenter,
+                            contentDescription = "Workout"
+                        )
+                    },
+                    badge = {
+                        Icon(
+                            imageVector = if (isWorkoutExpanded) {
+                                Icons.Default.ExpandLess
+                            } else {
+                                Icons.Default.ExpandMore
+                            },
+                            contentDescription = if (isWorkoutExpanded) {
+                                "Recolher academia"
+                            } else {
+                                "Expandir academia"
+                            }
+                        )
+                    }
+                )
+
+                if (isWorkoutExpanded) {
+                    NavigationDrawerItem(
+                        label = { Text("Dados físicos") },
+                        selected = false,
+                        onClick = { onWorkoutBodyMeasurements.invoke() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.MonitorWeight,
+                                contentDescription = "WorkoutBodyMeasurements"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+
+                    NavigationDrawerItem(
+                        label = { Text("Exercícios") },
+                        selected = false,
+                        onClick = { onWorkoutExercises.invoke() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.List,
+                                contentDescription = "WorkoutExercises"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+
+                    NavigationDrawerItem(
+                        label = { Text("Treinos") },
+                        selected = false,
+                        onClick = { onWorkoutWorkouts.invoke() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.EventNote,
+                                contentDescription = "WorkoutWorkouts"
                             )
                         },
                         modifier = Modifier.padding(start = 24.dp)

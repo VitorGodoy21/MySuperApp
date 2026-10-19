@@ -23,6 +23,13 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.card_detail.CardDetai
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.CardInvoiceRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_list.CardListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.category_detail.CategoryDetailRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.body_measurement_detail.BodyMeasurementDetailRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.body_measurement_list.BodyMeasurementListRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.exercise_detail.ExerciseDetailRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.exercise_list.ExerciseListRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.WorkoutDetailRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.WorkoutHubRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_list.WorkoutListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.category_list.CategoryListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
@@ -199,6 +206,99 @@ fun MySuperApp(
                         onNavigateUp = {
                             navController.navigateUp()
                         }
+                    )
+                }
+
+                // Academia (feature-workout)
+                composable(route = Screen.WorkoutHubScreen.route) {
+                    WorkoutHubRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onNavigateToBodyMeasurements = {
+                            navController.navigate(Screen.BodyMeasurementListScreen.route)
+                        },
+                        onNavigateToExercises = {
+                            navController.navigate(Screen.ExerciseListScreen.route)
+                        },
+                        onNavigateToWorkouts = {
+                            navController.navigate(Screen.WorkoutListScreen.route)
+                        },
+                        onNavigateToWorkout = { workoutId ->
+                            navController.navigate(Screen.WorkoutDetailScreen.createRoute(workoutId))
+                        }
+                    )
+                }
+
+                composable(route = Screen.BodyMeasurementListScreen.route) {
+                    BodyMeasurementListRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onNavigateToDetail = { measurementId ->
+                            navController.navigate(
+                                Screen.BodyMeasurementDetailScreen.createRoute(measurementId)
+                            )
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.BodyMeasurementDetailScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.BodyMeasurementDetailScreen.MEASUREMENT_ID) {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) {
+                    BodyMeasurementDetailRoute(
+                        onNavigateUp = { navController.navigateUp() }
+                    )
+                }
+
+                composable(route = Screen.ExerciseListScreen.route) {
+                    ExerciseListRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onNavigateToDetail = { exerciseId ->
+                            navController.navigate(Screen.ExerciseDetailScreen.createRoute(exerciseId))
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.ExerciseDetailScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.ExerciseDetailScreen.EXERCISE_ID) {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) {
+                    ExerciseDetailRoute(
+                        onNavigateUp = { navController.navigateUp() }
+                    )
+                }
+
+                composable(route = Screen.WorkoutListScreen.route) {
+                    WorkoutListRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onNavigateToDetail = { workoutId ->
+                            navController.navigate(Screen.WorkoutDetailScreen.createRoute(workoutId))
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.WorkoutDetailScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.WorkoutDetailScreen.WORKOUT_ID) {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) {
+                    WorkoutDetailRoute(
+                        onNavigateUp = { navController.navigateUp() }
                     )
                 }
 

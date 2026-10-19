@@ -5,6 +5,15 @@ import com.vfdeginformatica.mysuperapp.data.local.BiometricRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CategoryTransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.BodyMeasurementDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.ExerciseDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutDao
+import com.vfdeginformatica.mysuperapp.data.remote.repository.BodyMeasurementRepositoryImpl
+import com.vfdeginformatica.mysuperapp.data.remote.repository.ExerciseRepositoryImpl
+import com.vfdeginformatica.mysuperapp.data.remote.repository.WorkoutRepositoryImpl
+import com.vfdeginformatica.mysuperapp.domain.repository.BodyMeasurementRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.ExerciseRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.WorkoutRepository
 import com.vfdeginformatica.mysuperapp.data.remote.repository.CardRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.CategoryTransactionRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.repository.TransactionRepositoryImpl
@@ -45,6 +54,24 @@ object RepositoryModule {
         categoryTransactionDao: CategoryTransactionDao
     ): CategoryTransactionRepository {
         return CategoryTransactionRepositoryImpl(categoryTransactionDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBodyMeasurementRepository(dao: BodyMeasurementDao): BodyMeasurementRepository {
+        return BodyMeasurementRepositoryImpl(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExerciseRepository(dao: ExerciseDao): ExerciseRepository {
+        return ExerciseRepositoryImpl(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkoutRepository(dao: WorkoutDao): WorkoutRepository {
+        return WorkoutRepositoryImpl(dao)
     }
 
     @Provides

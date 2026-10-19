@@ -25,4 +25,5 @@ include(":feature-qrcode")
 include(":app-qrcode")
 include(":feature-nfc")
 include(":feature-financial")
+include(":feature-workout")
 

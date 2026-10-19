@@ -30,6 +30,31 @@ sealed class Screen(val route: String) {
             if (categoryId.isNullOrBlank()) "category_detail_screen"
             else "category_detail_screen?categoryId=$categoryId"
     }
+
+    // Academia (feature-workout)
+    object WorkoutHubScreen : Screen("workout_hub_screen")
+    object BodyMeasurementListScreen : Screen("body_measurement_list_screen")
+    object BodyMeasurementDetailScreen :
+        Screen("body_measurement_detail_screen?measurementId={measurementId}") {
+        const val MEASUREMENT_ID = "measurementId"
+        fun createRoute(measurementId: String? = null): String =
+            if (measurementId.isNullOrBlank()) "body_measurement_detail_screen"
+            else "body_measurement_detail_screen?measurementId=$measurementId"
+    }
+    object ExerciseListScreen : Screen("exercise_list_screen")
+    object ExerciseDetailScreen : Screen("exercise_detail_screen?exerciseId={exerciseId}") {
+        const val EXERCISE_ID = "exerciseId"
+        fun createRoute(exerciseId: String? = null): String =
+            if (exerciseId.isNullOrBlank()) "exercise_detail_screen"
+            else "exercise_detail_screen?exerciseId=$exerciseId"
+    }
+    object WorkoutListScreen : Screen("workout_list_screen")
+    object WorkoutDetailScreen : Screen("workout_detail_screen?workoutId={workoutId}") {
+        const val WORKOUT_ID = "workoutId"
+        fun createRoute(workoutId: String? = null): String =
+            if (workoutId.isNullOrBlank()) "workout_detail_screen"
+            else "workout_detail_screen?workoutId=$workoutId"
+    }
     object QrCodeListScreen : Screen(SharedQrCodeRoutes.QR_CODE_LIST)
     object QrCodeScreen : Screen(SharedQrCodeRoutes.QR_CODE_DETAIL) {
         const val QR_CODE_DATA = SharedQrCodeRoutes.QR_CODE_DATA

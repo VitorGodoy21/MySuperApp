@@ -20,6 +20,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -59,6 +60,13 @@ class HomeViewModelTest {
             val item = items.first { it.route == route }
             assertTrue("Route $route should require biometric", item.passwordRequired)
         }
+    }
+
+    @Test
+    fun workoutMenuItemDoesNotRequireBiometric() {
+        val item = viewModel.uiState.value.items.first { it.route == Screen.WorkoutHubScreen.route }
+        assertEquals("Academia", item.title)
+        assertFalse(item.passwordRequired)
     }
 
     @Test
