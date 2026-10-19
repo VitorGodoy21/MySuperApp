@@ -37,10 +37,28 @@ object YouTubeVideo {
         return candidate?.takeIf { VIDEO_ID_REGEX.matches(it) }
     }
 
+    /**
+     * Origin reported to YouTube as `Referer`/`origin` when embedding. Since 2025 the IFrame
+     * player refuses to play (errors 152-x/153) when the embedding page has no valid HTTP
+     * referer; `youtube.com` itself is not accepted, so the app's own Firebase Hosting site is used.
+     */
+    const val EMBED_ORIGIN = "https://baila-675c6.web.app"
+
     fun canonicalUrl(videoId: String): String = "https://www.youtube.com/watch?v=$videoId"
 
     fun embedUrl(videoId: String): String =
-        "https://www.youtube.com/embed/$videoId?playsinline=1&rel=0&modestbranding=1"
+        "https://www.youtube.com/embed/$videoId" +
+            "?playsinline=1&rel=0&modestbranding=1&enablejsapi=1&origin=$EMBED_ORIGIN"
+
+    /** True for URLs the in-app player may load itself (the embed page and its helpers). */
+    fun isEmbedUrl(url: String): Boolean {
+        val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return false
+        val host = uri.host?.lowercase() ?: return false
+        return url.startsWith(EMBED_ORIGIN) ||
+            (host in HOSTS && uri.rawPath.orEmpty().startsWith("/embed/")) ||
+            host.endsWith("google.com") || host.endsWith("googlevideo.com") ||
+            host.endsWith("ytimg.com") || host.endsWith("gstatic.com")
+    }
 
     private fun queryParam(rawQuery: String?, key: String): String? =
         rawQuery?.split('&')

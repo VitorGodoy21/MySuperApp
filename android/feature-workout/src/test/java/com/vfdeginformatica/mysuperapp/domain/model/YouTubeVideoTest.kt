@@ -1,7 +1,9 @@
 package com.vfdeginformatica.mysuperapp.domain.model
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class YouTubeVideoTest {
@@ -50,10 +52,23 @@ class YouTubeVideoTest {
     fun `canonical and embed urls are built from the id`() {
         assertEquals("https://www.youtube.com/watch?v=$id", YouTubeVideo.canonicalUrl(id))
         assertEquals(
-            "https://www.youtube.com/embed/$id?playsinline=1&rel=0&modestbranding=1",
+            "https://www.youtube.com/embed/$id?playsinline=1&rel=0&modestbranding=1" +
+                "&enablejsapi=1&origin=${YouTubeVideo.EMBED_ORIGIN}",
             YouTubeVideo.embedUrl(id)
         )
         assertEquals(id, Exercise(name = "x", videoUrl = YouTubeVideo.canonicalUrl(id)).videoId)
         assertNull(Exercise(name = "x").videoId)
+    }
+
+    @Test
+    fun `only embed-related urls stay inside the in-app player`() {
+        assertTrue(YouTubeVideo.isEmbedUrl(YouTubeVideo.embedUrl(id)))
+        assertTrue(YouTubeVideo.isEmbedUrl("https://www.youtube-nocookie.com/embed/$id"))
+        assertTrue(YouTubeVideo.isEmbedUrl("${YouTubeVideo.EMBED_ORIGIN}/"))
+        assertTrue(YouTubeVideo.isEmbedUrl("https://i.ytimg.com/vi/$id/hqdefault.jpg"))
+        assertFalse(YouTubeVideo.isEmbedUrl(YouTubeVideo.canonicalUrl(id)))
+        assertFalse(YouTubeVideo.isEmbedUrl("https://www.youtube.com/shorts/$id"))
+        assertFalse(YouTubeVideo.isEmbedUrl("https://youtu.be/$id"))
+        assertFalse(YouTubeVideo.isEmbedUrl("not a url"))
     }
 }

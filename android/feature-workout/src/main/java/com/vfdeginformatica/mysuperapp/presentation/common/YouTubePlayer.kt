@@ -1,10 +1,18 @@
 package com.vfdeginformatica.mysuperapp.presentation.common
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.net.Uri
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -35,7 +46,10 @@ import com.vfdeginformatica.mysuperapp.domain.model.YouTubeVideo
 
 /**
  * Inline YouTube player (16:9) backed by a [WebView] running the official IFrame embed.
- * The page is loaded with `https://www.youtube.com` as base URL so the embed accepts the origin.
+ * The wrapper page is loaded with [YouTubeVideo.EMBED_ORIGIN] as base URL so YouTube receives a
+ * valid `Referer` (required since 2025; otherwise it shows "vídeo indisponível" 152-x/153).
+ * Links that leave the embed (e.g. "Assistir no YouTube") open in the YouTube app/browser instead
+ * of inside this small view, and the player's own fullscreen button is honoured (useful for Shorts).
  * Pauses when the host lifecycle pauses and is destroyed when it leaves composition.
  */
 @SuppressLint("SetJavaScriptEnabled")
@@ -63,8 +77,8 @@ fun YouTubePlayer(
                 settings.mediaPlaybackRequiresUserGesture = true
                 settings.loadWithOverviewMode = true
                 settings.useWideViewPort = true
-                webChromeClient = WebChromeClient()
-                webViewClient = WebViewClient()
+                webChromeClient = FullscreenWebChromeClient(context)
+                webViewClient = ExternalLinksWebViewClient()
                 setBackgroundColor(android.graphics.Color.BLACK)
                 tag = ""
                 webViewRef.value = this
@@ -74,7 +88,7 @@ fun YouTubePlayer(
             if (webView.tag != videoId) {
                 webView.tag = videoId
                 webView.loadDataWithBaseURL(
-                    "https://www.youtube.com",
+                    YouTubeVideo.EMBED_ORIGIN + "/",
                     embedHtml(videoId),
                     "text/html",
                     "utf-8",
@@ -84,6 +98,7 @@ fun YouTubePlayer(
         },
         onRelease = { webView ->
             webViewRef.value = null
+            (webView.webChromeClient as? FullscreenWebChromeClient)?.onHideCustomView()
             webView.stopLoading()
             webView.loadUrl("about:blank")
             webView.destroy()
@@ -101,6 +116,69 @@ fun YouTubePlayer(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+}
+
+/** Keeps only the embed inside the WebView; anything else is handed to the system (YouTube app). */
+private class ExternalLinksWebViewClient : WebViewClient() {
+    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+        val url = request.url.toString()
+        if (YouTubeVideo.isEmbedUrl(url)) return false
+        runCatching {
+            view.context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
+        return true
+    }
+}
+
+/** Shows the player's fullscreen custom view over the activity window and hides system bars. */
+private class FullscreenWebChromeClient(context: Context) : WebChromeClient() {
+    private val activity: Activity? = context.findActivity()
+    private var customView: View? = null
+    private var customViewCallback: CustomViewCallback? = null
+
+    override fun onShowCustomView(view: View, callback: CustomViewCallback) {
+        val decor = activity?.window?.decorView as? ViewGroup
+        if (decor == null || customView != null) {
+            callback.onCustomViewHidden()
+            return
+        }
+        customView = view
+        customViewCallback = callback
+        view.setBackgroundColor(android.graphics.Color.BLACK)
+        decor.addView(
+            view,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        activity.window?.let { window ->
+            WindowCompat.getInsetsController(window, decor).apply {
+                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                hide(WindowInsetsCompat.Type.systemBars())
+            }
+        }
+    }
+
+    override fun onHideCustomView() {
+        val view = customView ?: return
+        val decor = activity?.window?.decorView as? ViewGroup
+        decor?.removeView(view)
+        activity?.window?.let { window ->
+            decor?.let { WindowCompat.getInsetsController(window, it).show(WindowInsetsCompat.Type.systemBars()) }
+        }
+        customViewCallback?.onCustomViewHidden()
+        customView = null
+        customViewCallback = null
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 /** Dialog wrapper used from the workout screen: title (exercise name), player and a close button. */
@@ -156,7 +234,8 @@ private fun embedHtml(videoId: String): String = """
     </head>
     <body>
       <iframe src="${YouTubeVideo.embedUrl(videoId)}"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
+              referrerpolicy="strict-origin-when-cross-origin"
               allowfullscreen></iframe>
     </body>
     </html>
