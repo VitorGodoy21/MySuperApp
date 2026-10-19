@@ -71,6 +71,7 @@ class HomeViewModel @Inject constructor(
                     icon = Icons.Default.AllInclusive,
                     route = Screen.FinancialScreen.route,
                     backgroundColor = Color.DarkGray,
+                    passwordRequired = true,
                     content = {}
                 ),
 
