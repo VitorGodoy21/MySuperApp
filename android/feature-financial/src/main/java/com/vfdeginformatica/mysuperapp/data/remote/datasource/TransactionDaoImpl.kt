@@ -71,16 +71,53 @@ class TransactionDaoImpl(
     override suspend fun updateTransaction(
         id: String,
         title: String,
-        amount: Double
+        amount: Double,
+        category: List<String>
     ): Resource<Unit> {
         return try {
             db.collection("transactions").document(id)
-                .update(mapOf("title" to title, "amount" to amount))
+                .update(mapOf("title" to title, "amount" to amount, "category" to category))
                 .await()
             Resource.Success(Unit)
         } catch (e: Exception) {
             Log.e("Firebase", "Erro ao atualizar transação $id", e)
             Resource.Error(e.message ?: "Erro inesperado ao atualizar transação")
+        }
+    }
+
+    override suspend fun updateTransactionCategories(
+        id: String,
+        category: List<String>
+    ): Resource<Unit> {
+        return try {
+            db.collection("transactions").document(id)
+                .update("category", category)
+                .await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao atualizar categorias da transação $id", e)
+            Resource.Error(e.message ?: "Erro inesperado ao atualizar categorias")
+        }
+    }
+
+    override suspend fun updateCategoriesForInstallmentGroup(
+        groupId: String,
+        category: List<String>
+    ): Resource<Unit> {
+        return try {
+            val snap = db.collection("transactions")
+                .whereEqualTo("installmentGroupId", groupId)
+                .get().await()
+            snap.documents.chunked(MAX_BATCH_OPERATIONS).forEach { chunk ->
+                val batch = db.batch()
+                chunk.forEach { doc -> batch.update(doc.reference, "category", category) }
+                batch.commit().await()
+            }
+            Log.d("Firebase", "Categorias aplicadas a ${snap.size()} parcelas do grupo $groupId")
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao atualizar categorias do grupo $groupId", e)
+            Resource.Error(e.message ?: "Erro inesperado ao atualizar categorias das parcelas")
         }
     }
 
@@ -230,6 +267,7 @@ class TransactionDaoImpl(
         id: String,
         title: String,
         amount: Double,
+        category: List<String>,
         excludedMonths: List<String>,
         overrides: Map<String, Map<String, Any>>
     ): Resource<Unit> {
@@ -239,6 +277,7 @@ class TransactionDaoImpl(
                     mapOf(
                         "title" to title,
                         "amount" to amount,
+                        "category" to category,
                         "excludedMonths" to excludedMonths,
                         "overrides" to overrides,
                     )
@@ -254,12 +293,16 @@ class TransactionDaoImpl(
     override suspend fun splitRecurrence(
         originalId: String,
         lastMonthOfOriginal: String,
-        newTransaction: TransactionDto
+        newTransaction: TransactionDto,
+        originalCategory: List<String>
     ): Resource<Unit> {
         return try {
             val collection = db.collection("transactions")
             val batch = db.batch()
-            batch.update(collection.document(originalId), "recurrenceEnd", lastMonthOfOriginal)
+            batch.update(
+                collection.document(originalId),
+                mapOf("recurrenceEnd" to lastMonthOfOriginal, "category" to originalCategory)
+            )
             batch.set(collection.document(), newTransaction.toMap())
             batch.commit().await()
             Resource.Success(Unit)

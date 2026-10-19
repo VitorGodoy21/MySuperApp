@@ -7,7 +7,19 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.TransactionDto
 interface TransactionRepository {
     suspend fun newTransaction(transaction: TransactionDto): Resource<Unit>
     suspend fun newTransactions(transactions: List<TransactionDto>): Resource<Unit>
-    suspend fun updateTransaction(id: String, title: String, amount: Double): Resource<Unit>
+    suspend fun updateTransaction(
+        id: String,
+        title: String,
+        amount: Double,
+        category: List<String>
+    ): Resource<Unit>
+
+    suspend fun updateTransactionCategories(id: String, category: List<String>): Resource<Unit>
+    suspend fun updateCategoriesForInstallmentGroup(
+        groupId: String,
+        category: List<String>
+    ): Resource<Unit>
+
     suspend fun deleteTransaction(id: String): Resource<Unit>
     suspend fun removeCategoryFromTransactions(categoryId: String): Resource<Unit>
     suspend fun getTransactions(start: Timestamp, end: Timestamp): Resource<List<TransactionDto>>
@@ -28,6 +40,7 @@ interface TransactionRepository {
         id: String,
         title: String,
         amount: Double,
+        category: List<String>,
         excludedMonths: List<String>,
         overrides: Map<String, Map<String, Any>>
     ): Resource<Unit>
@@ -35,6 +48,7 @@ interface TransactionRepository {
     suspend fun splitRecurrence(
         originalId: String,
         lastMonthOfOriginal: String,
-        newTransaction: TransactionDto
+        newTransaction: TransactionDto,
+        originalCategory: List<String>
     ): Resource<Unit>
 }

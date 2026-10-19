@@ -103,11 +103,13 @@ class FinancialViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             pendingRecurringAction =
-                                PendingRecurringAction.Update(event.title, event.amount)
+                                PendingRecurringAction.Update(
+                                    event.title, event.amount, event.categoryIds
+                                )
                         )
                     }
                 } else {
-                    updateTransaction(event.title, event.amount)
+                    updateTransaction(event.title, event.amount, event.categoryIds)
                 }
             }
 
@@ -288,10 +290,10 @@ class FinancialViewModel @Inject constructor(
         }
     }
 
-    private fun updateTransaction(title: String, amount: Double) {
+    private fun updateTransaction(title: String, amount: Double, categoryIds: List<String>) {
         val transaction = _uiState.value.editingTransaction ?: return
         viewModelScope.launch {
-            updateTransactionUseCase(transaction.id, title, amount).collect { result ->
+            updateTransactionUseCase(transaction, title, amount, categoryIds).collect { result ->
                 when (result) {
                     is Resource.Loading -> _uiState.update { it.copy(isSavingEdit = true) }
 
@@ -354,6 +356,7 @@ class FinancialViewModel @Inject constructor(
                     month = month,
                     title = action.title,
                     amount = action.amount,
+                    categoryIds = action.categoryIds,
                     scope = scope
                 ) to "Recorrência atualizada!"
 

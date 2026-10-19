@@ -2,13 +2,13 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Timestamp
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.NewTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_category.GetTransactionsCategoriesUseCase
+import com.vfdeginformatica.mysuperapp.presentation.common.toTransactionTimestamp
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionUiState
@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -154,7 +153,14 @@ class NewTransactionViewModel @Inject constructor(
                 }
             }
 
-            is NewTransactionEvent.DateChanged -> updateForm(date = event.date)
+            is NewTransactionEvent.DateChanged -> {
+                updateForm(date = event.date)
+                _uiState.update { it.copy(showDatePicker = false) }
+            }
+
+            is NewTransactionEvent.DatePickerToggled ->
+                _uiState.update { it.copy(showDatePicker = event.visible) }
+
             is NewTransactionEvent.DescriptionChanged -> updateForm(description = event.description)
             is NewTransactionEvent.InvoiceMonthChanged -> updateForm(invoiceMonth = event.month)
             is NewTransactionEvent.PaymentMethodChanged -> {
@@ -260,7 +266,7 @@ class NewTransactionViewModel @Inject constructor(
                 paymentMethod = state.paymentMethod,
                 amount = state.amountValue,
                 isRecurring = state.isRecurring,
-                transactionDate = Timestamp(Date()),
+                transactionDate = state.date.toTransactionTimestamp(),
                 category = state.selectedCategories.map { it.id },
                 status = "pending",
                 cardId = state.cardId,

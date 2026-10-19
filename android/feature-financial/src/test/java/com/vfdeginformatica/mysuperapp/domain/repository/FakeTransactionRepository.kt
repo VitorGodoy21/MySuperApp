@@ -7,6 +7,9 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.TransactionDto
 /** Fake de [TransactionRepository] para testes: registra chamadas e devolve resultados configuráveis. */
 open class FakeTransactionRepository : TransactionRepository {
     val added = mutableListOf<TransactionDto>()
+    val updates = mutableListOf<UpdateCall>()
+    val categoryUpdates = mutableListOf<Pair<String, List<String>>>()
+    val groupCategoryUpdates = mutableListOf<Pair<String, List<String>>>()
     val deletedIds = mutableListOf<String>()
     val excluded = mutableListOf<Pair<String, String>>()
     val ended = mutableListOf<Pair<String, String>>()
@@ -18,18 +21,26 @@ open class FakeTransactionRepository : TransactionRepository {
     var monthTransactions: List<TransactionDto> = emptyList()
     var recurringTransactions: List<TransactionDto> = emptyList()
     var writeResult: Resource<Unit> = Resource.Success(Unit)
+    var groupCategoryResult: Resource<Unit> = Resource.Success(Unit)
     var cleanupResult: Resource<Unit> = Resource.Success(Unit)
 
+    data class UpdateCall(val id: String, val title: String, val amount: Double, val category: List<String>)
     data class OverrideCall(val id: String, val month: String, val title: String, val amount: Double)
     data class TemplateUpdateCall(
         val id: String,
         val title: String,
         val amount: Double,
+        val category: List<String>,
         val excludedMonths: List<String>,
         val overrides: Map<String, Map<String, Any>>
     )
 
-    data class SplitCall(val originalId: String, val lastMonth: String, val newTransaction: TransactionDto)
+    data class SplitCall(
+        val originalId: String,
+        val lastMonth: String,
+        val newTransaction: TransactionDto,
+        val originalCategory: List<String>
+    )
 
     override suspend fun newTransaction(transaction: TransactionDto): Resource<Unit> {
         added += transaction
@@ -41,8 +52,28 @@ open class FakeTransactionRepository : TransactionRepository {
         return writeResult
     }
 
-    override suspend fun updateTransaction(id: String, title: String, amount: Double): Resource<Unit> =
-        writeResult
+    override suspend fun updateTransaction(
+        id: String,
+        title: String,
+        amount: Double,
+        category: List<String>
+    ): Resource<Unit> {
+        updates += UpdateCall(id, title, amount, category)
+        return writeResult
+    }
+
+    override suspend fun updateTransactionCategories(id: String, category: List<String>): Resource<Unit> {
+        categoryUpdates += id to category
+        return writeResult
+    }
+
+    override suspend fun updateCategoriesForInstallmentGroup(
+        groupId: String,
+        category: List<String>
+    ): Resource<Unit> {
+        groupCategoryUpdates += groupId to category
+        return groupCategoryResult
+    }
 
     override suspend fun deleteTransaction(id: String): Resource<Unit> {
         deletedIds += id
@@ -87,19 +118,21 @@ open class FakeTransactionRepository : TransactionRepository {
         id: String,
         title: String,
         amount: Double,
+        category: List<String>,
         excludedMonths: List<String>,
         overrides: Map<String, Map<String, Any>>
     ): Resource<Unit> {
-        templateUpdates += TemplateUpdateCall(id, title, amount, excludedMonths, overrides)
+        templateUpdates += TemplateUpdateCall(id, title, amount, category, excludedMonths, overrides)
         return writeResult
     }
 
     override suspend fun splitRecurrence(
         originalId: String,
         lastMonthOfOriginal: String,
-        newTransaction: TransactionDto
+        newTransaction: TransactionDto,
+        originalCategory: List<String>
     ): Resource<Unit> {
-        splits += SplitCall(originalId, lastMonthOfOriginal, newTransaction)
+        splits += SplitCall(originalId, lastMonthOfOriginal, newTransaction, originalCategory)
         return writeResult
     }
 }

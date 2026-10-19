@@ -20,9 +20,24 @@ class TransactionRepositoryImpl(
     override suspend fun updateTransaction(
         id: String,
         title: String,
-        amount: Double
+        amount: Double,
+        category: List<String>
     ): Resource<Unit> {
-        return transactionDao.updateTransaction(id, title, amount)
+        return transactionDao.updateTransaction(id, title, amount, category)
+    }
+
+    override suspend fun updateTransactionCategories(
+        id: String,
+        category: List<String>
+    ): Resource<Unit> {
+        return transactionDao.updateTransactionCategories(id, category)
+    }
+
+    override suspend fun updateCategoriesForInstallmentGroup(
+        groupId: String,
+        category: List<String>
+    ): Resource<Unit> {
+        return transactionDao.updateCategoriesForInstallmentGroup(groupId, category)
     }
 
     override suspend fun deleteTransaction(id: String): Resource<Unit> {
@@ -71,17 +86,23 @@ class TransactionRepositoryImpl(
         id: String,
         title: String,
         amount: Double,
+        category: List<String>,
         excludedMonths: List<String>,
         overrides: Map<String, Map<String, Any>>
     ): Resource<Unit> {
-        return transactionDao.updateRecurrenceTemplate(id, title, amount, excludedMonths, overrides)
+        return transactionDao.updateRecurrenceTemplate(
+            id, title, amount, category, excludedMonths, overrides
+        )
     }
 
     override suspend fun splitRecurrence(
         originalId: String,
         lastMonthOfOriginal: String,
-        newTransaction: TransactionDto
+        newTransaction: TransactionDto,
+        originalCategory: List<String>
     ): Resource<Unit> {
-        return transactionDao.splitRecurrence(originalId, lastMonthOfOriginal, newTransaction)
+        return transactionDao.splitRecurrence(
+            originalId, lastMonthOfOriginal, newTransaction, originalCategory
+        )
     }
 }

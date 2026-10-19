@@ -13,13 +13,16 @@ import java.time.YearMonth
 import javax.inject.Inject
 
 /**
- * Atualiza título/valor de uma transação recorrente.
+ * Atualiza título/valor de uma transação recorrente. As categorias valem sempre para a série
+ * inteira (documento-modelo), independentemente do escopo.
  *
- * - [RecurrenceEditScope.THIS_MONTH]: grava `overrides[month]`.
+ * - [RecurrenceEditScope.THIS_MONTH]: grava `overrides[month]` e, se as categorias mudaram,
+ *   atualiza `category` no modelo.
  * - [RecurrenceEditScope.THIS_AND_FUTURE]: se o mês for o inicial, atualiza o próprio
  *   documento-modelo (descartando exceções de meses >= month); caso contrário faz um
- *   split atômico: encerra o original no mês anterior e cria um novo documento a partir
- *   de `month` com os novos valores, herdando apenas as exceções de meses >= month.
+ *   split atômico: encerra o original no mês anterior (aplicando as novas categorias) e cria
+ *   um novo documento a partir de `month` com os novos valores, herdando apenas as exceções
+ *   de meses >= month.
  */
 class UpdateRecurringOccurrenceUseCase @Inject constructor(
     private val repository: TransactionRepository
@@ -29,6 +32,7 @@ class UpdateRecurringOccurrenceUseCase @Inject constructor(
         month: YearMonth,
         title: String,
         amount: Double,
+        categoryIds: List<String>,
         scope: RecurrenceEditScope
     ): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
@@ -43,13 +47,24 @@ class UpdateRecurringOccurrenceUseCase @Inject constructor(
         }
 
         val result = when (scope) {
-            RecurrenceEditScope.THIS_MONTH ->
-                repository.overrideRecurrenceMonth(
-                    id = transaction.id,
-                    month = RecurrenceRules.formatMonth(month),
-                    title = title,
-                    amount = amount
-                )
+            RecurrenceEditScope.THIS_MONTH -> {
+                val categoriesChanged = categoryIds.toSet() != transaction.categoryIds.toSet()
+                val categoryResult = if (categoriesChanged) {
+                    repository.updateTransactionCategories(transaction.id, categoryIds)
+                } else {
+                    Resource.Success(Unit)
+                }
+                if (categoryResult is Resource.Error) {
+                    categoryResult
+                } else {
+                    repository.overrideRecurrenceMonth(
+                        id = transaction.id,
+                        month = RecurrenceRules.formatMonth(month),
+                        title = title,
+                        amount = amount
+                    )
+                }
+            }
 
             RecurrenceEditScope.THIS_AND_FUTURE -> {
                 val start = transaction.effectiveRecurrenceStart
@@ -72,6 +87,7 @@ class UpdateRecurringOccurrenceUseCase @Inject constructor(
                         id = transaction.id,
                         title = title,
                         amount = amount,
+                        category = categoryIds,
                         excludedMonths = keptExcluded,
                         overrides = keptOverrides
                     )
@@ -79,6 +95,7 @@ class UpdateRecurringOccurrenceUseCase @Inject constructor(
                     val newDto = transaction.copy(
                         title = title,
                         amount = amount,
+                        categoryIds = categoryIds,
                         date = RecurrenceRules.firstDayTimestamp(month),
                         recurrenceStart = month,
                         recurrenceEnd = null,
@@ -89,7 +106,8 @@ class UpdateRecurringOccurrenceUseCase @Inject constructor(
                     repository.splitRecurrence(
                         originalId = transaction.id,
                         lastMonthOfOriginal = RecurrenceRules.formatMonth(month.minusMonths(1)),
-                        newTransaction = newDto
+                        newTransaction = newDto,
+                        originalCategory = categoryIds
                     )
                 }
             }

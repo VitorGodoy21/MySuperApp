@@ -36,6 +36,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.presentation.common.CurrencyVisualTransformation
+import com.vfdeginformatica.mysuperapp.presentation.common.DateField
+import com.vfdeginformatica.mysuperapp.presentation.common.FinancialDatePickerDialog
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionUiState
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
@@ -57,6 +59,14 @@ fun NewTransactionScreen(
     }
     val selectedCardLabel = selectedCard?.bank ?: ""
     val availablePaymentMethods = selectedCard?.paymentMethods ?: emptyList()
+
+    if (uiState.showDatePicker) {
+        FinancialDatePickerDialog(
+            initialDate = uiState.date,
+            onDateSelected = { onEvent(NewTransactionEvent.DateChanged(it)) },
+            onDismiss = { onEvent(NewTransactionEvent.DatePickerToggled(false)) },
+        )
+    }
 
     if (uiState.isLoadingCards || uiState.isLoadingCategories) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -109,6 +119,13 @@ fun NewTransactionScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = remember { CurrencyVisualTransformation() },
                 singleLine = true
+            )
+
+            DateField(
+                date = uiState.date,
+                label = "Data",
+                enabled = !uiState.isLoading,
+                onClick = { onEvent(NewTransactionEvent.DatePickerToggled(true)) },
             )
 
             OutlinedTextField(

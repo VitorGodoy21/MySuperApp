@@ -2,10 +2,15 @@ package com.vfdeginformatica.mysuperapp.presentation.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -21,15 +26,23 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
+import com.vfdeginformatica.mysuperapp.domain.model.TransactionCategory
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 import kotlin.math.roundToLong
 
-/** Dialog de edição de título/valor (com exclusão), compartilhado pelas telas financeiras. */
+/**
+ * Dialog de edição de título/valor/categorias (com exclusão), compartilhado pelas telas
+ * financeiras. [availableCategories] é filtrada pelo tipo da transação; ids selecionados que
+ * não existem mais na lista são descartados ao confirmar.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EditTransactionDialog(
     transaction: Transaction,
+    availableCategories: List<TransactionCategory>,
     isSaving: Boolean,
     onDismiss: () -> Unit,
-    onConfirm: (title: String, amount: Double) -> Unit,
+    onConfirm: (title: String, amount: Double, categoryIds: List<String>) -> Unit,
     onDelete: () -> Unit
 ) {
     var title by remember(transaction.id) { mutableStateOf(transaction.title) }
@@ -39,13 +52,23 @@ fun EditTransactionDialog(
             (transaction.amount * 100).roundToLong().toString().trimStart('0')
         )
     }
+    var selectedCategoryIds by remember(transaction.id) {
+        mutableStateOf(transaction.categoryIds.toSet())
+    }
     val parsedAmount = CurrencyVisualTransformation.centsToDouble(amountCents)
+    val categoriesForType = remember(availableCategories, transaction.type) {
+        availableCategories.filter { it.type == transaction.type }
+    }
+    val isInstallment = transaction.installmentGroupId != null
 
     AlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
         title = { Text("Editar transação") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -64,6 +87,57 @@ fun EditTransactionDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Categorias",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (categoriesForType.isEmpty()) {
+                        val typeLabel = when (transaction.type) {
+                            TransactionType.INCOME -> "receita"
+                            TransactionType.EXPENSE -> "despesa"
+                        }
+                        Text(
+                            text = "Nenhuma categoria de $typeLabel cadastrada",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            categoriesForType.forEach { category ->
+                                val isSelected = category.id in selectedCategoryIds
+                                FilterChip(
+                                    selected = isSelected,
+                                    enabled = !isSaving,
+                                    onClick = {
+                                        selectedCategoryIds =
+                                            if (isSelected) selectedCategoryIds - category.id
+                                            else selectedCategoryIds + category.id
+                                    },
+                                    label = { Text(category.title) }
+                                )
+                            }
+                        }
+                    }
+                    if (transaction.isRecurring) {
+                        Text(
+                            text = "As categorias valem para toda a recorrência.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else if (isInstallment) {
+                        Text(
+                            text = "As categorias serão aplicadas a todas as parcelas.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 if (transaction.isRecurring) {
                     Text(
                         text = "Transação recorrente: ao salvar ou excluir, você escolhe se a " +
@@ -77,7 +151,13 @@ fun EditTransactionDialog(
         confirmButton = {
             TextButton(
                 enabled = !isSaving && title.isNotBlank() && parsedAmount > 0.0,
-                onClick = { onConfirm(title.trim(), parsedAmount) }
+                onClick = {
+                    // Mantém a ordem da lista e descarta ids de categorias inexistentes/outro tipo
+                    val categoryIds = categoriesForType
+                        .map { it.id }
+                        .filter { it in selectedCategoryIds }
+                    onConfirm(title.trim(), parsedAmount, categoryIds)
+                }
             ) {
                 Text(if (isSaving) "Salvando..." else "Salvar")
             }

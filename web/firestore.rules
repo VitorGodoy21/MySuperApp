@@ -75,8 +75,7 @@ service cloud.firestore {
         && request.resource.data.isRecurring is bool
         && request.resource.data.transactionType in ['EXPENSE', 'INCOME'];
       // Ajustes pelo app:
-      //  - título e valor (ex.: valor real do salário)
-      //  - category: apenas remoção de ids (exclusão de categoria via arrayRemove)
+      //  - título, valor e categorias (lista de ids; exclusão de categoria usa arrayRemove)
       //  - recorrência: recurrenceEnd (encerrar), excludedMonths (só cresce, via arrayUnion)
       //    e overrides (ajustes por mês {yyyy-MM: {amount, title}})
       allow update: if isAuthenticated()
@@ -89,11 +88,7 @@ service cloud.firestore {
         )
         && (
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['category'])
-          || (
-            request.resource.data.category is list
-            && resource.data.category is list
-            && request.resource.data.category.size() <= resource.data.category.size()
-          )
+          || request.resource.data.category is list
         )
         && (
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(

@@ -150,4 +150,32 @@ class CardInvoiceViewModelTest {
         assertNull(vm.uiState.value.editingTransaction)
         assertEquals(2, repo.requestedMonths.size)
     }
+
+    @Test
+    fun `confirming edit sends title amount and categories and propagates to installment group`() = runTest {
+        val repo = InvoiceRepository()
+        repo.invoicesByMonth = mapOf(
+            "2026-10" to listOf(
+                TransactionDto(
+                    id = "tv", title = "TV", transactionType = "EXPENSE", paymentMethod = "CREDIT",
+                    amount = 300.0, cardId = "c1", invoiceMonth = "2026-10", category = listOf("home"),
+                    installments = 10, installmentNumber = 3, installmentGroupId = "g1"
+                )
+            )
+        )
+        val vm = buildViewModel(repo, cardId = "c1", month = "2026-10")
+        advanceUntilIdle()
+
+        vm.onEvent(CardInvoiceEvent.OnTransactionClicked(vm.uiState.value.items.first()))
+        vm.onEvent(CardInvoiceEvent.OnEditConfirm("TV 4K", 310.0, listOf("home", "tech")))
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(FakeTransactionRepository.UpdateCall("tv", "TV 4K", 310.0, listOf("home", "tech"))),
+            repo.updates
+        )
+        assertEquals(listOf("g1" to listOf("home", "tech")), repo.groupCategoryUpdates)
+        assertNull(vm.uiState.value.editingTransaction)
+        assertEquals(2, repo.requestedMonths.size)
+    }
 }

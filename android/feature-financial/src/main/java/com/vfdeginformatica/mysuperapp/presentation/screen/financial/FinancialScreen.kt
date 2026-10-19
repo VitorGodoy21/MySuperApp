@@ -48,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.vfdeginformatica.mysuperapp.data.mapper.toModel
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.domain.model.hasOverrideForOccurrence
@@ -111,9 +112,12 @@ fun FinancialScreen(
     uiState.editingTransaction?.let { transaction ->
         EditTransactionDialog(
             transaction = transaction,
+            availableCategories = uiState.availableCategories.map { it.toModel() },
             isSaving = uiState.isSavingEdit,
             onDismiss = { onEvent(FinancialEvent.OnEditDismiss) },
-            onConfirm = { title, amount -> onEvent(FinancialEvent.OnEditConfirm(title, amount)) },
+            onConfirm = { title, amount, categoryIds ->
+                onEvent(FinancialEvent.OnEditConfirm(title, amount, categoryIds))
+            },
             onDelete = { onEvent(FinancialEvent.OnDeleteTransaction) }
         )
         uiState.pendingRecurringAction?.let { action ->

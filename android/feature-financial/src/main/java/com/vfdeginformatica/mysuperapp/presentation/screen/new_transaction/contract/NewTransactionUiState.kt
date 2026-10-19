@@ -16,6 +16,7 @@ data class NewTransactionUiState(
     val amount: String = "",
     val description: String = "",
     val date: LocalDate = LocalDate.now(),
+    val showDatePicker: Boolean = false,
     val selectedCategories: List<CategoryTransactionDto> = emptyList(),
     val availableCategories: List<CategoryTransactionDto>? = null,
     val paymentMethod: String = "",

@@ -2,7 +2,9 @@ package com.vfdeginformatica.mysuperapp.presentation.common
 
 import androidx.compose.ui.graphics.Color
 import java.text.NumberFormat
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -13,6 +15,11 @@ internal fun formatCurrency(value: Double): String =
     NumberFormat.getCurrencyInstance(ptBr).format(value)
 
 internal fun formatPercent(value: Double): String = "%.0f%%".format(ptBr, value)
+
+private val dayMonthYear: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", ptBr)
+
+/** "05/03/2026" */
+internal fun formatDate(date: LocalDate): String = date.format(dayMonthYear)
 
 /** "Outubro 2026" */
 internal fun monthLabel(month: YearMonth): String =

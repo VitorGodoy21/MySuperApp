@@ -107,14 +107,29 @@ class RecurringOccurrenceUseCasesTest {
     fun `update this month writes an override`() = runTest {
         val repo = FakeTransactionRepository()
         UpdateRecurringOccurrenceUseCase(repo)(
-            recurring(), YearMonth.of(2026, 10), "Netflix 4K", 59.9, RecurrenceEditScope.THIS_MONTH
+            recurring(), YearMonth.of(2026, 10), "Netflix 4K", 59.9, listOf("cat"), RecurrenceEditScope.THIS_MONTH
         ).toList()
 
         assertEquals(
             listOf(FakeTransactionRepository.OverrideCall("t1", "2026-10", "Netflix 4K", 59.9)),
             repo.overridden
         )
+        // Categorias iguais: template não é tocado
+        assertTrue(repo.categoryUpdates.isEmpty())
         assertTrue(repo.splits.isEmpty() && repo.templateUpdates.isEmpty())
+    }
+
+    @Test
+    fun `update this month with changed categories also updates template categories`() = runTest {
+        val repo = FakeTransactionRepository()
+        val results = UpdateRecurringOccurrenceUseCase(repo)(
+            recurring(), YearMonth.of(2026, 10), "Netflix", 50.0, listOf("stream", "lazer"),
+            RecurrenceEditScope.THIS_MONTH
+        ).toList()
+
+        assertEquals(listOf("t1" to listOf("stream", "lazer")), repo.categoryUpdates)
+        assertEquals(1, repo.overridden.size)
+        assertTrue(results.last() is Resource.Success)
     }
 
     @Test
@@ -125,12 +140,13 @@ class RecurringOccurrenceUseCasesTest {
             overrides = mapOf(YearMonth.of(2026, 12) to RecurrenceOverride(70.0, "X"))
         )
         UpdateRecurringOccurrenceUseCase(repo)(
-            t, YearMonth.of(2026, 9), "Netflix", 55.0, RecurrenceEditScope.THIS_AND_FUTURE
+            t, YearMonth.of(2026, 9), "Netflix", 55.0, listOf("stream"), RecurrenceEditScope.THIS_AND_FUTURE
         ).toList()
 
         val call = repo.templateUpdates.single()
         assertEquals("t1", call.id)
         assertEquals(55.0, call.amount, 0.0001)
+        assertEquals(listOf("stream"), call.category)
         assertTrue(call.excludedMonths.isEmpty())
         assertTrue(call.overrides.isEmpty())
         assertTrue(repo.splits.isEmpty())
@@ -144,12 +160,15 @@ class RecurringOccurrenceUseCasesTest {
             overrides = mapOf(YearMonth.of(2026, 10) to RecurrenceOverride(1.0, "old"))
         )
         UpdateRecurringOccurrenceUseCase(repo)(
-            t, YearMonth.of(2026, 11), "Netflix Premium", 65.0, RecurrenceEditScope.THIS_AND_FUTURE
+            t, YearMonth.of(2026, 11), "Netflix Premium", 65.0, listOf("stream"),
+            RecurrenceEditScope.THIS_AND_FUTURE
         ).toList()
 
         val split = repo.splits.single()
         assertEquals("t1", split.originalId)
         assertEquals("2026-10", split.lastMonth)
+        // Categorias valem para a série inteira: original também recebe as novas
+        assertEquals(listOf("stream"), split.originalCategory)
 
         val newDto: TransactionDto = split.newTransaction
         assertEquals("Netflix Premium", newDto.title)
@@ -162,7 +181,7 @@ class RecurringOccurrenceUseCasesTest {
         // Campos herdados do original
         assertEquals("CREDIT", newDto.paymentMethod)
         assertEquals("c1", newDto.cardId)
-        assertEquals(listOf("cat"), newDto.category)
+        assertEquals(listOf("stream"), newDto.category)
         assertEquals("EXPENSE", newDto.transactionType)
         assertEquals("Streaming", newDto.description)
         // Data do novo documento começa no mês editado
@@ -174,7 +193,7 @@ class RecurringOccurrenceUseCasesTest {
     fun `update rejects invalid amount`() = runTest {
         val repo = FakeTransactionRepository()
         val results = UpdateRecurringOccurrenceUseCase(repo)(
-            recurring(), YearMonth.of(2026, 10), "Netflix", 0.0, RecurrenceEditScope.THIS_MONTH
+            recurring(), YearMonth.of(2026, 10), "Netflix", 0.0, listOf("cat"), RecurrenceEditScope.THIS_MONTH
         ).toList()
 
         assertTrue(results.last() is Resource.Error)
@@ -185,7 +204,7 @@ class RecurringOccurrenceUseCasesTest {
     fun `propagates repository error`() = runTest {
         val repo = FakeTransactionRepository().apply { writeResult = Resource.Error("denied") }
         val results = UpdateRecurringOccurrenceUseCase(repo)(
-            recurring(), YearMonth.of(2026, 10), "Netflix", 10.0, RecurrenceEditScope.THIS_MONTH
+            recurring(), YearMonth.of(2026, 10), "Netflix", 10.0, listOf("cat"), RecurrenceEditScope.THIS_MONTH
         ).toList()
 
         val last = results.last()

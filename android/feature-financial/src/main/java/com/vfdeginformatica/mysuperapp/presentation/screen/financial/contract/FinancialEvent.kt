@@ -29,7 +29,11 @@ sealed interface FinancialEvent {
     // Edição/exclusão de transações (ex.: ajuste do salário real)
     data class OnTransactionClicked(val transaction: Transaction) : FinancialEvent
     data object OnEditDismiss : FinancialEvent
-    data class OnEditConfirm(val title: String, val amount: Double) : FinancialEvent
+    data class OnEditConfirm(
+        val title: String,
+        val amount: Double,
+        val categoryIds: List<String>
+    ) : FinancialEvent
     data object OnDeleteTransaction : FinancialEvent
 
     // Recorrentes: escolha do escopo ("só este mês" / "este e próximos")
@@ -39,7 +43,11 @@ sealed interface FinancialEvent {
 
 /** Ação pendente sobre uma recorrente, aguardando o usuário escolher o escopo. */
 sealed interface PendingRecurringAction {
-    data class Update(val title: String, val amount: Double) : PendingRecurringAction
+    data class Update(
+        val title: String,
+        val amount: Double,
+        val categoryIds: List<String>
+    ) : PendingRecurringAction
     data object Delete : PendingRecurringAction
 }
 
