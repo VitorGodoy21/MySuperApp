@@ -23,7 +23,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Schedule
@@ -308,14 +307,6 @@ private fun ReadOnlyItemCard(
                     )
                 }
             }
-            Icon(
-                Icons.Default.Edit,
-                contentDescription = "Editar séries, repetições e carga",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .size(18.dp),
-            )
         }
     }
 }

@@ -57,6 +57,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.YouTubeVideo
 fun YouTubePlayer(
     videoId: String,
     modifier: Modifier = Modifier,
+    aspectRatio: Float = 16f / 9f,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
@@ -64,7 +65,7 @@ fun YouTubePlayer(
     AndroidView(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(16f / 9f)
+            .aspectRatio(aspectRatio)
             .clip(RoundedCornerShape(12.dp)),
         factory = { context ->
             WebView(context).apply {
@@ -195,23 +196,24 @@ fun YouTubePlayerDialog(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 4.dp),
             shape = RoundedCornerShape(16.dp),
             tonalElevation = 6.dp,
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(bottom = 12.dp),
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
                 )
-                YouTubePlayer(videoId = videoId)
+                // Taller than 16:9 so vertical videos (Shorts) get more room on a phone screen.
+                YouTubePlayer(videoId = videoId, aspectRatio = 4f / 3f)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp),
+                        .padding(top = 4.dp),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
