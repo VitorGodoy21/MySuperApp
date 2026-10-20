@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Contactless
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.ExpandLess
@@ -269,29 +270,61 @@ fun AppDrawerMenuScreen(
                     )
                 }
 
+                var isSmartTagsExpanded by rememberSaveable { mutableStateOf(false) }
+
                 NavigationDrawerItem(
-                    label = { Text("QR Code") },
+                    label = { Text("Smart Tags") },
                     selected = false,
-                    onClick = { onQrCode.invoke() },
+                    onClick = { isSmartTagsExpanded = !isSmartTagsExpanded },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.QrCode,
-                            contentDescription = "QrCode"
+                            imageVector = Icons.Default.Contactless,
+                            contentDescription = "SmartTags"
+                        )
+                    },
+                    badge = {
+                        Icon(
+                            imageVector = if (isSmartTagsExpanded) {
+                                Icons.Default.ExpandLess
+                            } else {
+                                Icons.Default.ExpandMore
+                            },
+                            contentDescription = if (isSmartTagsExpanded) {
+                                "Recolher smart tags"
+                            } else {
+                                "Expandir smart tags"
+                            }
                         )
                     }
                 )
 
-                NavigationDrawerItem(
-                    label = { Text("NFC") },
-                    selected = false,
-                    onClick = { onNfc.invoke() },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Nfc,
-                            contentDescription = "Nfc"
-                        )
-                    }
-                )
+                if (isSmartTagsExpanded) {
+                    NavigationDrawerItem(
+                        label = { Text("QR Code") },
+                        selected = false,
+                        onClick = { onQrCode.invoke() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.QrCode,
+                                contentDescription = "QrCode"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+
+                    NavigationDrawerItem(
+                        label = { Text("NFC") },
+                        selected = false,
+                        onClick = { onNfc.invoke() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Nfc,
+                                contentDescription = "Nfc"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+                }
 
                 NavigationDrawerItem(
                     label = { Text("Settings") },

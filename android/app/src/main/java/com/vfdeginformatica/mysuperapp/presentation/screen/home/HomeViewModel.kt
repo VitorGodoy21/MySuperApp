@@ -2,9 +2,8 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.home
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AllInclusive
+import androidx.compose.material.icons.filled.Contactless
 import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,12 +14,12 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.user.ResolveProtectedNavi
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeUiState
-import com.vfdeginformatica.mysuperapp.nfc.navigation.SharedNfcRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -46,7 +45,11 @@ class HomeViewModel @Inject constructor(
                     ).collect { result ->
                         when (result) {
                             is ProtectedNavigationResult.Allowed -> {
-                                _effect.emit(HomeEffect.NavigateToMenuItem(result.route))
+                                if (result.route == SmartTagsMenu.PICKER_ROUTE) {
+                                    _uiState.update { it.copy(isSmartTagsPickerVisible = true) }
+                                } else {
+                                    _effect.emit(HomeEffect.NavigateToMenuItem(result.route))
+                                }
                             }
 
                             is ProtectedNavigationResult.Denied -> {
@@ -55,6 +58,17 @@ class HomeViewModel @Inject constructor(
                         }
                     }
                 }
+            }
+
+            is HomeEvent.OnSmartTagsOptionSelected -> {
+                _uiState.update { it.copy(isSmartTagsPickerVisible = false) }
+                viewModelScope.launch {
+                    _effect.emit(HomeEffect.NavigateToMenuItem(event.route))
+                }
+            }
+
+            HomeEvent.OnSmartTagsPickerDismissed -> {
+                _uiState.update { it.copy(isSmartTagsPickerVisible = false) }
             }
         }
     }
@@ -77,18 +91,9 @@ class HomeViewModel @Inject constructor(
                 ),
 
                 HomeMenuItem(
-                    title = "QRCode",
-                    icon = Icons.Default.QrCode2,
-                    route = Screen.QrCodeListScreen.route,
-                    backgroundColor = Color.DarkGray,
-                    passwordRequired = true,
-                    content = {}
-                ),
-
-                HomeMenuItem(
-                    title = "NFC",
-                    icon = Icons.Default.Nfc,
-                    route = SharedNfcRoutes.NFC_SCREEN,
+                    title = SmartTagsMenu.TITLE,
+                    icon = Icons.Default.Contactless,
+                    route = SmartTagsMenu.PICKER_ROUTE,
                     backgroundColor = Color.DarkGray,
                     passwordRequired = true,
                     content = {}

@@ -8,4 +8,7 @@ sealed interface HomeEvent {
         val passwordRequired: Boolean,
         val activity: FragmentActivity? = null
     ) : HomeEvent
+
+    data class OnSmartTagsOptionSelected(val route: String) : HomeEvent
+    data object OnSmartTagsPickerDismissed : HomeEvent
 }

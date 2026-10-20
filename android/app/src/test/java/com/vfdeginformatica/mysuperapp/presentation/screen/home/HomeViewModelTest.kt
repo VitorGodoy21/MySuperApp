@@ -48,18 +48,75 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun financialQrAndNfcMenuItemsRequireBiometric() {
+    fun financialAndSmartTagsMenuItemsRequireBiometric() {
         val items = viewModel.uiState.value.items
         val protectedRoutes = listOf(
             Screen.FinancialScreen.route,
-            Screen.QrCodeListScreen.route,
-            SharedNfcRoutes.NFC_SCREEN
+            SmartTagsMenu.PICKER_ROUTE
         )
 
         protectedRoutes.forEach { route ->
             val item = items.first { it.route == route }
             assertTrue("Route $route should require biometric", item.passwordRequired)
         }
+    }
+
+    @Test
+    fun qrCodeAndNfcAreNotDirectMenuItems() {
+        val routes = viewModel.uiState.value.items.map { it.route }
+        assertFalse(routes.contains(Screen.QrCodeListScreen.route))
+        assertFalse(routes.contains(SharedNfcRoutes.NFC_SCREEN))
+        assertEquals(
+            listOf(Screen.QrCodeListScreen.route, SharedNfcRoutes.NFC_SCREEN),
+            SmartTagsMenu.options.map { it.route }
+        )
+    }
+
+    @Test
+    fun smartTagsAllowedShowsPickerInsteadOfNavigating() = runTest(testDispatcher) {
+        val route = SmartTagsMenu.PICKER_ROUTE
+        `when`(resolveProtectedNavigationUseCase(route, true, activity))
+            .thenReturn(flowOf(ProtectedNavigationResult.Allowed(route)))
+
+        val effects = mutableListOf<HomeEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.effect.toList(effects) }
+
+        viewModel.onEvent(HomeEvent.OnMenuItemNavigate(route, passwordRequired = true, activity = activity))
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isSmartTagsPickerVisible)
+        assertTrue(effects.isEmpty())
+    }
+
+    @Test
+    fun smartTagsOptionSelectedNavigatesAndHidesPicker() = runTest(testDispatcher) {
+        val route = SmartTagsMenu.PICKER_ROUTE
+        `when`(resolveProtectedNavigationUseCase(route, true, activity))
+            .thenReturn(flowOf(ProtectedNavigationResult.Allowed(route)))
+
+        val effects = mutableListOf<HomeEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.effect.toList(effects) }
+
+        viewModel.onEvent(HomeEvent.OnMenuItemNavigate(route, passwordRequired = true, activity = activity))
+        advanceUntilIdle()
+        viewModel.onEvent(HomeEvent.OnSmartTagsOptionSelected(SharedNfcRoutes.NFC_SCREEN))
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isSmartTagsPickerVisible)
+        assertEquals(listOf(HomeEffect.NavigateToMenuItem(SharedNfcRoutes.NFC_SCREEN)), effects)
+    }
+
+    @Test
+    fun smartTagsPickerDismissedHidesPicker() = runTest(testDispatcher) {
+        val route = SmartTagsMenu.PICKER_ROUTE
+        `when`(resolveProtectedNavigationUseCase(route, true, activity))
+            .thenReturn(flowOf(ProtectedNavigationResult.Allowed(route)))
+
+        viewModel.onEvent(HomeEvent.OnMenuItemNavigate(route, passwordRequired = true, activity = activity))
+        advanceUntilIdle()
+        viewModel.onEvent(HomeEvent.OnSmartTagsPickerDismissed)
+
+        assertFalse(viewModel.uiState.value.isSmartTagsPickerVisible)
     }
 
     @Test

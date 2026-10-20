@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.vfdeginformatica.mysuperapp.domain.model.HomeMenuItem
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.components.HomeMenuCardItem
+import com.vfdeginformatica.mysuperapp.presentation.screen.home.components.SmartTagsPickerBottomSheet
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeUiState
 
@@ -76,6 +77,14 @@ fun HomeScreen(
         if (uiState.isLoading) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
+        if (uiState.isSmartTagsPickerVisible) {
+            SmartTagsPickerBottomSheet(
+                onOptionSelected = { route ->
+                    onEvent(HomeEvent.OnSmartTagsOptionSelected(route))
+                },
+                onDismiss = { onEvent(HomeEvent.OnSmartTagsPickerDismissed) }
+            )
+        }
     }
 }
 @Preview(showBackground = true)
@@ -87,7 +96,7 @@ fun HomeScreenPreview() {
             errorMessage = "",
             items = listOf(
                 HomeMenuItem(
-                    title = "Finan�as",
+                    title = "Finanças",
                     icon = Icons.Default.AllInclusive,
                     route = "teste",
                     backgroundColor = Color.DarkGray,
