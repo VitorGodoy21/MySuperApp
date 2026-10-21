@@ -1,6 +1,7 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.vfdeginformatica.mysuperapp.common.Resource
@@ -25,6 +26,19 @@ class WorkoutSessionDaoImpl(
             snap.documents.mapNotNull { it.toObject(WorkoutSessionDto::class.java) }
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao carregar registros do treino $workoutId", e)
+            null
+        }
+    }
+
+    override suspend fun getSessionsSince(from: Timestamp): List<WorkoutSessionDto>? {
+        return try {
+            val snap = db.collection(COLLECTION)
+                .whereGreaterThanOrEqualTo("date", from)
+                .get()
+                .await()
+            snap.documents.mapNotNull { it.toObject(WorkoutSessionDto::class.java) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao carregar registros recentes", e)
             null
         }
     }

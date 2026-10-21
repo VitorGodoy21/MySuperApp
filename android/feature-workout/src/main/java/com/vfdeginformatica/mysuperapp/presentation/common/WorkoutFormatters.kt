@@ -8,10 +8,15 @@ internal val ptBr: Locale = Locale.forLanguageTag("pt-BR")
 
 private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", ptBr)
 private val shortDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM", ptBr)
+private val weekDayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE", ptBr)
 
 internal fun formatDate(date: LocalDate): String = date.format(dateFormatter)
 
 internal fun formatShortDate(date: LocalDate): String = date.format(shortDateFormatter)
+
+/** Full pt-BR week day name, capitalized (e.g. "Segunda-feira"). */
+internal fun formatWeekDay(date: LocalDate): String =
+    date.format(weekDayFormatter).replaceFirstChar { it.titlecase(ptBr) }
 
 internal fun formatKg(value: Double, decimals: Int = 1): String =
     String.format(ptBr, "%.${decimals}f kg", value)

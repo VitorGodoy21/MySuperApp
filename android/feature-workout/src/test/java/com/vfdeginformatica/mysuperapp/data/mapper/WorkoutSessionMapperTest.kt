@@ -38,5 +38,6 @@ class WorkoutSessionMapperTest {
         assertEquals(LocalDate.of(2026, 1, 2), model.date)
         assertNull(model.durationMinutes)
         assertNull(model.calories)
+        assertEquals(dto.createdAt!!.seconds, model.createdAt!!.epochSecond)
     }
 }

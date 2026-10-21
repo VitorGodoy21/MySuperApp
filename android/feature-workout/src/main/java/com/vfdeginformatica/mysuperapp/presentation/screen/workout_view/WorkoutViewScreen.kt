@@ -45,7 +45,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.domain.model.Workout
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutSession
 import com.vfdeginformatica.mysuperapp.presentation.common.ItemDraftDialog
+import com.vfdeginformatica.mysuperapp.presentation.common.SessionStatsRow
 import com.vfdeginformatica.mysuperapp.presentation.common.YouTubePlayerDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.formatCalories
 import com.vfdeginformatica.mysuperapp.presentation.common.formatDate
@@ -371,10 +371,7 @@ private fun SessionRow(session: WorkoutSession, enabled: Boolean, onDelete: () -
         ) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(formatDate(session.date), fontWeight = FontWeight.SemiBold)
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Stat(Icons.Default.Schedule, session.durationMinutes?.let(::formatDuration) ?: "—")
-                    Stat(Icons.Default.LocalFireDepartment, session.calories?.let(::formatCalories) ?: "—")
-                }
+                SessionStatsRow(session)
             }
             IconButton(onClick = onDelete, enabled = enabled) {
                 Icon(
@@ -384,24 +381,6 @@ private fun SessionRow(session: WorkoutSession, enabled: Boolean, onDelete: () -
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun Stat(icon: ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            icon,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.width(4.dp))
-        Text(
-            text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
