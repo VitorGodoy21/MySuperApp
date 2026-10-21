@@ -1,9 +1,11 @@
 package com.vfdeginformatica.mysuperapp.presentation.my_super_app
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,17 +40,21 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.muralCommentsRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_card.NewCardRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.NewTransactionRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.NotificationsRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.settings.SettingsRoute
 import com.vfdeginformatica.mysuperapp.nfc.navigation.SharedNfcRoutes
 import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.NfcRoute
 
 @Composable
 fun MySuperApp(
-    sessionViewModel: SessionViewModel = hiltViewModel()
+    sessionViewModel: SessionViewModel = hiltViewModel(),
+    deepLinkViewModel: NotificationDeepLinkViewModel = hiltViewModel()
 ) {
     val state by sessionViewModel.uiState.collectAsStateWithLifecycle()
+    val pendingQrCodeId by deepLinkViewModel.pendingQrCodeId.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = (context.getFragmentActivity())
 
@@ -56,6 +62,31 @@ fun MySuperApp(
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Log.d("MainActivity", "onCreate: $innerPadding")
             val navController = rememberNavController()
+
+            // Toque em notificação de QR Code: resolve após a sessão estar logada.
+            LaunchedEffect(pendingQrCodeId, state.isLoggedIn) {
+                if (pendingQrCodeId != null && state.isLoggedIn) {
+                    deepLinkViewModel.consumePending(activity)
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                deepLinkViewModel.effect.collect { effect ->
+                    when (effect) {
+                        is NotificationDeepLinkEffect.OpenQrCode ->
+                            navController.navigate(Screen.QrCodeScreen.createRoute(effect.qrCode)) {
+                                launchSingleTop = true
+                            }
+
+                        is NotificationDeepLinkEffect.Navigate ->
+                            navController.navigate(effect.route) { launchSingleTop = true }
+
+                        is NotificationDeepLinkEffect.ShowToast ->
+                            Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
             NavHost(
                 navController = navController,
                 startDestination = Screen.SplashScreen.route
@@ -338,6 +369,17 @@ fun MySuperApp(
 
                 composable(route = SharedNfcRoutes.NFC_SCREEN) {
                     NfcRoute(onNavigateUp = { navController.navigateUp() })
+                }
+
+                composable(route = Screen.SettingsScreen.route) {
+                    SettingsRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onNavigate = { route -> navController.navigate(route) }
+                    )
+                }
+
+                composable(route = Screen.NotificationsScreen.route) {
+                    NotificationsRoute(onNavigateUp = { navController.navigateUp() })
                 }
             }
         }

@@ -1,22 +1,22 @@
 package com.vfdeginformatica.qrcodemanager
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import com.google.firebase.messaging.FirebaseMessaging
+import androidx.lifecycle.lifecycleScope
+import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.user.RegisterFcmTokenUseCase
 import com.vfdeginformatica.mysuperapp.nfc.presentation.NfcForegroundDispatcher
 import com.vfdeginformatica.mysuperapp.nfc.presentation.NfcTagBus
+import com.vfdeginformatica.mysuperapp.notification.NotificationIntents
+import com.vfdeginformatica.mysuperapp.notification.PendingQrCodeNavigation
+import com.vfdeginformatica.mysuperapp.notification.requestNotificationPermissionIfNeeded
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -25,14 +25,23 @@ class QrCodeManagerActivity : AppCompatActivity() {
     @Inject
     lateinit var nfcTagBus: NfcTagBus
 
+    @Inject
+    lateinit var pendingQrCodeNavigation: PendingQrCodeNavigation
+
+    @Inject
+    lateinit var registerFcmTokenUseCase: RegisterFcmTokenUseCase
+
+    @Inject
+    lateinit var isLoggedUseCase: IsLoggedUseCase
+
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        requestNotificationPermission()
-        updateFcmTokenForCurrentUser()
+        requestNotificationPermissionIfNeeded(notificationPermissionLauncher)
+        pendingQrCodeNavigation.set(NotificationIntents.extractQrCodeId(intent))
         setContent {
             QrCodeManagerNavGraph()
         }
@@ -40,35 +49,18 @@ class QrCodeManagerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        updateFcmTokenForCurrentUser()
+        registerFcmTokenIfLogged()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         NfcForegroundDispatcher.extractTag(intent)?.let { tag -> nfcTagBus.tryEmit(tag) }
+        pendingQrCodeNavigation.set(NotificationIntents.extractQrCodeId(intent))
     }
 
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!granted) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-    }
-
-    private fun updateFcmTokenForCurrentUser() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
-            FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(uid)
-                .set(mapOf("fcmToken" to token), SetOptions.merge())
+    private fun registerFcmTokenIfLogged() {
+        lifecycleScope.launch {
+            if (isLoggedUseCase().first()) registerFcmTokenUseCase()
         }
     }
 }

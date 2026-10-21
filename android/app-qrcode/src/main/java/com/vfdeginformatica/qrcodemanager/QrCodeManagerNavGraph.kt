@@ -2,8 +2,11 @@ package com.vfdeginformatica.qrcodemanager
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
@@ -20,17 +23,40 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.muralC
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
 import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.NfcRoute
-import com.vfdeginformatica.qrcodemanager.notifications.NotificationsRoute
+import com.vfdeginformatica.mysuperapp.notification.QrCodeDeepLinkEffect
+import com.vfdeginformatica.mysuperapp.notification.QrCodeDeepLinkViewModel
+import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.NotificationsRoute
 import com.vfdeginformatica.qrcodemanager.profile.ProfileRoute
 
 @Composable
 fun QrCodeManagerNavGraph(
-    sessionViewModel: QrCodeManagerSessionViewModel = hiltViewModel()
+    sessionViewModel: QrCodeManagerSessionViewModel = hiltViewModel(),
+    deepLinkViewModel: QrCodeDeepLinkViewModel = hiltViewModel()
 ) {
     val state by sessionViewModel.uiState.collectAsStateWithLifecycle()
+    val pendingQrCodeId by deepLinkViewModel.pendingQrCodeId.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     MySuperAppTheme {
         val navController = rememberNavController()
+
+        // Deep link vindo de notificação: só resolve quando a sessão estiver logada.
+        LaunchedEffect(pendingQrCodeId, state.isLoggedIn) {
+            if (pendingQrCodeId != null && state.isLoggedIn) deepLinkViewModel.consumePending()
+        }
+
+        LaunchedEffect(Unit) {
+            deepLinkViewModel.effect.collect { effect ->
+                when (effect) {
+                    is QrCodeDeepLinkEffect.OpenQrCode -> navController.navigate(
+                        QrCodeManagerScreen.QrCodeDetail.createRoute(effect.qrCode)
+                    ) { launchSingleTop = true }
+
+                    is QrCodeDeepLinkEffect.NotFound ->
+                        Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
 
         NavHost(
             modifier = Modifier.fillMaxSize(),
@@ -113,7 +139,7 @@ fun QrCodeManagerNavGraph(
 
             // ── Notifications ─────────────────────────────────────────────
             composable(route = QrCodeManagerScreen.Notifications.route) {
-                NotificationsRoute(navController = navController)
+                NotificationsRoute(onNavigateUp = { navController.popBackStack() })
             }
 
             // ── NFC ──────────────────────────────────────────────────────

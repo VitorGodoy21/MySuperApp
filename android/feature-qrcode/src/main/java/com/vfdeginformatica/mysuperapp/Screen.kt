@@ -60,6 +60,8 @@ object WorkoutViewScreen : Screen("workout_view_screen/{workoutId}") {
             else "workout_detail_screen?workoutId=$workoutId"
     }
     object QrCodeListScreen : Screen(SharedQrCodeRoutes.QR_CODE_LIST)
+    object SettingsScreen : Screen("settings_screen")
+    object NotificationsScreen : Screen("notifications_screen")
     object QrCodeScreen : Screen(SharedQrCodeRoutes.QR_CODE_DETAIL) {
         const val QR_CODE_DATA = SharedQrCodeRoutes.QR_CODE_DATA
         fun createRoute(qrCode: QrCode): String = SharedQrCodeRoutes.createQrCodeDetailRoute(qrCode)

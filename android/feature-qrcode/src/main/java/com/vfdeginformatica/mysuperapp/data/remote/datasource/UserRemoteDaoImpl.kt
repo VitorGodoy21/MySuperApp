@@ -1,6 +1,7 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -87,5 +88,42 @@ class UserRemoteDaoImpl(
             .document(uid)
             .set(payload, SetOptions.merge())
             .await()
+    }
+
+    /**
+     * Registra o token em `fcmTokens.{token}` (multi-dispositivo/app) e mantém o
+     * campo legado `fcmToken` para compatibilidade.
+     */
+    override suspend fun registerFcmToken(uid: String, token: String) {
+        val payload = mapOf(
+            "fcmToken" to token,
+            "fcmTokens" to mapOf(token to FieldValue.serverTimestamp())
+        )
+
+        db.collection("users")
+            .document(uid)
+            .set(payload, SetOptions.merge())
+            .await()
+    }
+
+    override suspend fun unregisterFcmToken(uid: String, token: String) {
+        try {
+            val ref = db.collection("users").document(uid)
+            db.runTransaction { tx ->
+                val snapshot = tx.get(ref)
+                if (!snapshot.exists()) return@runTransaction
+                if (snapshot.getString("fcmToken") == token) {
+                    tx.update(
+                        ref,
+                        FieldPath.of("fcmTokens", token), FieldValue.delete(),
+                        FieldPath.of("fcmToken"), FieldValue.delete()
+                    )
+                } else {
+                    tx.update(ref, FieldPath.of("fcmTokens", token), FieldValue.delete())
+                }
+            }.await()
+        } catch (e: Exception) {
+            Log.w("UserRemoteDaoImpl", "unregisterFcmToken: ${e.message}")
+        }
     }
 }

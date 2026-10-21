@@ -9,4 +9,6 @@ interface UserRemoteDao {
     suspend fun updateUser(uid: String, name: String, email: String)
     suspend fun getNotificationSettings(uid: String): NotificationSettings
     suspend fun updateNotificationSettings(uid: String, settings: NotificationSettings)
+    suspend fun registerFcmToken(uid: String, token: String)
+    suspend fun unregisterFcmToken(uid: String, token: String)
 }

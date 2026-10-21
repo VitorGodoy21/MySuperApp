@@ -327,7 +327,7 @@ fun AppDrawerMenuScreen(
                 }
 
                 NavigationDrawerItem(
-                    label = { Text("Settings") },
+                    label = { Text("Configurações") },
                     selected = false,
                     onClick = { onSettings.invoke() },
                     icon = {

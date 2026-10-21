@@ -55,6 +55,24 @@ class QrCodeDaoImpl(
         }
     }
 
+    override suspend fun getQrCode(id: String): QrCodeDto? {
+        val userId = auth.currentUser?.uid
+        if (userId.isNullOrEmpty() || id.isBlank()) return null
+        return try {
+            val doc = db.collection(COLLECTION).document(id).get().await()
+            val dto = doc.toObject(QrCodeDto::class.java)
+            if (dto == null || dto.userId != userId) {
+                Log.w(TAG, "getQrCode: QR $id inexistente ou não pertence ao usuário")
+                null
+            } else {
+                dto
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao buscar QR Code $id: ${e.message}", e)
+            null
+        }
+    }
+
     override suspend fun createQrCode(qrCodeDto: QrCodeDto): QrCodeDto? {
         val userId = auth.currentUser?.uid
         if (userId.isNullOrEmpty()) {

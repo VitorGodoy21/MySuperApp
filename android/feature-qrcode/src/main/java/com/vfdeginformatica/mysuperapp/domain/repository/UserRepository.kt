@@ -13,4 +13,6 @@ interface UserRepository {
     suspend fun updateProfile(name: String, email: String): Resource<Unit>
     suspend fun getNotificationSettings(): Resource<NotificationSettings>
     suspend fun updateNotificationSettings(settings: NotificationSettings): Resource<Unit>
+    suspend fun registerFcmToken(token: String): Resource<Unit>
+    suspend fun unregisterFcmToken(token: String): Resource<Unit>
 }

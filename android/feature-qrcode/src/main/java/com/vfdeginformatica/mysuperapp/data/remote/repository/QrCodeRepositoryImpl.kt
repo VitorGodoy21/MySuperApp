@@ -15,6 +15,10 @@ class QrCodeRepositoryImpl(
         return qrCodeDao.getQrCodes()
     }
 
+    override suspend fun getQrCode(id: String): QrCodeDto? {
+        return qrCodeDao.getQrCode(id)
+    }
+
     override suspend fun createQrCode(qrCode: QrCode): QrCodeDto? {
         return qrCodeDao.createQrCode(qrCode.toDto())
     }

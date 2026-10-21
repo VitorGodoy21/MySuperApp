@@ -1,4 +1,8 @@
-package com.vfdeginformatica.qrcodemanager.notifications
+package com.vfdeginformatica.mysuperapp.presentation.screen.notifications
+
+import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.contract.NotificationsEffect
+import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.contract.NotificationsEvent
+import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.contract.NotificationsUiState
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -145,4 +149,5 @@ class NotificationsViewModel @Inject constructor(
         }
     }
 }
+
 

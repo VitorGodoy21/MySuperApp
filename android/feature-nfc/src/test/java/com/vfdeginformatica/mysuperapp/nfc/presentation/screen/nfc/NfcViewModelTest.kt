@@ -72,6 +72,7 @@ class NfcViewModelTest {
         override suspend fun getQrCodes() = listOf(
             QrCodeDto(id = qrCode.id, redirectUrl = qrCode.redirectUrl, staticUrl = qrCode.staticUrl)
         )
+        override suspend fun getQrCode(id: String) = error("not used")
         override suspend fun createQrCode(qrCode: QrCode) = error("not used")
         override suspend fun updateQrCode(id: String, qrCode: QrCode) = error("not used")
         override suspend fun getComments(qrCodeId: String) = error("not used")

@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Salvar imagem na galeria (necessário apenas até API 28) -->
     <uses-permission
@@ -26,6 +27,15 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
+
+        <!-- Push de acesso/comentário em QR Codes (serviço compartilhado do feature-qrcode) -->
+        <service
+            android:name="com.vfdeginformatica.mysuperapp.notification.QrCodeNotificationService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".presentation.my_super_app.MainActivity"

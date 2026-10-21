@@ -117,6 +117,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.ui.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
     // App Check — Play Integrity em produção, Debug em dev
     implementation(libs.firebase.appcheck.playintegrity)
     //"devReleaseImplementation"(libs.firebase.appcheck.debug)

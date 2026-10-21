@@ -354,18 +354,55 @@ async function sendToQrOwner({ qrCodeId, title, body, type, data }) {
     return;
   }
 
-  const userDoc = await db.collection('users').doc(ownerUserId).get();
-  const token = (userDoc.data() || {}).fcmToken;
-  if (!token) {
-    logger.warn('Owner without fcmToken', { ownerUserId, qrCodeId });
+  const userRef = db.collection('users').doc(ownerUserId);
+  const userDoc = await userRef.get();
+  const userData = userDoc.data() || {};
+  // Multi-dispositivo: `fcmTokens` (mapa token -> updatedAt) + `fcmToken` legado.
+  const tokens = [...new Set([
+    ...Object.keys(userData.fcmTokens || {}),
+    ...(userData.fcmToken ? [userData.fcmToken] : [])
+  ])].filter(Boolean);
+
+  if (tokens.length === 0) {
+    logger.warn('Owner without fcmTokens', { ownerUserId, qrCodeId });
     return;
   }
 
-  await messaging.send({
-    token,
+  const response = await messaging.sendEachForMulticast({
+    tokens,
     notification: { title, body },
     data: { type, qrCodeId, ...data }
   });
+
+  const invalidTokens = [];
+  response.responses.forEach((res, index) => {
+    if (res.success) return;
+    const code = res.error && res.error.code;
+    logger.warn('FCM send failed', { ownerUserId, qrCodeId, code });
+    if (
+      code === 'messaging/registration-token-not-registered' ||
+      code === 'messaging/invalid-registration-token' ||
+      code === 'messaging/invalid-argument'
+    ) {
+      invalidTokens.push(tokens[index]);
+    }
+  });
+
+  if (invalidTokens.length > 0) {
+    const batchUpdate = [];
+    for (const token of invalidTokens) {
+      batchUpdate.push(new admin.firestore.FieldPath('fcmTokens', token), admin.firestore.FieldValue.delete());
+    }
+    if (invalidTokens.includes(userData.fcmToken)) {
+      batchUpdate.push(new admin.firestore.FieldPath('fcmToken'), admin.firestore.FieldValue.delete());
+    }
+    try {
+      await userRef.update(...batchUpdate);
+      logger.info('Pruned invalid FCM tokens', { ownerUserId, count: invalidTokens.length });
+    } catch (err) {
+      logger.warn('Failed to prune invalid FCM tokens', { ownerUserId, message: err.message });
+    }
+  }
 }
 
 exports.notifyQrCodeAccess = onDocumentCreated(

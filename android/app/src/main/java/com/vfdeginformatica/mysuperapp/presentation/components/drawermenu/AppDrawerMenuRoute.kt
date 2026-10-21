@@ -90,7 +90,9 @@ fun AppDrawerMenuRoute(
         },
         onQrCode = { viewModel.navigateWithBiometric(Screen.QrCodeListScreen.route, activity = activity) },
         onNfc = { viewModel.navigateWithBiometric(SharedNfcRoutes.NFC_SCREEN, activity = activity) },
-        onSettings = {},
+        onSettings = {
+            viewModel.navigateWithBiometric(Screen.SettingsScreen.route, passwordRequired = false, activity = activity)
+        },
         onResume = { viewModel.onEvent(AppDrawerMenuEvent.OnResume) }
     ) {
         content {

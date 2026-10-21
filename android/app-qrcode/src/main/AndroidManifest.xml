@@ -23,7 +23,7 @@
             android:value="${MAPS_API_KEY}" />
 
         <service
-            android:name=".notification.QrCodeFcmService"
+            android:name="com.vfdeginformatica.mysuperapp.notification.QrCodeNotificationService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -42,3 +42,4 @@
     </application>
 
 </manifest>
+

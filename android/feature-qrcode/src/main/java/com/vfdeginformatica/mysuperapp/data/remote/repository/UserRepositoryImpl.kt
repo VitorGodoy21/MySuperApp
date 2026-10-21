@@ -102,4 +102,26 @@ class UserRepositoryImpl(
             Resource.Error(e.message ?: "Erro ao atualizar preferências de notificações")
         }
     }
+
+    override suspend fun registerFcmToken(token: String): Resource<Unit> {
+        return try {
+            val uid = userSessionSecureStorage.getUserSession().id
+            if (uid.isEmpty()) return Resource.Error("Usuário não autenticado")
+            userRemoteDao.registerFcmToken(uid, token)
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Erro ao registrar token de notificação")
+        }
+    }
+
+    override suspend fun unregisterFcmToken(token: String): Resource<Unit> {
+        return try {
+            val uid = userSessionSecureStorage.getUserSession().id
+            if (uid.isEmpty()) return Resource.Error("Usuário não autenticado")
+            userRemoteDao.unregisterFcmToken(uid, token)
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Erro ao remover token de notificação")
+        }
+    }
 }

@@ -1,4 +1,7 @@
-package com.vfdeginformatica.qrcodemanager.notifications
+package com.vfdeginformatica.mysuperapp.presentation.screen.notifications
+
+import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.contract.NotificationsEvent
+import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.contract.NotificationsUiState
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -102,4 +105,5 @@ private fun NotificationToggleRow(
         )
     }
 }
+
 

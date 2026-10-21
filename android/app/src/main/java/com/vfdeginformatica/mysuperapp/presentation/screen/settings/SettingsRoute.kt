@@ -1,51 +1,43 @@
-package com.vfdeginformatica.qrcodemanager.notifications
+package com.vfdeginformatica.mysuperapp.presentation.screen.settings
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
+import com.vfdeginformatica.mysuperapp.presentation.screen.settings.contract.SettingsEffect
 
 @Composable
-fun NotificationsRoute(
-    navController: NavHostController,
-    viewModel: NotificationsViewModel = hiltViewModel()
+fun SettingsRoute(
+    onNavigateUp: () -> Unit,
+    onNavigate: (String) -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBar = remember { SnackbarHostState() }
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is NotificationsEffect.ShowToast ->
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is SettingsEffect.Navigate -> onNavigate(effect.route)
             }
         }
     }
 
     AppScaffold(
-        title = "Notificações",
+        title = "Configurações",
         canNavigateUp = true,
         customizedNavigateUpIcon = Icons.AutoMirrored.Filled.ArrowBack,
-        onNavigateUp = { navController.popBackStack() },
+        onNavigateUp = onNavigateUp,
         snackBarHostState = snackBar
     ) { padding ->
-        NotificationsScreen(
-            uiState = uiState,
+        SettingsScreen(
             onEvent = viewModel::onEvent,
             modifier = Modifier.padding(padding)
         )
     }
 }
-
