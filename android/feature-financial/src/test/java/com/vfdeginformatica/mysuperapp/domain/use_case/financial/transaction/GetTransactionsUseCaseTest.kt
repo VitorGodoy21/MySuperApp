@@ -110,6 +110,28 @@ class GetTransactionsUseCaseTest {
     }
 
     @Test
+    fun `installments show only in their invoice month`() = runTest {
+        fun inst(n: Int, invoice: String) = dto("p$n", 100.0, timestampOf(2026, 9, 10)).copy(
+            paymentMethod = "CREDIT", invoiceMonth = invoice,
+            installmentGroupId = "g", installments = 3, installmentNumber = n
+        )
+        val all = listOf(inst(1, "2026-09"), inst(2, "2026-10"), inst(3, "2026-11"))
+        val repo = FakeTransactionRepository().apply {
+            monthTransactions = all + dto("normal", 10.0, timestampOf(2026, 9, 5))
+            invoiceTransactions = all
+        }
+        val useCase = GetTransactionsUseCase(repo)
+
+        val sept = useCase(YearMonth.of(2026, 9)).toList().last().data.orEmpty()
+        assertEquals(setOf("p1", "normal"), sept.map { it.id }.toSet())
+        assertEquals(1, sept.count { it.id == "p1" })
+
+        repo.monthTransactions = emptyList()
+        val oct = useCase(YearMonth.of(2026, 10)).toList().last().data.orEmpty()
+        assertEquals(listOf("p2"), oct.map { it.id })
+    }
+
+    @Test
     fun `result is sorted by date descending`() = runTest {
         val repo = FakeTransactionRepository().apply {
             monthTransactions = listOf(

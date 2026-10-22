@@ -20,6 +20,7 @@ open class FakeTransactionRepository : TransactionRepository {
 
     var monthTransactions: List<TransactionDto> = emptyList()
     var recurringTransactions: List<TransactionDto> = emptyList()
+    var invoiceTransactions: List<TransactionDto> = emptyList()
     var writeResult: Resource<Unit> = Resource.Success(Unit)
     var groupCategoryResult: Resource<Unit> = Resource.Success(Unit)
     var cleanupResult: Resource<Unit> = Resource.Success(Unit)
@@ -89,7 +90,7 @@ open class FakeTransactionRepository : TransactionRepository {
         Resource.Success(monthTransactions)
 
     override suspend fun getTransactionsByInvoiceMonth(invoiceMonth: String): Resource<List<TransactionDto>> =
-        Resource.Success(emptyList())
+        Resource.Success(invoiceTransactions.filter { it.invoiceMonth == invoiceMonth })
 
     override suspend fun getRecurringTransactions(): Resource<List<TransactionDto>> =
         Resource.Success(recurringTransactions)

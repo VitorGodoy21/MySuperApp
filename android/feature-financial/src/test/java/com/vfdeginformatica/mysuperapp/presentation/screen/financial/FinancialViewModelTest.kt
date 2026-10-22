@@ -117,8 +117,8 @@ class FinancialViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, repo.monthQueries)
-        // fatura do mês selecionado (projeção) + fatura de M-1 (paga no mês)
-        assertEquals(2, repo.invoiceQueries)
+        // fatura do mês selecionado (projeção) + fatura de M-1 (paga no mês) + parcelas do mês
+        assertEquals(3, repo.invoiceQueries)
     }
 
     @Test
@@ -164,7 +164,7 @@ class FinancialViewModelTest {
 
         assertEquals(initial.plusMonths(1), vm.uiState.value.selectedMonth)
         assertEquals(2, repo.monthQueries)
-        assertEquals(4, repo.invoiceQueries)
+        assertEquals(6, repo.invoiceQueries)
     }
 
     @Test
@@ -178,18 +178,18 @@ class FinancialViewModelTest {
 
         assertEquals(FinancialTab.FILTERS, vm.uiState.value.selectedTab)
         assertEquals(1, repo.monthQueries)
-        assertEquals(2, repo.invoiceQueries)
+        assertEquals(3, repo.invoiceQueries)
     }
 
     @Test
-    fun `clicking a card invoice emits navigation with the selected month`() = runTest(dispatcher) {
+    fun `clicking a card invoice emits navigation with the displayed invoice month`() = runTest(dispatcher) {
         val vm = buildViewModel(CountingTransactionRepository())
         val effects = mutableListOf<FinancialEffect>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             vm.effect.toList(effects)
         }
         advanceUntilIdle()
-        val month = vm.uiState.value.selectedMonth
+        val month = vm.uiState.value.selectedMonth.plusMonths(1)
 
         vm.onEvent(FinancialEvent.OnCardInvoiceClicked("c1"))
         advanceUntilIdle()
@@ -199,6 +199,28 @@ class FinancialViewModelTest {
             listOf(FinancialEffect.NavigateToCardInvoice("c1", expectedMonth)),
             effects
         )
+    }
+
+    @Test
+    fun `invoice card loads the next month invoice`() = runTest {
+        val repo = CountingTransactionRepository()
+        val next = java.time.YearMonth.now().plusMonths(1)
+        val key = "%04d-%02d".format(next.year, next.monthValue)
+        repo.invoicesByMonth = mapOf(
+            key to listOf(
+                TransactionDto(
+                    id = "next-credit", title = "Phone", transactionType = "EXPENSE",
+                    paymentMethod = "CREDIT", amount = 150.0, cardId = "c1", invoiceMonth = key
+                )
+            )
+        )
+
+        val vm = buildViewModel(repo)
+        advanceUntilIdle()
+
+        assertEquals(key, vm.uiState.value.invoiceMonthKey)
+        assertEquals(listOf("next-credit"), vm.uiState.value.invoiceTransactions.map { it.id })
+        assertEquals(150.0, vm.uiState.value.projectedInvoiceTotal, 0.001)
     }
 
     @Test

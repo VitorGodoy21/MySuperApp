@@ -83,7 +83,7 @@ class FinancialViewModel @Inject constructor(
                     _effect.emit(
                         FinancialEffect.NavigateToCardInvoice(
                             cardId = event.cardId,
-                            invoiceMonth = _uiState.value.selectedMonthKey
+                            invoiceMonth = _uiState.value.invoiceMonthKey
                         )
                     )
                 }
@@ -227,7 +227,7 @@ class FinancialViewModel @Inject constructor(
     private fun loadProjection() {
         loadProjectionJob?.cancel()
         loadProjectionJob = viewModelScope.launch {
-            getInvoiceProjectionUseCase(_uiState.value.selectedMonth).collect { result ->
+            getInvoiceProjectionUseCase(_uiState.value.invoiceMonth).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoadingProjection = true) }

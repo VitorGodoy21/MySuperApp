@@ -161,11 +161,11 @@ class FinancialUiStateTest {
     fun `invoice by card dedups recurring credit already in invoice month`() {
         val state = base.copy(
             invoiceTransactions = listOf(
-                tx("tv-3", 30.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-10"),
-                tx("netflix", 50.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1", invoiceMonth = "2026-10")
+                tx("tv-3", 30.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-11"),
+                tx("netflix", 50.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1", invoiceMonth = "2026-11")
             ),
             recurringTransactions = listOf(
-                tx("netflix", 50.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1", invoiceMonth = "2026-10"),
+                tx("netflix", 50.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1", invoiceMonth = "2026-11"),
                 tx("spotify", 20.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c2", invoiceMonth = "2026-09"),
                 tx("gym", 90.0, paymentMethod = "DEBIT", isRecurring = true, cardId = "c2")
             )

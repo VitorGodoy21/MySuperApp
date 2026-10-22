@@ -122,20 +122,26 @@ data class FinancialUiState(
             .entries.sortedByDescending { it.value }
             .associate { it.key to it.value }
 
-    // ---- Fatura do mês selecionado ----
+    // ---- Fatura exibida no card (M+1: onde caem as compras feitas no mês selecionado) ----
 
     val selectedMonthKey: String
         get() = "%04d-%02d".format(selectedMonth.year, selectedMonth.monthValue)
 
+    val invoiceMonth: YearMonth
+        get() = selectedMonth.plusMonths(1)
+
+    val invoiceMonthKey: String
+        get() = "%04d-%02d".format(invoiceMonth.year, invoiceMonth.monthValue)
+
     /**
-     * Despesas de crédito recorrentes projetadas na fatura do mês
+     * Despesas de crédito recorrentes projetadas na fatura exibida
      * (excluindo as que já entraram pela query de invoiceMonth, para não duplicar).
      */
     val recurringCreditInInvoice: List<Transaction>
         get() = recurringTransactions.filter {
             it.type == TransactionType.EXPENSE &&
                     it.paymentMethod == CREDIT &&
-                    it.invoiceMonth != selectedMonthKey
+                    it.invoiceMonth != invoiceMonthKey
         }
 
     /** Itens que compõem a fatura do mês (parcelas/compras + recorrentes de crédito). */

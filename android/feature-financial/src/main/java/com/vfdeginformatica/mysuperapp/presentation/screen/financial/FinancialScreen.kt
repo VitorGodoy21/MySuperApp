@@ -355,8 +355,9 @@ private fun ProportionBar(fraction: Double) {
 @Composable
 private fun InvoiceByCardCard(uiState: FinancialUiState, onEvent: (FinancialEvent) -> Unit) {
     SectionCard(
-        title = "Fatura por cartão",
-        subtitle = "Compras e parcelas que vencem neste mês, incluindo recorrentes de crédito. " +
+        title = "Fatura de ${monthLabel(uiState.invoiceMonth)}",
+        subtitle = "Fatura em aberto: as compras no crédito feitas em ${monthLabel(uiState.selectedMonth)} " +
+                "são somadas aqui. Inclui parcelas e recorrentes de crédito. " +
                 "Toque num cartão para ver os lançamentos."
     ) {
         uiState.invoiceByCard.entries.forEach { entry ->

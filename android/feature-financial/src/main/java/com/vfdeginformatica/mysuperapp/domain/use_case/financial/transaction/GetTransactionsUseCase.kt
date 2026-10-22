@@ -27,6 +27,13 @@ class GetTransactionsUseCase @Inject constructor(
         when (val result = repository.getTransactions(start, end)) {
             is Resource.Success -> {
                 val monthTransactions = result.data.orEmpty().map { it.toModel() }
+                val monthKey = month.format(NewTransactionUseCase.INVOICE_MONTH_FORMAT)
+                val invoiceResult = repository.getTransactionsByInvoiceMonth(monthKey)
+                if (invoiceResult is Resource.Error) {
+                    emit(Resource.Error(invoiceResult.message ?: "Erro ao buscar parcelas"))
+                    return@flow
+                }
+                val installments = invoiceResult.data.orEmpty().map { it.toModel() }
                 when (val recurringResult = repository.getRecurringTransactions()) {
                     is Resource.Success -> {
                         emit(
@@ -34,7 +41,8 @@ class GetTransactionsUseCase @Inject constructor(
                                 mergeWithRecurring(
                                     month = month,
                                     monthTransactions = monthTransactions,
-                                    recurring = recurringResult.data.orEmpty().map { it.toModel() }
+                                    recurring = recurringResult.data.orEmpty().map { it.toModel() },
+                                    invoiceInstallments = installments
                                 )
                             )
                         )
@@ -68,13 +76,19 @@ class GetTransactionsUseCase @Inject constructor(
         fun mergeWithRecurring(
             month: YearMonth,
             monthTransactions: List<Transaction>,
-            recurring: List<Transaction>
+            recurring: List<Transaction>,
+            invoiceInstallments: List<Transaction> = emptyList()
         ): List<Transaction> {
             val occurrences = recurring
                 .filter { it.occursIn(month) }
                 .map { it.materializeFor(month) }
-            val nonRecurring = monthTransactions.filterNot { it.isRecurring }
-            return (nonRecurring + occurrences)
+            // Parcelas (docs com installmentGroupId) aparecem só no mês da sua fatura,
+            // não no mês da compra, para não duplicar a compra nem somar o total N vezes.
+            val nonRecurring = monthTransactions
+                .filterNot { it.isRecurring || it.installmentGroupId != null }
+            val installments = invoiceInstallments
+                .filter { !it.isRecurring && it.installmentGroupId != null }
+            return (nonRecurring + installments + occurrences)
                 .sortedByDescending { it.date?.toDate()?.time ?: Long.MIN_VALUE }
         }
     }
