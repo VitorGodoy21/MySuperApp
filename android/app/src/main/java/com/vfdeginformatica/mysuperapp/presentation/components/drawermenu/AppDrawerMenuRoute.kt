@@ -88,6 +88,9 @@ fun AppDrawerMenuRoute(
         onWorkoutWorkouts = {
             viewModel.navigateWithBiometric(Screen.WorkoutListScreen.route, passwordRequired = false, activity = activity)
         },
+        onWorkoutDiet = {
+            viewModel.navigateWithBiometric(Screen.DietDetailScreen.route, passwordRequired = false, activity = activity)
+        },
         onQrCode = { viewModel.navigateWithBiometric(Screen.QrCodeListScreen.route, activity = activity) },
         onNfc = { viewModel.navigateWithBiometric(SharedNfcRoutes.NFC_SCREEN, activity = activity) },
         onSettings = {

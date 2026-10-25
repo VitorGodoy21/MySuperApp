@@ -152,6 +152,16 @@ service cloud.firestore {
       allow delete: if isAuthenticated();
     }
 
+    // Dieta diária privada: um documento por usuário.
+    match /diets/{userId} {
+      allow get, delete: if isSelf(userId);
+      allow create, update: if isSelf(userId)
+        && request.resource.data.keys().hasOnly(['meals', 'notes', 'updatedAt'])
+        && request.resource.data.meals is list
+        && request.resource.data.notes is string
+        && request.resource.data.updatedAt is timestamp;
+    }
+
     // ===== Academia (feature-workout) — dados sem userId, igual ao financeiro =====
 
     // Histórico de pesagens (um documento por registro)
@@ -210,7 +220,7 @@ service cloud.firestore {
         && request.resource.data.notes is string;
       allow update: if isAuthenticated()
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['name', 'dayOfWeek', 'items', 'exerciseIds', 'notes', 'updatedAt'])
+          .hasOnly(['name', 'dayOfWeek', 'items', 'exerciseIds', 'notes', 'icon', 'updatedAt'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.items is list

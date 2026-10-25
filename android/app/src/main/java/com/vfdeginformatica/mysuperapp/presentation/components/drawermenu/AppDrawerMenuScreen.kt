@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DrawerValue
@@ -63,6 +64,7 @@ fun AppDrawerMenuScreen(
     onWorkoutBodyMeasurements: () -> Unit,
     onWorkoutExercises: () -> Unit,
     onWorkoutWorkouts: () -> Unit,
+    onWorkoutDiet: () -> Unit,
     onQrCode: () -> Unit,
     onNfc: () -> Unit,
     onSettings: () -> Unit,
@@ -264,6 +266,18 @@ fun AppDrawerMenuScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.EventNote,
                                 contentDescription = "WorkoutWorkouts"
+                            )
+                        },
+                        modifier = Modifier.padding(start = 24.dp)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Dieta") },
+                        selected = false,
+                        onClick = onWorkoutDiet,
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Restaurant,
+                                contentDescription = null
                             )
                         },
                         modifier = Modifier.padding(start = 24.dp)

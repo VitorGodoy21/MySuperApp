@@ -4,6 +4,7 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.WorkoutDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.WorkoutItemDto
 import com.vfdeginformatica.mysuperapp.domain.model.WeekDay
 import com.vfdeginformatica.mysuperapp.domain.model.Workout
+import com.vfdeginformatica.mysuperapp.domain.model.WorkoutIcon
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutItem
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -65,5 +66,13 @@ class WorkoutMapperTest {
         val restored = original.toDto().toModel()
 
         assertEquals(original, restored)
+    }
+
+    @Test
+    fun `icon round trips and legacy or unknown values fall back to dumbbell`() {
+        val restored = Workout(id = "w1", name = "Cardio", icon = WorkoutIcon.TREADMILL).toDto().toModel()
+        assertEquals(WorkoutIcon.TREADMILL, restored.icon)
+        assertEquals(WorkoutIcon.DUMBBELL, WorkoutDto(id = "w2", name = "Velho").toModel().icon)
+        assertEquals(WorkoutIcon.DUMBBELL, WorkoutDto(id = "w3", name = "X", icon = "NOPE").toModel().icon)
     }
 }

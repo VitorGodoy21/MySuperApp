@@ -33,6 +33,8 @@ sealed class Screen(val route: String) {
 
     // Academia (feature-workout)
     object WorkoutHubScreen : Screen("workout_hub_screen")
+    object DietViewScreen : Screen("diet_view_screen")
+    object DietDetailScreen : Screen("diet_detail_screen")
     object BodyMeasurementListScreen : Screen("body_measurement_list_screen")
     object BodyMeasurementDetailScreen :
         Screen("body_measurement_detail_screen?measurementId={measurementId}") {

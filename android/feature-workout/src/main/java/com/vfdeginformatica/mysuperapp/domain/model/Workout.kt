@@ -20,6 +20,7 @@ data class Workout(
     val dayOfWeek: WeekDay? = null,
     val items: List<WorkoutItem> = emptyList(),
     val notes: String = "",
+    val icon: WorkoutIcon = WorkoutIcon.DEFAULT,
 ) {
     val exerciseIds: List<String>
         get() = items.map { it.exerciseId }.distinct()

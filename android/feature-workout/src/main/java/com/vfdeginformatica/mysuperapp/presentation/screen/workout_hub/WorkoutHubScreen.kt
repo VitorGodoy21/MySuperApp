@@ -2,7 +2,6 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,10 +17,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,13 +32,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.domain.model.Workout
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.GetRecentWorkoutSessionsUseCase
 import com.vfdeginformatica.mysuperapp.presentation.common.SessionStatsRow
 import com.vfdeginformatica.mysuperapp.presentation.common.formatDate
 import com.vfdeginformatica.mysuperapp.presentation.common.formatWeekDay
+import com.vfdeginformatica.mysuperapp.presentation.common.imageVector
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.contract.WorkoutHistoryEntry
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.contract.WorkoutHubEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.contract.WorkoutHubUiState
@@ -68,91 +69,121 @@ fun WorkoutHubScreen(
     }
 
     val historyDays = uiState.historyDays
-    Box(modifier = modifier.fillMaxSize()) {
-        when {
-            uiState.isLoading && uiState.workouts.isEmpty() -> CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item(key = "title") {
+            Text(
+                text = "Meus treinos",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
             )
-
-            uiState.workouts.isEmpty() && uiState.sessions.isEmpty() -> Text(
-                text = "Nenhum treino montado.\nMonte seus treinos em Menu → Academia → Treinos.",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(24.dp),
+        }
+        if (uiState.isLoading) {
+            item(key = "workouts_loading") { CircularProgressIndicator() }
+        }
+        if (uiState.workouts.isEmpty() && !uiState.isLoading) {
+            item(key = "workouts_empty") {
+                Text(
+                    text = "Nenhum treino montado. Monte seus treinos em Menu → Academia → Treinos.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        items(uiState.workouts, key = { it.id }) { workout ->
+            WorkoutCard(
+                workout = workout,
+                onClick = { onEvent(WorkoutHubEvent.WorkoutClicked(workout.id)) },
             )
-
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
+        }
+        item(key = "diet") {
+            Column(
+                modifier = Modifier.padding(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                item(key = "title") {
-                    Text(
-                        text = "Meus treinos",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                if (uiState.workouts.isEmpty()) {
-                    item(key = "workouts_empty") {
-                        Text(
-                            text = "Nenhum treino montado. Monte seus treinos em Menu → Academia → Treinos.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                items(uiState.workouts, key = { it.id }) { workout ->
-                    WorkoutCard(
-                        workout = workout,
-                        onClick = { onEvent(WorkoutHubEvent.WorkoutClicked(workout.id)) },
-                    )
-                }
-
-                item(key = "history_header") {
+                HorizontalDivider()
+                Text(
+                    text = "Alimentação",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Card(
+                    onClick = { onEvent(WorkoutHubEvent.DietClicked) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+                ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth().padding(20.dp),
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        Text(
-                            text = "Histórico (últimos ${GetRecentWorkoutSessionsUseCase.DEFAULT_DAYS} dias)",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                        Icon(
+                            imageVector = Icons.Default.Restaurant,
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
                         )
-                        if (uiState.isSessionsLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = "Minha dieta",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = "Consulte suas refeições do dia",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
                     }
                 }
-
-                if (historyDays.isEmpty() && !uiState.isSessionsLoading) {
-                    item(key = "history_empty") {
-                        Text(
-                            text = "Nenhum treino registrado nos últimos ${GetRecentWorkoutSessionsUseCase.DEFAULT_DAYS} dias.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                HorizontalDivider()
+            }
+        }
+        item(key = "history_header") {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Histórico (últimos ${GetRecentWorkoutSessionsUseCase.DEFAULT_DAYS} dias)",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                if (uiState.isSessionsLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 }
-
-                historyDays.forEach { day ->
-                    item(key = "day_${day.date}") {
-                        DayHeader(day.date, modifier = Modifier.padding(top = 4.dp))
-                    }
-                    items(day.entries, key = { "session_${it.session.id}" }) { entry ->
-                        HistoryEntryCard(
-                            entry = entry,
-                            enabled = !uiState.isBusy,
-                            onClick = { onEvent(WorkoutHubEvent.SessionClicked(entry.session.id)) },
-                            onDelete = { onEvent(WorkoutHubEvent.DeleteSessionClicked(entry.session.id)) },
-                        )
-                    }
-                }
+            }
+        }
+        if (historyDays.isEmpty() && !uiState.isSessionsLoading) {
+            item(key = "history_empty") {
+                Text(
+                    text = "Nenhum treino registrado nos últimos ${GetRecentWorkoutSessionsUseCase.DEFAULT_DAYS} dias.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        historyDays.forEach { day ->
+            item(key = "day_${day.date}") {
+                DayHeader(day.date, modifier = Modifier.padding(top = 4.dp))
+            }
+            items(day.entries, key = { "session_${it.session.id}" }) { entry ->
+                HistoryEntryCard(
+                    entry = entry,
+                    enabled = !uiState.isBusy,
+                    onClick = { onEvent(WorkoutHubEvent.SessionClicked(entry.session.id)) },
+                    onDelete = { onEvent(WorkoutHubEvent.DeleteSessionClicked(entry.session.id)) },
+                )
             }
         }
     }
@@ -201,7 +232,7 @@ private fun HistoryEntryCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                imageVector = Icons.Default.FitnessCenter,
+                imageVector = entry.workoutIcon.imageVector,
                 contentDescription = null,
                 tint = if (entry.workoutExists) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -240,7 +271,7 @@ private fun WorkoutCard(workout: Workout, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                imageVector = Icons.Default.FitnessCenter,
+                imageVector = workout.icon.imageVector,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(32.dp),

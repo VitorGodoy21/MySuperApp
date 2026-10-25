@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contr
 
 import com.vfdeginformatica.mysuperapp.domain.model.Exercise
 import com.vfdeginformatica.mysuperapp.domain.model.WeekDay
+import com.vfdeginformatica.mysuperapp.domain.model.WorkoutIcon
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutItem
 import com.vfdeginformatica.mysuperapp.presentation.common.formatKg
 
@@ -31,6 +32,7 @@ data class WorkoutDetailUiState(
     val isLoading: Boolean = false,
     val name: String = "",
     val dayOfWeek: WeekDay? = null,
+    val icon: WorkoutIcon = WorkoutIcon.DEFAULT,
     val notes: String = "",
     val items: List<WorkoutItem> = emptyList(),
     val availableExercises: List<Exercise> = emptyList(),

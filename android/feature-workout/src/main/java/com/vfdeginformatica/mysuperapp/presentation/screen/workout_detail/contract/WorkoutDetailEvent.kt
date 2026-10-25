@@ -1,10 +1,12 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract
 
 import com.vfdeginformatica.mysuperapp.domain.model.WeekDay
+import com.vfdeginformatica.mysuperapp.domain.model.WorkoutIcon
 
 sealed interface WorkoutDetailEvent {
     data class NameChanged(val name: String) : WorkoutDetailEvent
     data class DayChanged(val day: WeekDay?) : WorkoutDetailEvent
+    data class IconChanged(val icon: WorkoutIcon) : WorkoutDetailEvent
     data class NotesChanged(val notes: String) : WorkoutDetailEvent
 
     data object AddExerciseClicked : WorkoutDetailEvent

@@ -1,6 +1,7 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.contract
 
 import com.vfdeginformatica.mysuperapp.domain.model.Workout
+import com.vfdeginformatica.mysuperapp.domain.model.WorkoutIcon
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutSession
 import java.time.LocalDate
 
@@ -20,13 +21,18 @@ data class WorkoutHubUiState(
     val historyDays: List<WorkoutHistoryDay>
         get() {
             val names = workouts.associate { it.id to it.name }
+            val icons = workouts.associate { it.id to it.icon }
             return sessions
                 .groupBy { it.date }
                 .map { (date, daySessions) ->
                     WorkoutHistoryDay(
                         date = date,
                         entries = daySessions.map { session ->
-                            WorkoutHistoryEntry(session = session, workoutName = names[session.workoutId])
+                            WorkoutHistoryEntry(
+                                session = session,
+                                workoutName = names[session.workoutId],
+                                workoutIcon = icons[session.workoutId] ?: WorkoutIcon.DEFAULT,
+                            )
                         },
                     )
                 }
@@ -42,12 +48,14 @@ data class WorkoutHistoryEntry(
     val session: WorkoutSession,
     /** Null when the workout no longer exists. */
     val workoutName: String?,
+    val workoutIcon: WorkoutIcon = WorkoutIcon.DEFAULT,
 ) {
     val workoutExists: Boolean get() = workoutName != null
 }
 
 sealed interface WorkoutHubEvent {
     data object Reload : WorkoutHubEvent
+    data object DietClicked : WorkoutHubEvent
     data class WorkoutClicked(val workoutId: String) : WorkoutHubEvent
     data class SessionClicked(val sessionId: String) : WorkoutHubEvent
     data class DeleteSessionClicked(val sessionId: String) : WorkoutHubEvent
@@ -56,6 +64,7 @@ sealed interface WorkoutHubEvent {
 }
 
 sealed interface WorkoutHubEffect {
+    data object NavigateToDiet : WorkoutHubEffect
     data class NavigateToWorkout(val workoutId: String) : WorkoutHubEffect
     data class ShowToast(val message: String) : WorkoutHubEffect
 }

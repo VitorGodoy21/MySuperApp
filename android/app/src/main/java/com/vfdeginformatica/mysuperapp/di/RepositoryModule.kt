@@ -1,6 +1,9 @@
 package com.vfdeginformatica.mysuperapp.di
 
 import android.content.Context
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.DietDao
+import com.vfdeginformatica.mysuperapp.data.remote.repository.DietRepositoryImpl
+import com.vfdeginformatica.mysuperapp.domain.repository.DietRepository
 import com.vfdeginformatica.mysuperapp.data.local.BiometricRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CategoryTransactionDao
@@ -34,6 +37,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideDietRepository(dao: DietDao): DietRepository = DietRepositoryImpl(dao)
 
     @Provides
     @Singleton

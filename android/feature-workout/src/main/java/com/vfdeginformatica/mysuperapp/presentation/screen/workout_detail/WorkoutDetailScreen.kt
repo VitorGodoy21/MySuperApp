@@ -60,6 +60,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.MuscleGroup
 import com.vfdeginformatica.mysuperapp.domain.model.WeekDay
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutItem
 import com.vfdeginformatica.mysuperapp.presentation.common.ItemDraftDialog
+import com.vfdeginformatica.mysuperapp.presentation.common.WorkoutIconPicker
 import com.vfdeginformatica.mysuperapp.presentation.common.YouTubePlayerDialog
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.ItemDraft
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.contract.WorkoutDetailEvent
@@ -161,6 +162,14 @@ fun WorkoutDetailScreen(
                     }
                 }
             }
+        }
+
+        item(key = "icon") {
+            WorkoutIconPicker(
+                selected = uiState.icon,
+                onSelected = { onEvent(WorkoutDetailEvent.IconChanged(it)) },
+                enabled = !uiState.isBusy,
+            )
         }
 
         item(key = "notes") {

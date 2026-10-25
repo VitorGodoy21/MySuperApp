@@ -41,6 +41,10 @@ class WorkoutHubViewModel @Inject constructor(
 
     fun onEvent(event: WorkoutHubEvent) {
         when (event) {
+            WorkoutHubEvent.DietClicked -> viewModelScope.launch {
+                _effect.emit(WorkoutHubEffect.NavigateToDiet)
+            }
+
             WorkoutHubEvent.Reload -> {
                 load()
                 loadSessions()

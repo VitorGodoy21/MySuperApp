@@ -71,6 +71,19 @@ class WorkoutHubViewModelTest {
     }
 
     @Test
+    fun `diet navigation is available without workouts or sessions`() = runTest {
+        val vm = buildViewModel(workoutRepository = FakeWorkoutRepository(emptyList()))
+        val effects = mutableListOf<WorkoutHubEffect>()
+        val job = launch { vm.effect.collect { effects += it } }
+        vm.onEvent(WorkoutHubEvent.Reload)
+        advanceUntilIdle()
+        vm.onEvent(WorkoutHubEvent.DietClicked)
+        advanceUntilIdle()
+        job.cancel()
+        assertEquals(listOf(WorkoutHubEffect.NavigateToDiet), effects)
+    }
+
+    @Test
     fun `groups recent sessions by day newest first with several per day`() = runTest {
         val repo = FakeWorkoutSessionRepository(
             listOf(

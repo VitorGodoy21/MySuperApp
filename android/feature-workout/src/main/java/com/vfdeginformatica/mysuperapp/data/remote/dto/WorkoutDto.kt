@@ -22,6 +22,8 @@ data class WorkoutDto(
     /** Denormalized from [items] so Firestore `array-contains` can find workouts using an exercise. */
     var exerciseIds: List<String> = emptyList(),
     var notes: String = "",
+    /** [com.vfdeginformatica.mysuperapp.domain.model.WorkoutIcon] name; blank on legacy documents. */
+    var icon: String = "",
     var createdAt: Timestamp? = null,
     var updatedAt: Timestamp? = null,
 )

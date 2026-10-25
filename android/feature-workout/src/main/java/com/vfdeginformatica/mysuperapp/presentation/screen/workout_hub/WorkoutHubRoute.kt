@@ -18,6 +18,7 @@ fun WorkoutHubRoute(
     viewModel: WorkoutHubViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
     onNavigateToWorkout: (String) -> Unit,
+    onNavigateToDiet: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -25,6 +26,7 @@ fun WorkoutHubRoute(
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
+                WorkoutHubEffect.NavigateToDiet -> onNavigateToDiet()
                 is WorkoutHubEffect.NavigateToWorkout -> onNavigateToWorkout(effect.workoutId)
                 is WorkoutHubEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
             }
