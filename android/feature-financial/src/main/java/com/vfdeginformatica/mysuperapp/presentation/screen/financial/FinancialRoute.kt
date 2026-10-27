@@ -2,8 +2,6 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.financial
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,12 +14,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEvent
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 
 @Composable
 fun FinancialRoute(
     viewModel: FinancialViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
-    onNewTransaction: () -> Unit,
+    onNewTransaction: (TransactionType) -> Unit,
     onCardInvoice: (cardId: String, invoiceMonth: String) -> Unit = { _, _ -> }
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -51,11 +50,8 @@ fun FinancialRoute(
         canNavigateUp = true,
         onNavigateUp = onNavigateUp,
         snackBarHostState = snackBarHost,
-        floatingActionButtonExpanded = fabExpanded,
-        floatingActionButtonIcon = Icons.Default.Add,
-        floatingActionButtonLabel = "Criar Nova transação",
-        floatingActionButtonOnClick = {
-            onNewTransaction.invoke()
+        floatingActionButtonContent = {
+            TransactionFabMenu(expanded = fabExpanded, onNewTransaction = onNewTransaction)
         }
     ) { padding ->
         FinancialScreen(

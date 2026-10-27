@@ -8,7 +8,13 @@ sealed class Screen(val route: String) {
     object HomeScreen : Screen("home_screen")
     object LoginScreen : Screen("login_screen")
     object FinancialScreen : Screen("financial_screen")
-    object NewTransactionScreen : Screen("new_transaction_screen")
+    object NewTransactionScreen : Screen("new_transaction_screen/{transactionType}") {
+        const val TRANSACTION_TYPE = "transactionType"
+        fun createRoute(transactionType: String): String {
+            require(transactionType == "EXPENSE" || transactionType == "INCOME")
+            return "new_transaction_screen/$transactionType"
+        }
+    }
     object NewCardScreen : Screen("new_card_screen")
     object CardListScreen : Screen("card_list_screen")
     object CardDetailScreen : Screen("card_detail_screen/{cardId}") {

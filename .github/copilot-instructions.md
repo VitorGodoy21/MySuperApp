@@ -47,6 +47,8 @@
 
 ## Key conventions
 
+- The financial dashboard's new-transaction FAB expands into "Gasto" / "Receita" floating actions. Navigate with `Screen.NewTransactionScreen.createRoute(type.name)` (`new_transaction_screen/{transactionType}`); the required argument initializes `NewTransactionViewModel` via `SavedStateHandle`, and the form never allows changing that type. `AppScaffold.floatingActionButtonContent` supports this custom menu while retaining the default FAB on other screens.
+
 - Android feature modules follow the naming convention `feature-<featureName>` (e.g. `feature-qrcode`, `feature-nfc`, `feature-financial`, `feature-workout`). New shared feature modules should be added under `android/feature-<name>` and registered in `android/settings.gradle.kts` with a matching `include(":feature-<name>")`.
 - When changing QR-related behavior, check all three Android modules. Shared QR business logic usually belongs in `android/feature-qrcode`, while `android/app` and `android/app-qrcode` only provide app-specific shells, navigation, and DI wiring.
 - Android code follows a layered structure across modules: `data/remote` and `data/local` for Firebase/device access, `domain` for models/repositories/use cases, and `presentation` for Compose UI and view models.

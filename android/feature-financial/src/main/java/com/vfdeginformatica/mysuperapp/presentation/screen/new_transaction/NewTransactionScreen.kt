@@ -19,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -80,28 +79,6 @@ fun NewTransactionScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Seletor de Tipo (Receita / Despesa)
-            Text(text = "Tipo de Transação", style = MaterialTheme.typography.labelLarge)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    selected = uiState.transactionType == TransactionType.INCOME,
-                    onClick = { onEvent(NewTransactionEvent.TypeChanged(TransactionType.INCOME)) },
-                    label = { Text("Receita") },
-                    modifier = Modifier.weight(1f)
-                )
-                FilterChip(
-                    selected = uiState.transactionType == TransactionType.EXPENSE,
-                    onClick = { onEvent(NewTransactionEvent.TypeChanged(TransactionType.EXPENSE)) },
-                    label = { Text("Despesa") },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            HorizontalDivider()
-
             // 1. Campos Iniciais
             OutlinedTextField(
                 value = uiState.title,

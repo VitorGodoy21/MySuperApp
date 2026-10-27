@@ -36,6 +36,7 @@ fun AppScaffold(
     floatingActionButtonLabel: String? = null,
     onResume: () -> Unit = {},
     onStart: () -> Unit = {},
+    floatingActionButtonContent: (@Composable () -> Unit)? = null,
     content: @Composable (innerPadding: PaddingValues) -> Unit,
 ) {
 
@@ -71,7 +72,9 @@ fun AppScaffold(
             )
         },
         floatingActionButton = {
-            if (floatingActionButtonOnClick != null) {
+            if (floatingActionButtonContent != null) {
+                floatingActionButtonContent()
+            } else if (floatingActionButtonOnClick != null) {
                 ExtendedFloatingActionButton(
                     expanded = floatingActionButtonExpanded,
                     onClick = floatingActionButtonOnClick,

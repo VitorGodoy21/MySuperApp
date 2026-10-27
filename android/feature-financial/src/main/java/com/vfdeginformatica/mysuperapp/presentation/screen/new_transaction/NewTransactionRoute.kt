@@ -12,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.NewTransactionEvent
+import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 
 @Composable
 fun NewTransactionRoute(
@@ -37,7 +38,7 @@ fun NewTransactionRoute(
     }
 
     AppScaffold(
-        title = "Nova Transação",
+        title = if (state.transactionType == TransactionType.INCOME) "Nova receita" else "Novo gasto",
         canNavigateUp = true,
         onNavigateUp = onNavigateUp,
         snackBarHostState = snackBarHost

@@ -1,8 +1,10 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
@@ -25,12 +27,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewTransactionViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val getCardsUseCase: GetCardsUseCase,
     private val getTransactionsCategoriesUseCase: GetTransactionsCategoriesUseCase,
     private val newTransactionUseCase: NewTransactionUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(NewTransactionUiState())
+    private val transactionType = TransactionType.valueOf(
+        checkNotNull(savedStateHandle.get<String>(Screen.NewTransactionScreen.TRANSACTION_TYPE)) {
+            "Tipo de transação não informado"
+        }
+    )
+    private val _uiState = MutableStateFlow(NewTransactionUiState(transactionType = transactionType))
     val uiState: StateFlow<NewTransactionUiState> = _uiState
 
     private val _effect = MutableSharedFlow<NewTransactionEffect>()
@@ -175,20 +183,6 @@ class NewTransactionViewModel @Inject constructor(
             is NewTransactionEvent.RecurringChanged -> updateForm(recurring = event.isRecurring)
             NewTransactionEvent.SaveClicked -> submit()
             is NewTransactionEvent.TitleChanged -> updateForm(title = event.title)
-            is NewTransactionEvent.TypeChanged -> {
-                updateForm(
-                    type = event.type,
-                    cardId = "",
-                    paymentMethod = "",
-                    installments = "",
-                    recurring = false,
-                    // Categorias são por tipo: limpa as que não pertencem ao novo tipo
-                    selectedCategories = _uiState.value.selectedCategories
-                        .filter { it.transactionType == event.type.name }
-                )
-                loadCards()
-            }
-
             is NewTransactionEvent.InstallmentsChanged -> updateForm(installments = event.installments)
 
             NewTransactionEvent.ReloadCards -> loadCards()
@@ -205,7 +199,6 @@ class NewTransactionViewModel @Inject constructor(
         paymentMethod: String? = null,
         recurring: Boolean? = null,
         title: String? = null,
-        type: TransactionType? = null,
         installments: String? = null,
         availableCards: List<CardDto>? = null,
         availableCategories: List<CategoryTransactionDto>? = null,
@@ -224,7 +217,6 @@ class NewTransactionViewModel @Inject constructor(
                 paymentMethod = paymentMethod ?: old.paymentMethod,
                 isRecurring = recurring ?: old.isRecurring,
                 title = title ?: old.title,
-                transactionType = type ?: old.transactionType,
                 installments = installments ?: old.installments,
                 availableCards = availableCards ?: old.availableCards,
                 isLoadingCards = isLoadingCards ?: old.isLoadingCards,

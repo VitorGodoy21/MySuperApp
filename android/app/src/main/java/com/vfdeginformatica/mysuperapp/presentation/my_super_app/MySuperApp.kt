@@ -133,8 +133,8 @@ fun MySuperApp(
                         onNavigateUp = {
                             navController.navigateUp()
                         },
-                        onNewTransaction = {
-                            navController.navigate(Screen.NewTransactionScreen.route)
+                        onNewTransaction = { type ->
+                            navController.navigate(Screen.NewTransactionScreen.createRoute(type.name))
                         },
                         onCardInvoice = { cardId, invoiceMonth ->
                             navController.navigate(
@@ -162,7 +162,14 @@ fun MySuperApp(
                     )
                 }
 
-                composable(route = Screen.NewTransactionScreen.route) {
+                composable(
+                    route = Screen.NewTransactionScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.NewTransactionScreen.TRANSACTION_TYPE) {
+                            type = NavType.StringType
+                        }
+                    )
+                ) {
                     NewTransactionRoute(
                         onNavigateUp = {
                             navController.navigateUp()
