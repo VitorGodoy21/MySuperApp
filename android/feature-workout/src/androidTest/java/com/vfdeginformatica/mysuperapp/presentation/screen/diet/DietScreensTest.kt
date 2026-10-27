@@ -36,17 +36,26 @@ class DietScreensTest {
         val events = mutableListOf<WorkoutHubEvent>()
         compose.setContent { MaterialTheme { WorkoutHubScreen(state.value, events::add) } }
         val diet = compose.onNodeWithText("Minha dieta").assertIsDisplayed()
-        val nutrition = compose.onNodeWithText("Alimentação").assertIsDisplayed()
         compose.onNodeWithText("Consulte suas refeições do dia").assertIsDisplayed()
         val workouts = compose.onNodeWithText("Meus treinos")
-        val history = compose.onNodeWithText("Histórico (últimos 30 dias)")
+        val measurements = compose.onNodeWithText("Meus dados físicos")
+        val history = compose.onNodeWithText("Histórico de treinos")
         assertTrue(workouts.fetchSemanticsNode().boundsInRoot.top < diet.fetchSemanticsNode().boundsInRoot.top)
-        assertTrue(nutrition.fetchSemanticsNode().boundsInRoot.top < diet.fetchSemanticsNode().boundsInRoot.top)
-        assertTrue(diet.fetchSemanticsNode().boundsInRoot.top < history.fetchSemanticsNode().boundsInRoot.top)
+        assertTrue(diet.fetchSemanticsNode().boundsInRoot.top < measurements.fetchSemanticsNode().boundsInRoot.top)
+        assertTrue(measurements.fetchSemanticsNode().boundsInRoot.top < history.fetchSemanticsNode().boundsInRoot.top)
         diet.performClick()
+        measurements.performClick()
+        history.performClick()
         compose.runOnIdle {
-            assertEquals(listOf(WorkoutHubEvent.DietClicked), events)
-            state.value = WorkoutHubUiState(isLoading = true, isSessionsLoading = true)
+            assertEquals(
+                listOf(
+                    WorkoutHubEvent.DietClicked,
+                    WorkoutHubEvent.BodyMeasurementsClicked,
+                    WorkoutHubEvent.HistoryClicked,
+                ),
+                events,
+            )
+            state.value = WorkoutHubUiState(isLoading = true)
         }
         compose.onNodeWithText("Minha dieta").assertIsDisplayed().performClick()
     }

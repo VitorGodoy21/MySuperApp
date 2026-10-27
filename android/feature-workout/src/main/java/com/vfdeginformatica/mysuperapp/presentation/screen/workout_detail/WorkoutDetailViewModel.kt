@@ -75,6 +75,8 @@ class WorkoutDetailViewModel @Inject constructor(
 
             is WorkoutDetailEvent.IconChanged -> _uiState.update { it.copy(icon = event.icon) }
 
+            is WorkoutDetailEvent.OtherGroupChanged -> _uiState.update { it.copy(isOther = event.isOther) }
+
             is WorkoutDetailEvent.NotesChanged -> _uiState.update {
                 it.copy(notes = event.notes.take(MAX_NOTES_LENGTH))
             }
@@ -219,6 +221,7 @@ class WorkoutDetailViewModel @Inject constructor(
                                     name = workout.name,
                                     dayOfWeek = workout.dayOfWeek,
                                     icon = workout.icon,
+                                    isOther = workout.isOther,
                                     notes = workout.notes,
                                     items = reindex(workout.items),
                                     nameError = null,
@@ -251,6 +254,7 @@ class WorkoutDetailViewModel @Inject constructor(
             name = state.name.trim(),
             dayOfWeek = state.dayOfWeek,
             icon = state.icon,
+            isOther = state.isOther,
             items = reindex(state.items),
             notes = state.notes.trim(),
         )

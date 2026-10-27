@@ -217,15 +217,17 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.items is list
         && request.resource.data.exerciseIds is list
-        && request.resource.data.notes is string;
+        && request.resource.data.notes is string
+        && (!('isOther' in request.resource.data) || request.resource.data.isOther is bool);
       allow update: if isAuthenticated()
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['name', 'dayOfWeek', 'items', 'exerciseIds', 'notes', 'icon', 'updatedAt'])
+          .hasOnly(['name', 'dayOfWeek', 'items', 'exerciseIds', 'notes', 'icon', 'isOther', 'updatedAt'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.items is list
         && request.resource.data.exerciseIds is list
-        && request.resource.data.notes is string;
+        && request.resource.data.notes is string
+        && (!('isOther' in request.resource.data) || request.resource.data.isOther is bool);
       allow delete: if isAuthenticated();
     }
 

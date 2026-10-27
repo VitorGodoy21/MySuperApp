@@ -7,6 +7,7 @@ sealed interface WorkoutDetailEvent {
     data class NameChanged(val name: String) : WorkoutDetailEvent
     data class DayChanged(val day: WeekDay?) : WorkoutDetailEvent
     data class IconChanged(val icon: WorkoutIcon) : WorkoutDetailEvent
+    data class OtherGroupChanged(val isOther: Boolean) : WorkoutDetailEvent
     data class NotesChanged(val notes: String) : WorkoutDetailEvent
 
     data object AddExerciseClicked : WorkoutDetailEvent

@@ -7,6 +7,8 @@ import com.vfdeginformatica.mysuperapp.domain.model.Workout
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutIcon
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutItem
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkoutMapperTest {
@@ -74,5 +76,12 @@ class WorkoutMapperTest {
         assertEquals(WorkoutIcon.TREADMILL, restored.icon)
         assertEquals(WorkoutIcon.DUMBBELL, WorkoutDto(id = "w2", name = "Velho").toModel().icon)
         assertEquals(WorkoutIcon.DUMBBELL, WorkoutDto(id = "w3", name = "X", icon = "NOPE").toModel().icon)
+    }
+
+    @Test
+    fun `isOther round trips and legacy documents read as false`() {
+        assertTrue(Workout(id = "w1", name = "Extra", isOther = true).toDto().toModel().isOther)
+        assertFalse(Workout(id = "w2", name = "A").toDto().isOther)
+        assertFalse(WorkoutDto(id = "w3", name = "Velho").toModel().isOther)
     }
 }

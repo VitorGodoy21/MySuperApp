@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -170,6 +171,28 @@ fun WorkoutDetailScreen(
                 onSelected = { onEvent(WorkoutDetailEvent.IconChanged(it)) },
                 enabled = !uiState.isBusy,
             )
+        }
+
+        item(key = "other_group") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(text = "Agrupar em Outros", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = "Aparece na Academia sob o título recolhível \"Outros\"",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = uiState.isOther,
+                    onCheckedChange = { onEvent(WorkoutDetailEvent.OtherGroupChanged(it)) },
+                    enabled = !uiState.isBusy,
+                )
+            }
         }
 
         item(key = "notes") {

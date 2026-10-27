@@ -34,6 +34,7 @@ fun WorkoutDto.toModel(): Workout = Workout(
     items = items.sortedBy { it.order }.mapIndexed { index, dto -> dto.toModel().copy(order = index) },
     notes = notes,
     icon = WorkoutIcon.fromName(icon),
+    isOther = isOther,
 )
 
 /** `order` is re-indexed from list position and `exerciseIds` is always derived from `items`. */
@@ -45,4 +46,5 @@ fun Workout.toDto(): WorkoutDto = WorkoutDto(
     exerciseIds = exerciseIds,
     notes = notes,
     icon = icon.name,
+    isOther = isOther,
 )

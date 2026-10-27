@@ -83,6 +83,7 @@ class WorkoutDaoImpl(
         "exerciseIds" to exerciseIds,
         "notes" to notes,
         "icon" to icon,
+        "isOther" to isOther,
     )
 
     private fun WorkoutItemDto.toWriteMap(): Map<String, Any?> = mapOf(

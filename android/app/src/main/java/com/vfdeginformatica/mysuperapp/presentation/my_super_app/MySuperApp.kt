@@ -31,6 +31,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.exercise_detail.Exerc
 import com.vfdeginformatica.mysuperapp.presentation.screen.exercise_list.ExerciseListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_detail.WorkoutDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.WorkoutHubRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_history.WorkoutHistoryRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.diet_view.DietViewRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.diet_detail.DietDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.WorkoutViewRoute
@@ -259,6 +260,21 @@ fun MySuperApp(
                         },
                         onNavigateToDiet = {
                             navController.navigate(Screen.DietViewScreen.route)
+                        },
+                        onNavigateToBodyMeasurements = {
+                            navController.navigate(Screen.BodyMeasurementListScreen.route)
+                        },
+                        onNavigateToHistory = {
+                            navController.navigate(Screen.WorkoutHistoryScreen.route)
+                        }
+                    )
+                }
+
+                composable(route = Screen.WorkoutHistoryScreen.route) {
+                    WorkoutHistoryRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onNavigateToWorkout = { workoutId ->
+                            navController.navigate(Screen.WorkoutViewScreen.createRoute(workoutId))
                         }
                     )
                 }

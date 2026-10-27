@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.data.remote.dto
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.PropertyName
 
 data class WorkoutItemDto(
     var exerciseId: String = "",
@@ -24,6 +25,13 @@ data class WorkoutDto(
     var notes: String = "",
     /** [com.vfdeginformatica.mysuperapp.domain.model.WorkoutIcon] name; blank on legacy documents. */
     var icon: String = "",
+    /**
+     * Legacy documents without the field read as `false`. The `is` prefix makes Firestore's bean
+     * mapper name the property `other`, so the Firestore field name is pinned explicitly.
+     */
+    @get:PropertyName("isOther")
+    @set:PropertyName("isOther")
+    var isOther: Boolean = false,
     var createdAt: Timestamp? = null,
     var updatedAt: Timestamp? = null,
 )

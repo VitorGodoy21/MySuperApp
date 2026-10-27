@@ -19,6 +19,8 @@ fun WorkoutHubRoute(
     onNavigateUp: () -> Unit,
     onNavigateToWorkout: (String) -> Unit,
     onNavigateToDiet: () -> Unit,
+    onNavigateToBodyMeasurements: () -> Unit,
+    onNavigateToHistory: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -27,6 +29,8 @@ fun WorkoutHubRoute(
         viewModel.effect.collect { effect ->
             when (effect) {
                 WorkoutHubEffect.NavigateToDiet -> onNavigateToDiet()
+                WorkoutHubEffect.NavigateToBodyMeasurements -> onNavigateToBodyMeasurements()
+                WorkoutHubEffect.NavigateToHistory -> onNavigateToHistory()
                 is WorkoutHubEffect.NavigateToWorkout -> onNavigateToWorkout(effect.workoutId)
                 is WorkoutHubEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
             }

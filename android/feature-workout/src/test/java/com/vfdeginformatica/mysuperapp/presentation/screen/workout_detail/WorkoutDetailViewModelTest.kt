@@ -187,6 +187,7 @@ class WorkoutDetailViewModelTest {
 
         vm.onEvent(WorkoutDetailEvent.NameChanged(" Treino A "))
         vm.onEvent(WorkoutDetailEvent.DayChanged(WeekDay.MONDAY))
+        vm.onEvent(WorkoutDetailEvent.OtherGroupChanged(true))
         vm.onEvent(WorkoutDetailEvent.ExercisePicked("e1"))
         vm.onEvent(WorkoutDetailEvent.ExercisePicked("e2"))
         vm.onEvent(WorkoutDetailEvent.MoveItemDown(0))
@@ -198,6 +199,7 @@ class WorkoutDetailViewModelTest {
         assertEquals("", saved.id)
         assertEquals("Treino A", saved.name)
         assertEquals(WeekDay.MONDAY, saved.dayOfWeek)
+        assertTrue(saved.isOther)
         assertEquals(listOf("e2", "e1"), saved.items.map { it.exerciseId })
         assertEquals(listOf(0, 1), saved.items.map { it.order })
         assertTrue(repo.updated.isEmpty())
@@ -214,6 +216,7 @@ class WorkoutDetailViewModelTest {
                     dayOfWeek = WeekDay.TUESDAY,
                     items = listOf(WorkoutItem("e2", 0, sets = 4), WorkoutItem("e1", 1)),
                     notes = "leve",
+                    isOther = true,
                 )
             )
         )
@@ -225,18 +228,21 @@ class WorkoutDetailViewModelTest {
         assertFalse(loaded.isLoading)
         assertEquals("Treino B", loaded.name)
         assertEquals(WeekDay.TUESDAY, loaded.dayOfWeek)
+        assertTrue(loaded.isOther)
         assertEquals("leve", loaded.notes)
         assertEquals(listOf("e2", "e1"), loaded.items.map { it.exerciseId })
         assertEquals(listOf("Agachamento", "Supino reto"), loaded.itemRows.map { it.exerciseName })
         assertTrue(loaded.isSubmitEnabled)
 
         vm.onEvent(WorkoutDetailEvent.NameChanged("Treino B2"))
+        vm.onEvent(WorkoutDetailEvent.OtherGroupChanged(false))
         vm.onEvent(WorkoutDetailEvent.SaveClicked)
         advanceUntilIdle()
 
         assertEquals(1, repo.updated.size)
         assertEquals("w1", repo.updated.single().id)
         assertEquals("Treino B2", repo.updated.single().name)
+        assertFalse(repo.updated.single().isOther)
         assertEquals(4, repo.updated.single().items.first().sets)
         assertTrue(repo.added.isEmpty())
     }

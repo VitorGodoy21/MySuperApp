@@ -33,6 +33,8 @@ data class WorkoutDetailUiState(
     val name: String = "",
     val dayOfWeek: WeekDay? = null,
     val icon: WorkoutIcon = WorkoutIcon.DEFAULT,
+    /** When true the hub lists the workout under the collapsible "Outros" group. */
+    val isOther: Boolean = false,
     val notes: String = "",
     val items: List<WorkoutItem> = emptyList(),
     val availableExercises: List<Exercise> = emptyList(),

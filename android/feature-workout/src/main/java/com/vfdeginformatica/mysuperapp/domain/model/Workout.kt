@@ -21,6 +21,8 @@ data class Workout(
     val items: List<WorkoutItem> = emptyList(),
     val notes: String = "",
     val icon: WorkoutIcon = WorkoutIcon.DEFAULT,
+    /** Shown in the hub under the collapsible "Outros" group instead of the main list. */
+    val isOther: Boolean = false,
 ) {
     val exerciseIds: List<String>
         get() = items.map { it.exerciseId }.distinct()
