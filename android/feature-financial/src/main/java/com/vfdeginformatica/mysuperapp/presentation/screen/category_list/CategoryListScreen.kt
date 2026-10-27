@@ -134,7 +134,7 @@ private fun CategoryListItem(
                 tint = if (isIncome) {
                     MaterialTheme.colorScheme.tertiary
                 } else {
-                    MaterialTheme.colorScheme.error
+                    MaterialTheme.colorScheme.onSurfaceVariant
                 },
                 modifier = Modifier.size(28.dp)
             )

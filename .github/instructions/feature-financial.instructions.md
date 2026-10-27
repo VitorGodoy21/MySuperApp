@@ -19,7 +19,12 @@ applyTo: "android/feature-financial/**"
   - `data/mapper` — explicit DTO↔domain conversions (`TransactionMapper`); never expose DTOs to presentation code.
   - `domain/model`, `domain/repository`, `domain/use_case/financial/...` — models, repository interfaces, and use cases returning `Flow<Resource<T>>`.
   - `presentation/screen/<screen>` — `*Route.kt` (navigation/composition), `*Screen.kt` (UI), `*ViewModel.kt` (behavior), and `contract/` with `UiState`, `Event`, `Effect` types.
-  - `presentation/common` — shared UI helpers: `FinancialFormatters` (`formatCurrency`, `monthLabel`, `formatDate` dd/MM/yyyy), `CurrencyVisualTransformation`, `DateField` + `FinancialDatePickerDialog` (read-only tappable date field + Material3 `DatePickerDialog`), `FinancialDates.toTransactionTimestamp()` and the transaction edit dialogs.
+  - `presentation/common` — shared UI helpers: `FinancialFormatters` (`formatCurrency`, `monthLabel`, `formatDate` dd/MM/yyyy, plus the color helpers `incomeColor`, `expenseColor` and `balanceColor(balance)`), `CurrencyVisualTransformation`, `DateField` + `FinancialDatePickerDialog` (read-only tappable date field + Material3 `DatePickerDialog`), `FinancialDates.toTransactionTimestamp()` and the transaction edit dialogs.
+
+## Color convention
+
+- Plain expense amounts (month list items, "Despesas" totals, invoice totals/items, breakdown cards, category icons, the "Gasto" FAB) use a **neutral** color (`expenseColor` = `onSurface`, or `onSurfaceVariant`/`secondaryContainer` for icons/FAB). Do not paint expenses red.
+- `colorScheme.error` (red) is reserved for **negative balances** (`balanceColor`), error messages and destructive actions (Excluir). Incomes and non-negative balances use `incomeColor` (green).
 
 ## Dependencies and wiring
 

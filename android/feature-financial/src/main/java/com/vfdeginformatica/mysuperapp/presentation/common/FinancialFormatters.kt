@@ -1,5 +1,8 @@
 package com.vfdeginformatica.mysuperapp.presentation.common
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -10,6 +13,18 @@ import java.util.Locale
 
 internal val ptBr: Locale = Locale.forLanguageTag("pt-BR")
 internal val incomeColor = Color(0xFF2E7D32)
+
+/** Neutral color for plain expense amounts; red is reserved for negative balances and errors. */
+internal val expenseColor: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.onSurface
+
+/** Green when the balance is non-negative, red otherwise. */
+@Composable
+@ReadOnlyComposable
+internal fun balanceColor(balance: Double): Color =
+    if (balance >= 0) incomeColor else MaterialTheme.colorScheme.error
 
 internal fun formatCurrency(value: Double): String =
     NumberFormat.getCurrencyInstance(ptBr).format(value)

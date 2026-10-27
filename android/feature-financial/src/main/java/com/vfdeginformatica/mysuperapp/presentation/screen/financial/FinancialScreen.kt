@@ -54,6 +54,8 @@ import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.domain.model.hasOverrideForOccurrence
 import com.vfdeginformatica.mysuperapp.presentation.common.EditTransactionDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.RecurrenceScopeDialog
+import com.vfdeginformatica.mysuperapp.presentation.common.balanceColor
+import com.vfdeginformatica.mysuperapp.presentation.common.expenseColor
 import com.vfdeginformatica.mysuperapp.presentation.common.formatCurrency
 import com.vfdeginformatica.mysuperapp.presentation.common.formatPercent
 import com.vfdeginformatica.mysuperapp.presentation.common.incomeColor
@@ -245,7 +247,7 @@ private fun SummaryCard(uiState: FinancialUiState) {
                 text = formatCurrency(uiState.balance),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (uiState.balance >= 0) incomeColor else MaterialTheme.colorScheme.error
+                color = balanceColor(uiState.balance)
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -263,7 +265,7 @@ private fun SummaryCard(uiState: FinancialUiState) {
                     Text(text = "Despesas", style = MaterialTheme.typography.labelMedium)
                     Text(
                         text = formatCurrency(uiState.cashExpense),
-                        color = MaterialTheme.colorScheme.error,
+                        color = expenseColor,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -375,7 +377,7 @@ private fun InvoiceByCardCard(uiState: FinancialUiState, onEvent: (FinancialEven
                     AmountLine(
                         label = card?.bank ?: "Cartão",
                         value = entry.value,
-                        color = MaterialTheme.colorScheme.error
+                        color = expenseColor
                     )
                     val info = listOfNotNull(closing, due).joinToString(" • ")
                     if (info.isNotEmpty()) {
@@ -398,7 +400,7 @@ private fun InvoiceByCardCard(uiState: FinancialUiState, onEvent: (FinancialEven
             AmountLine(
                 label = "Total das faturas",
                 value = uiState.projectedInvoiceTotal,
-                color = MaterialTheme.colorScheme.error
+                color = expenseColor
             )
         }
     }
@@ -411,14 +413,14 @@ private fun PaymentMethodBreakdownCard(uiState: FinancialUiState) {
         AmountLine(
             label = "Crédito",
             value = uiState.creditExpense,
-            color = MaterialTheme.colorScheme.error,
+            color = expenseColor,
             trailing = formatPercent(uiState.creditExpense / total * 100)
         )
         ProportionBar(uiState.creditExpense / total)
         AmountLine(
             label = "Débito",
             value = uiState.debitExpense,
-            color = MaterialTheme.colorScheme.error,
+            color = expenseColor,
             trailing = formatPercent(uiState.debitExpense / total * 100)
         )
         ProportionBar(uiState.debitExpense / total)
@@ -432,19 +434,19 @@ private fun ExpenseNatureCard(uiState: FinancialUiState) {
         AmountLine(
             label = "Recorrentes",
             value = uiState.recurringExpense,
-            color = MaterialTheme.colorScheme.error,
+            color = expenseColor,
             trailing = formatPercent(uiState.recurringExpense / total * 100)
         )
         AmountLine(
             label = "Parceladas",
             value = uiState.installmentExpense,
-            color = MaterialTheme.colorScheme.error,
+            color = expenseColor,
             trailing = formatPercent(uiState.installmentExpense / total * 100)
         )
         AmountLine(
             label = "Avulsas",
             value = uiState.singleExpense,
-            color = MaterialTheme.colorScheme.error,
+            color = expenseColor,
             trailing = formatPercent(uiState.singleExpense / total * 100)
         )
     }
@@ -466,7 +468,7 @@ private fun TopCategoriesCard(uiState: FinancialUiState) {
             AmountLine(
                 label = label,
                 value = item.total,
-                color = MaterialTheme.colorScheme.error,
+                color = expenseColor,
                 trailing = formatPercent(item.percent)
             )
         }
@@ -483,7 +485,7 @@ private fun ExpenseByCardCard(uiState: FinancialUiState) {
             AmountLine(
                 label = uiState.availableCards.find { it.id == cardId }?.bank ?: "Cartão",
                 value = total,
-                color = MaterialTheme.colorScheme.error
+                color = expenseColor
             )
         }
     }
@@ -734,12 +736,12 @@ private fun FilteredTotalsCard(uiState: FinancialUiState) {
         subtitle = "${uiState.filteredTransactions.size} transação(ões)"
     ) {
         AmountLine("Receitas", uiState.filteredIncome, incomeColor)
-        AmountLine("Despesas", uiState.filteredExpense, MaterialTheme.colorScheme.error)
+        AmountLine("Despesas", uiState.filteredExpense, expenseColor)
         HorizontalDivider()
         AmountLine(
             label = "Saldo",
             value = uiState.filteredBalance,
-            color = if (uiState.filteredBalance >= 0) incomeColor else MaterialTheme.colorScheme.error
+            color = balanceColor(uiState.filteredBalance)
         )
     }
 }
@@ -808,7 +810,7 @@ private fun TransactionListItem(
     onClick: (() -> Unit)? = null
 ) {
     val isIncome = transaction.type == TransactionType.INCOME
-    val amountColor = if (isIncome) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
+    val amountColor = if (isIncome) incomeColor else expenseColor
     val signal = if (isIncome) "+" else "-"
 
     val cardBank = uiState.availableCards.find { it.id == transaction.cardId }?.bank

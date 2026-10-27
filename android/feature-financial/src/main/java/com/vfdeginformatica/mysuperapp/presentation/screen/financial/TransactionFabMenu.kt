@@ -45,8 +45,8 @@ fun TransactionFabMenu(
                     },
                     icon = { Icon(Icons.Default.TrendingDown, contentDescription = null) },
                     text = { Text("Gasto") },
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
                 ExtendedFloatingActionButton(
                     onClick = {

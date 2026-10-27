@@ -27,6 +27,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.domain.model.hasOverrideForOccurrence
 import com.vfdeginformatica.mysuperapp.presentation.common.EditTransactionDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.RecurrenceScopeDialog
+import com.vfdeginformatica.mysuperapp.presentation.common.expenseColor
 import com.vfdeginformatica.mysuperapp.presentation.common.formatCurrency
 import com.vfdeginformatica.mysuperapp.presentation.common.monthLabel
 import com.vfdeginformatica.mysuperapp.presentation.common.ptBr
@@ -142,7 +143,7 @@ private fun InvoiceHeaderCard(uiState: CardInvoiceUiState) {
                 text = formatCurrency(uiState.total),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
+                color = expenseColor
             )
             val meta = listOfNotNull(
                 info.takeIf { it.isNotEmpty() },
@@ -224,7 +225,7 @@ private fun InvoiceItem(
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = formatCurrency(transaction.amount),
-                    color = MaterialTheme.colorScheme.error,
+                    color = expenseColor,
                     fontWeight = FontWeight.Bold
                 )
                 val purchaseTotal = transaction.installmentPurchaseTotal
