@@ -12,7 +12,7 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 internal val ptBr: Locale = Locale.forLanguageTag("pt-BR")
-internal val incomeColor = Color(0xFF2E7D32)
+val incomeColor = Color(0xFF2E7D32)
 
 /** Neutral color for plain expense amounts; red is reserved for negative balances and errors. */
 internal val expenseColor: Color
@@ -23,10 +23,10 @@ internal val expenseColor: Color
 /** Green when the balance is non-negative, red otherwise. */
 @Composable
 @ReadOnlyComposable
-internal fun balanceColor(balance: Double): Color =
+fun balanceColor(balance: Double): Color =
     if (balance >= 0) incomeColor else MaterialTheme.colorScheme.error
 
-internal fun formatCurrency(value: Double): String =
+fun formatCurrency(value: Double): String =
     NumberFormat.getCurrencyInstance(ptBr).format(value)
 
 internal fun formatPercent(value: Double): String = "%.0f%%".format(ptBr, value)

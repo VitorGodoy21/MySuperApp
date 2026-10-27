@@ -17,9 +17,9 @@ applyTo: "android/feature-financial/**"
   - `data/remote/dto` — Firestore DTOs (`TransactionDto`, `CardDto`, `CategoryTransactionDto`).
   - `data/remote/repository` — repository implementations wrapping DAOs.
   - `data/mapper` — explicit DTO↔domain conversions (`TransactionMapper`); never expose DTOs to presentation code.
-  - `domain/model`, `domain/repository`, `domain/use_case/financial/...` — models, repository interfaces, and use cases returning `Flow<Resource<T>>`.
+  - `domain/model`, `domain/repository`, `domain/use_case/financial/...` — models, repository interfaces, and use cases returning `Flow<Resource<T>>`. `domain/model/FinancialTotals.kt` holds the pure month-total formulas (`incomeTotal`, `debitExpenseTotal`, `invoiceItems` with recurring-credit dedup, `cashExpense`, `balance`) shared by `FinancialUiState` and by `GetMonthFinancialSummaryUseCase` (`domain/use_case/financial/summary`, returns `MonthFinancialSummary(month, totalIncome, cashExpense) { balance }` for the `:app` Home card — month transactions + paid invoice of month−1). Keep both consumers on the same formulas.
   - `presentation/screen/<screen>` — `*Route.kt` (navigation/composition), `*Screen.kt` (UI), `*ViewModel.kt` (behavior), and `contract/` with `UiState`, `Event`, `Effect` types.
-  - `presentation/common` — shared UI helpers: `FinancialFormatters` (`formatCurrency`, `monthLabel`, `formatDate` dd/MM/yyyy, plus the color helpers `incomeColor`, `expenseColor` and `balanceColor(balance)`), `CurrencyVisualTransformation`, `DateField` + `FinancialDatePickerDialog` (read-only tappable date field + Material3 `DatePickerDialog`), `FinancialDates.toTransactionTimestamp()` and the transaction edit dialogs.
+  - `presentation/common` — shared UI helpers: `FinancialFormatters` (`formatCurrency`, `monthLabel`, `formatDate` dd/MM/yyyy, plus the color helpers `incomeColor`, `expenseColor` and `balanceColor(balance)`; `formatCurrency`, `incomeColor` and `balanceColor` are public because the `:app` Home reuses them), `CurrencyVisualTransformation`, `DateField` + `FinancialDatePickerDialog` (read-only tappable date field + Material3 `DatePickerDialog`), `FinancialDates.toTransactionTimestamp()` and the transaction edit dialogs.
 
 ## Color convention
 

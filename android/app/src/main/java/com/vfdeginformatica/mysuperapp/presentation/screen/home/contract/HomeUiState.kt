@@ -1,10 +1,30 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.home.contract
 
-import com.vfdeginformatica.mysuperapp.domain.model.HomeMenuItem
+import com.vfdeginformatica.mysuperapp.domain.model.MonthFinancialSummary
+import com.vfdeginformatica.mysuperapp.domain.use_case.workout.summary.WorkoutHomeSummary
+
+data class FinanceSectionState(
+    val isLoading: Boolean = true,
+    val error: String? = null,
+    val summary: MonthFinancialSummary? = null,
+    /** Values are masked until the user authenticates with biometrics. Never persisted. */
+    val isRevealed: Boolean = false,
+)
+
+data class SmartTagsSectionState(
+    val isLoading: Boolean = true,
+    val error: String? = null,
+    val qrCount: Int? = null,
+)
+
+data class WorkoutSectionState(
+    val isLoading: Boolean = true,
+    val error: String? = null,
+    val summary: WorkoutHomeSummary? = null,
+)
 
 data class HomeUiState(
-    val isLoading: Boolean = false,
-    val errorMessage: String = "",
-    val items: List<HomeMenuItem> = emptyList(),
-    val isSmartTagsPickerVisible: Boolean = false
+    val finance: FinanceSectionState = FinanceSectionState(),
+    val smartTags: SmartTagsSectionState = SmartTagsSectionState(),
+    val workout: WorkoutSectionState = WorkoutSectionState(),
 )

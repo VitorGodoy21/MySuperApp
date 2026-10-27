@@ -2,6 +2,11 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract
 
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.creditExpenseTotal
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.debitExpenseTotal
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.expenses
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.incomeTotal
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 import java.time.YearMonth
@@ -46,16 +51,16 @@ data class FinancialUiState(
 ) {
     companion object {
         const val TOP_CATEGORIES = 5
-        const val CREDIT = "CREDIT"
+        const val CREDIT = FinancialTotals.CREDIT
     }
 
     // ---- Resumo do mês (sem filtros) ----
 
     private val expenses: List<Transaction>
-        get() = transactions.filter { it.type == TransactionType.EXPENSE }
+        get() = transactions.expenses()
 
     val totalIncome: Double
-        get() = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+        get() = transactions.incomeTotal()
 
     val totalExpense: Double
         get() = expenses.sumOf { it.amount }
@@ -66,17 +71,17 @@ data class FinancialUiState(
      * só debitam no mês seguinte, quando a fatura é paga.
      */
     val balance: Double
-        get() = totalIncome - cashExpense
+        get() = FinancialTotals.balance(totalIncome, cashExpense)
 
     val creditExpense: Double
-        get() = expenses.filter { it.paymentMethod == CREDIT }.sumOf { it.amount }
+        get() = transactions.creditExpenseTotal()
 
     val debitExpense: Double
-        get() = expenses.filter { it.paymentMethod != CREDIT }.sumOf { it.amount }
+        get() = transactions.debitExpenseTotal()
 
     /** Despesas que saem da conta no mês: débito + fatura paga (fechada em M-1). */
     val cashExpense: Double
-        get() = debitExpense + paidInvoiceTotal
+        get() = FinancialTotals.cashExpense(debitExpense, paidInvoiceTotal)
 
     val recurringExpense: Double
         get() = expenses.filter { it.isRecurring }.sumOf { it.amount }
@@ -162,16 +167,9 @@ data class FinancialUiState(
     val paidInvoiceMonth: YearMonth
         get() = selectedMonth.minusMonths(1)
 
-    private val paidInvoiceMonthKey: String
-        get() = "%04d-%02d".format(paidInvoiceMonth.year, paidInvoiceMonth.monthValue)
-
     /** Itens da fatura de M-1 (compras/parcelas + recorrentes de crédito, sem duplicar). */
     val paidInvoiceItems: List<Transaction>
-        get() = paidInvoiceTransactions + paidInvoiceRecurringTransactions.filter {
-            it.type == TransactionType.EXPENSE &&
-                    it.paymentMethod == CREDIT &&
-                    it.invoiceMonth != paidInvoiceMonthKey
-        }
+        get() = FinancialTotals.invoiceItems(paidInvoiceMonth, paidInvoiceTransactions, paidInvoiceRecurringTransactions)
 
     val paidInvoiceTotal: Double
         get() = paidInvoiceItems.sumOf { it.amount }
