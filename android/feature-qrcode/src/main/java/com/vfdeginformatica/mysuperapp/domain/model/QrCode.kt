@@ -6,7 +6,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
 enum class QrCodeType {
     REDIRECT,
     TEXT,
-    MURAL
+    MURAL,
+    IMAGE
 }
 
 data class QrCode(
@@ -17,6 +18,8 @@ data class QrCode(
     val type: QrCodeType = QrCodeType.REDIRECT,
     val text: String = "",
     val userId: String = "",
+    val imageUrl: String = "",
+    val imagePath: String = "",
     val qrcodeBitmap: Bitmap? = null
 )
 
@@ -28,7 +31,8 @@ fun QrCode.toDto(): QrCodeDto {
         staticUrl = staticUrl,
         type = type.name,
         text = text,
-        userId = userId
+        userId = userId,
+        imageUrl = imageUrl,
+        imagePath = imagePath
     )
-
 }

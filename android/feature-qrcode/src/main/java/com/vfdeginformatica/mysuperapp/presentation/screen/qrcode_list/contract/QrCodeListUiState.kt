@@ -6,5 +6,6 @@ data class QrCodeListUiState(
     val isLoading: Boolean = false,
     val qrCodes: List<QrCode> = emptyList(),
     val error: String = "",
-    val isCreating: Boolean = false
+    val isCreating: Boolean = false,
+    val isUploadingImage: Boolean = false
 )

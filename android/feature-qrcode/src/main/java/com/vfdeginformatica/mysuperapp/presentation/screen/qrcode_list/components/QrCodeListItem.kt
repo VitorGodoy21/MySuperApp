@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
 
 @Composable
 fun QrCodeListItem(
@@ -71,7 +72,12 @@ fun QrCodeListItem(
 
             // URL/Content with truncation
             Text(
-                text = qrCode.redirectUrl.ifEmpty { "Sem URL configurada" },
+                text = when (qrCode.type) {
+                    QrCodeType.IMAGE -> qrCode.text.ifBlank { "Imagem" }
+                    QrCodeType.TEXT -> qrCode.text.ifBlank { "Sem texto configurado" }
+                    QrCodeType.MURAL -> "Mural de comentários"
+                    QrCodeType.REDIRECT -> qrCode.redirectUrl.ifEmpty { "Sem URL configurada" }
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,

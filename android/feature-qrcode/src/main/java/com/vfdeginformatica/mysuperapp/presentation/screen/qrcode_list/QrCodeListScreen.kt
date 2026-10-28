@@ -1,5 +1,6 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.presentation.components.QrImagePickerField
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.components.QrCodeListItem
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListUiState
@@ -47,13 +49,14 @@ fun QrCodeListScreen(
     innerPadding: PaddingValues,
     showCreateDialog: Boolean = false,
     onDismissCreateDialog: () -> Unit = {},
-    onConfirmCreateQrCode: (QrCodeType, String, String, String) -> Unit = { _, _, _, _ -> }
+    onConfirmCreateQrCode: (QrCodeType, String, String, String, Uri?) -> Unit = { _, _, _, _, _ -> }
 ) {
     var typeDropdownExpanded by remember(showCreateDialog) { mutableStateOf(false) }
     var selectedType by remember(showCreateDialog) { mutableStateOf(QrCodeType.REDIRECT) }
     var identifier by remember(showCreateDialog) { mutableStateOf("") }
     var redirectUrl by remember(showCreateDialog) { mutableStateOf("") }
     var text by remember(showCreateDialog) { mutableStateOf("") }
+    var imageUri by remember(showCreateDialog) { mutableStateOf<Uri?>(null) }
     val trimmedIdentifier = identifier.trim()
     val trimmedRedirectUrl = redirectUrl.trim()
     val trimmedText = text.trim()
@@ -61,6 +64,7 @@ fun QrCodeListScreen(
         QrCodeType.REDIRECT -> trimmedRedirectUrl.isNotEmpty()
         QrCodeType.TEXT -> trimmedText.isNotEmpty()
         QrCodeType.MURAL -> true
+        QrCodeType.IMAGE -> imageUri != null
     }
 
     if (showCreateDialog) {
@@ -138,6 +142,22 @@ fun QrCodeListScreen(
                             )
 
                             QrCodeType.MURAL -> Unit
+
+                            QrCodeType.IMAGE -> {
+                                QrImagePickerField(
+                                    model = imageUri,
+                                    onImagePicked = { imageUri = it },
+                                    enabled = !uiState.isCreating
+                                )
+                                OutlinedTextField(
+                                    value = text,
+                                    onValueChange = { text = it },
+                                    label = { Text("Legenda (opcional)") },
+                                    placeholder = { Text("Texto exibido abaixo da imagem") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    minLines = 2
+                                )
+                            }
                         }
                     }
                 }
@@ -149,7 +169,8 @@ fun QrCodeListScreen(
                             selectedType,
                             trimmedIdentifier,
                             trimmedRedirectUrl,
-                            trimmedText
+                            trimmedText,
+                            imageUri
                         )
                     },
                     enabled = !uiState.isCreating && trimmedIdentifier.isNotEmpty() && isTypeValueValid
@@ -211,6 +232,7 @@ private fun QrCodeType.toLabel(): String = when (this) {
     QrCodeType.REDIRECT -> "Redirect"
     QrCodeType.TEXT -> "Texto"
     QrCodeType.MURAL -> "Mural"
+    QrCodeType.IMAGE -> "Imagem"
 }
 
 @Preview(showBackground = true)

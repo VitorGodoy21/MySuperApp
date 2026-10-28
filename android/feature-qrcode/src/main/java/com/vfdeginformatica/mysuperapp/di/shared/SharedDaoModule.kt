@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorageImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.AuthDao
@@ -12,6 +13,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrCodeAccessLogDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrCodeAccessLogDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrCodeDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrCodeDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrImageStorageDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrImageStorageDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDaoImpl
 import dagger.Module
@@ -54,4 +57,12 @@ object SharedDaoModule {
     @Singleton
     fun provideQrCodeAccessLogDao(): QrCodeAccessLogDao =
         QrCodeAccessLogDaoImpl(db = FirebaseFirestore.getInstance())
+
+    @Provides
+    @Singleton
+    fun provideQrImageStorageDao(): QrImageStorageDao =
+        QrImageStorageDaoImpl(
+            storage = FirebaseStorage.getInstance(),
+            auth = FirebaseAuth.getInstance()
+        )
 }

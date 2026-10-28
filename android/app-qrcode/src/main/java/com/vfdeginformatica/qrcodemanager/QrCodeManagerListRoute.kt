@@ -104,10 +104,10 @@ fun QrCodeManagerListRoute(
                 innerPadding = padding,
                 showCreateDialog = showCreateDialog,
                 onDismissCreateDialog = { showCreateDialog = false },
-                onConfirmCreateQrCode = { type, identifier, redirectUrl, text ->
+                onConfirmCreateQrCode = { type, identifier, redirectUrl, text, imageUri ->
                     showCreateDialog = false
                     viewModel.onEvent(
-                        QrCodeListEvent.OnCreateQrCode(type, identifier, redirectUrl, text)
+                        QrCodeListEvent.OnCreateQrCode(type, identifier, redirectUrl, text, imageUri)
                     )
                 }
             )

@@ -40,7 +40,9 @@ service cloud.firestore {
         && request.resource.data.type is string
         && request.resource.data.staticUrl is string
         && request.resource.data.redirectUrl is string
-        && request.resource.data.text is string;
+        && request.resource.data.text is string
+        && (!('imageUrl' in request.resource.data) || request.resource.data.imageUrl is string)
+        && (!('imagePath' in request.resource.data) || request.resource.data.imagePath is string);
 
       // O dono autenticado pode excluir o próprio QR Code
       // (subcoleções comments/access_logs não são apagadas automaticamente)

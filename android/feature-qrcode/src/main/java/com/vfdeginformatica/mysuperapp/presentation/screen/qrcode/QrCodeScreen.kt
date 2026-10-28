@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -65,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
@@ -73,8 +75,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.presentation.components.QrImagePickerField
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeUiState
 import java.io.File
@@ -305,7 +309,7 @@ fun QrCodeScreen(
                 )
             },
             text = {
-                Column {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     Text(
                         text = "Tipo",
                         style = MaterialTheme.typography.labelMedium,
@@ -322,6 +326,7 @@ fun QrCodeScreen(
                                 QrCodeType.REDIRECT -> "Redirect"
                                 QrCodeType.TEXT -> "Texto"
                                 QrCodeType.MURAL -> "Mural"
+                                QrCodeType.IMAGE -> "Imagem"
                             },
                             onValueChange = {},
                             readOnly = true,
@@ -355,6 +360,13 @@ fun QrCodeScreen(
                                 text = { Text("Mural") },
                                 onClick = {
                                     onEvent(QrCodeEvent.OnTypeChanged(QrCodeType.MURAL))
+                                    typeDropdownExpanded = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Imagem") },
+                                onClick = {
+                                    onEvent(QrCodeEvent.OnTypeChanged(QrCodeType.IMAGE))
                                     typeDropdownExpanded = false
                                 }
                             )
@@ -398,6 +410,26 @@ fun QrCodeScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        QrCodeType.IMAGE -> {
+                            QrImagePickerField(
+                                model = uiState.pendingImageUri ?: qrCode.imageUrl.ifBlank { null },
+                                onImagePicked = { onEvent(QrCodeEvent.OnImagePicked(it)) }
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            OutlinedTextField(
+                                value = qrCode.text,
+                                onValueChange = { newText ->
+                                    onEvent(QrCodeEvent.OnTextChanged(newText))
+                                },
+                                label = { Text("Legenda (opcional)") },
+                                placeholder = { Text("Texto exibido abaixo da imagem") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = false,
+                                maxLines = 4,
+                                shape = RoundedCornerShape(8.dp)
                             )
                         }
                     }
@@ -495,6 +527,31 @@ fun QrCodeScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(4.dp))
+            }
+
+            if (qrCode.type == QrCodeType.IMAGE && qrCode.imageUrl.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                AsyncImage(
+                    model = qrCode.imageUrl,
+                    contentDescription = "Imagem exibida ao escanear",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 240.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+                if (qrCode.text.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = qrCode.text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             // QR Code ID

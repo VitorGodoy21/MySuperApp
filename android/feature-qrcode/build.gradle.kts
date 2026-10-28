@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.storage)
     implementation(libs.firebase.appcheck.playintegrity)
     implementation(libs.google.firebase.appcheck.debug)
 
@@ -66,6 +67,9 @@ dependencies {
 
     // ZXing – QR code generation
     implementation(libs.zxing.core)
+
+    // Coil – image preview
+    implementation(libs.coil.compose)
 
     // Gson
     implementation(libs.gson)
