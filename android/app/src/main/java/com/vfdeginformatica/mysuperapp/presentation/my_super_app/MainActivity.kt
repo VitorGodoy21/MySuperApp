@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.vfdeginformatica.mysuperapp.domain.use_case.feature_flags.RefreshFeatureFlagsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.IsLoggedUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.RegisterFcmTokenUseCase
 import com.vfdeginformatica.mysuperapp.nfc.presentation.NfcForegroundDispatcher
@@ -34,6 +35,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var isLoggedUseCase: IsLoggedUseCase
 
+    @Inject
+    lateinit var refreshFeatureFlagsUseCase: RefreshFeatureFlagsUseCase
+
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
@@ -49,7 +53,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        registerFcmTokenIfLogged()
+        syncIfLogged()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -58,9 +62,13 @@ class MainActivity : AppCompatActivity() {
         pendingQrCodeNavigation.set(NotificationIntents.extractQrCodeId(intent))
     }
 
-    private fun registerFcmTokenIfLogged() {
+    // Ao abrir/voltar ao app: registra o token FCM e recarrega as funções habilitadas no painel web.
+    private fun syncIfLogged() {
         lifecycleScope.launch {
-            if (isLoggedUseCase().first()) registerFcmTokenUseCase()
+            if (isLoggedUseCase().first()) {
+                launch { refreshFeatureFlagsUseCase() }
+                registerFcmTokenUseCase()
+            }
         }
     }
 }

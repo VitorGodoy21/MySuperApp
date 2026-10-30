@@ -13,6 +13,8 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.SmartTa
 @Composable
 fun SmartTagsTopicCard(
     state: SmartTagsSectionState,
+    showQrCode: Boolean = true,
+    showNfc: Boolean = true,
     onOpenQrCodes: () -> Unit,
     onOpenNfc: () -> Unit,
     onRetry: () -> Unit,
@@ -20,21 +22,27 @@ fun SmartTagsTopicCard(
     val colors = HomeColors.smartTags()
     HomeTopicCard(
         title = "Smart Tags",
-        subtitle = "QR Codes e etiquetas NFC",
+        subtitle = when {
+            showQrCode && showNfc -> "QR Codes e etiquetas NFC"
+            showQrCode -> "QR Codes"
+            else -> "Etiquetas NFC"
+        },
         icon = Icons.Default.Contactless,
         colors = colors,
-        onHeaderClick = onOpenQrCodes,
+        onHeaderClick = if (showQrCode) onOpenQrCodes else onOpenNfc,
     ) {
-        state.qrCount?.let { count ->
-            HomeMetric(
-                label = "QR Codes cadastrados",
-                value = if (count == 1) "1 QR Code" else "$count QR Codes",
-            )
+        if (showQrCode) {
+            state.qrCount?.let { count ->
+                HomeMetric(
+                    label = "QR Codes cadastrados",
+                    value = if (count == 1) "1 QR Code" else "$count QR Codes",
+                )
+            }
+            HomeSectionStatus(isLoading = state.isLoading, error = state.error, onRetry = onRetry)
         }
-        HomeSectionStatus(isLoading = state.isLoading, error = state.error, onRetry = onRetry)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            HomeShortcutChip("QR Code", Icons.Default.QrCode, colors, onOpenQrCodes)
-            HomeShortcutChip("NFC", Icons.Default.Nfc, colors, onOpenNfc)
+            if (showQrCode) HomeShortcutChip("QR Code", Icons.Default.QrCode, colors, onOpenQrCodes)
+            if (showNfc) HomeShortcutChip("NFC", Icons.Default.Nfc, colors, onOpenNfc)
         }
     }
 }

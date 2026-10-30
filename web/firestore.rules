@@ -15,8 +15,22 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/qrcodes/$(qrId)).data.userId == request.auth.uid;
     }
 
+    // Flags do painel web (users/{uid}.featureFlags): map só com booleanos; ausente = tudo habilitado
+    function validFeatureFlags(data) {
+      return !('featureFlags' in data)
+        || (data.featureFlags is map
+          && data.featureFlags.keys().hasOnly(['finance', 'smartTags', 'qrCode', 'nfc', 'workout', 'diet'])
+          && (!('finance' in data.featureFlags) || data.featureFlags.finance is bool)
+          && (!('smartTags' in data.featureFlags) || data.featureFlags.smartTags is bool)
+          && (!('qrCode' in data.featureFlags) || data.featureFlags.qrCode is bool)
+          && (!('nfc' in data.featureFlags) || data.featureFlags.nfc is bool)
+          && (!('workout' in data.featureFlags) || data.featureFlags.workout is bool)
+          && (!('diet' in data.featureFlags) || data.featureFlags.diet is bool));
+    }
+
     match /users/{userId} {
-      allow read, write: if isSelf(userId);
+      allow read, delete: if isSelf(userId);
+      allow create, update: if isSelf(userId) && validFeatureFlags(request.resource.data);
     }
 
     match /qrcodes/{qrId} {

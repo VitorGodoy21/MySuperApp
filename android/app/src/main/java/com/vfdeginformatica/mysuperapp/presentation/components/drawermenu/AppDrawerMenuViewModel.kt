@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.domain.use_case.feature_flags.ObserveFeatureFlagsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LogoutUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetUserSessionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.ProtectedNavigationResult
@@ -25,7 +26,8 @@ import javax.inject.Inject
 class AppDrawerMenuViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val getUserSessionUseCase: GetUserSessionUseCase,
-    private val resolveProtectedNavigationUseCase: ResolveProtectedNavigationUseCase
+    private val resolveProtectedNavigationUseCase: ResolveProtectedNavigationUseCase,
+    private val observeFeatureFlagsUseCase: ObserveFeatureFlagsUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppDrawerMenuUiState())
     val uiState: StateFlow<AppDrawerMenuUiState> = _uiState
@@ -52,6 +54,11 @@ class AppDrawerMenuViewModel @Inject constructor(
     }
 
     init {
+        viewModelScope.launch {
+            observeFeatureFlagsUseCase().collect { flags ->
+                _uiState.update { it.copy(flags = flags) }
+            }
+        }
         viewModelScope.launch {
             getUserSessionUseCase.invoke().collect { userSession ->
                 _uiState.update {

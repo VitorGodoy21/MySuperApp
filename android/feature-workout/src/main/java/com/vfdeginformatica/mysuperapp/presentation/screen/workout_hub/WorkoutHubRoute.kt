@@ -16,6 +16,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.workout_hub.contract.
 @Composable
 fun WorkoutHubRoute(
     viewModel: WorkoutHubViewModel = hiltViewModel(),
+    showDiet: Boolean = true,
     onNavigateUp: () -> Unit,
     onNavigateToWorkout: (String) -> Unit,
     onNavigateToDiet: () -> Unit,
@@ -48,6 +49,7 @@ fun WorkoutHubRoute(
             uiState = state,
             onEvent = viewModel::onEvent,
             modifier = Modifier.padding(padding),
+            showDiet = showDiet,
         )
     }
 }

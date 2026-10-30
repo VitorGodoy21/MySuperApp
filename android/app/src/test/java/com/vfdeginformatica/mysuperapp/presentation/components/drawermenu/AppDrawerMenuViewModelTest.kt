@@ -2,7 +2,9 @@ package com.vfdeginformatica.mysuperapp.presentation.components.drawermenu
 
 import androidx.fragment.app.FragmentActivity
 import com.vfdeginformatica.mysuperapp.Screen
+import com.vfdeginformatica.mysuperapp.domain.model.FeatureFlags
 import com.vfdeginformatica.mysuperapp.domain.model.UserSession
+import com.vfdeginformatica.mysuperapp.domain.use_case.feature_flags.ObserveFeatureFlagsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.login.LogoutUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.GetUserSessionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.ProtectedNavigationResult
@@ -21,6 +23,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -33,6 +37,7 @@ class AppDrawerMenuViewModelTest {
     private val logoutUseCase: LogoutUseCase = mock()
     private val getUserSessionUseCase: GetUserSessionUseCase = mock()
     private val resolveProtectedNavigationUseCase: ResolveProtectedNavigationUseCase = mock()
+    private val observeFeatureFlagsUseCase: ObserveFeatureFlagsUseCase = mock()
     private val activity: FragmentActivity = mock()
 
     private lateinit var viewModel: AppDrawerMenuViewModel
@@ -41,16 +46,25 @@ class AppDrawerMenuViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         `when`(getUserSessionUseCase()).thenReturn(flowOf(UserSession()))
+        `when`(observeFeatureFlagsUseCase()).thenReturn(flowOf(FeatureFlags(finance = false)))
         viewModel = AppDrawerMenuViewModel(
             logoutUseCase,
             getUserSessionUseCase,
-            resolveProtectedNavigationUseCase
+            resolveProtectedNavigationUseCase,
+            observeFeatureFlagsUseCase,
         )
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun exposesFeatureFlagsInState() = runTest(testDispatcher) {
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.flags.finance)
+        assertTrue(viewModel.uiState.value.flags.workout)
     }
 
     @Test

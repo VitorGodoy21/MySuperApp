@@ -3,7 +3,9 @@ package com.vfdeginformatica.mysuperapp.presentation.my_super_app
 import androidx.fragment.app.FragmentActivity
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.domain.model.FeatureFlags
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.domain.use_case.feature_flags.ObserveFeatureFlagsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodeByIdUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.ProtectedNavigationResult
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.ResolveProtectedNavigationUseCase
@@ -25,7 +27,12 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,6 +41,7 @@ class NotificationDeepLinkViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val resolveProtectedNavigationUseCase: ResolveProtectedNavigationUseCase = mock()
     private val getQrCodeByIdUseCase: GetQrCodeByIdUseCase = mock()
+    private val observeFeatureFlagsUseCase: ObserveFeatureFlagsUseCase = mock()
     private val activity: FragmentActivity = mock()
     private val pending = PendingQrCodeNavigation()
 
@@ -42,7 +50,10 @@ class NotificationDeepLinkViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = NotificationDeepLinkViewModel(pending, resolveProtectedNavigationUseCase, getQrCodeByIdUseCase)
+        `when`(observeFeatureFlagsUseCase()).thenReturn(flowOf(FeatureFlags()))
+        viewModel = NotificationDeepLinkViewModel(
+            pending, resolveProtectedNavigationUseCase, getQrCodeByIdUseCase, observeFeatureFlagsUseCase
+        )
     }
 
     @After
@@ -103,6 +114,24 @@ class NotificationDeepLinkViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf(NotificationDeepLinkEffect.ShowToast("Autenticação biométrica falhou")), effects)
+    }
+
+    @Test
+    fun qrCodeDisabledOnlyShowsToastAndSkipsBiometric() = runTest(testDispatcher) {
+        `when`(observeFeatureFlagsUseCase()).thenReturn(flowOf(FeatureFlags(qrCode = false)))
+        val effects = mutableListOf<NotificationDeepLinkEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.effect.toList(effects) }
+
+        pending.set("qr1")
+        viewModel.consumePending(activity)
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(NotificationDeepLinkEffect.ShowToast(NotificationDeepLinkViewModel.QR_DISABLED_MESSAGE)),
+            effects
+        )
+        verify(resolveProtectedNavigationUseCase, never()).invoke(anyString(), anyBoolean(), any())
+        assertNull(pending.pendingQrCodeId.value)
     }
 
     @Test

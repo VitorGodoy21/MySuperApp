@@ -15,6 +15,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.Workout
 @Composable
 fun WorkoutTopicCard(
     state: WorkoutSectionState,
+    showDiet: Boolean = true,
     onOpen: () -> Unit,
     onOpenTodayWorkout: (String) -> Unit,
     onOpenDiet: () -> Unit,
@@ -23,7 +24,7 @@ fun WorkoutTopicCard(
     val colors = HomeColors.workout()
     HomeTopicCard(
         title = "Academia",
-        subtitle = "Treinos, dieta e dados físicos",
+        subtitle = if (showDiet) "Treinos, dieta e dados físicos" else "Treinos e dados físicos",
         icon = Icons.Default.FitnessCenter,
         colors = colors,
         onHeaderClick = onOpen,
@@ -47,7 +48,7 @@ fun WorkoutTopicCard(
                     onOpenTodayWorkout(workout.id)
                 })
             }
-            HomeShortcutChip("Minha dieta", Icons.Default.Restaurant, colors, onOpenDiet)
+            if (showDiet) HomeShortcutChip("Minha dieta", Icons.Default.Restaurant, colors, onOpenDiet)
         }
     }
 }

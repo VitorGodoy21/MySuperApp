@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.domain.use_case.feature_flags.ObserveFeatureFlagsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodeByIdUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.ProtectedNavigationResult
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.ResolveProtectedNavigationUseCase
@@ -30,12 +31,14 @@ sealed interface NotificationDeepLinkEffect {
  * Trata o toque em uma notificação de QR Code no `:app`: exige biometria (mesma
  * proteção do Smart Tags), carrega o QR e navega para o detalhe. Se o QR não for
  * encontrado, cai na lista de QR Codes com aviso; se a biometria falhar, só avisa.
+ * Se o QR Code estiver desativado no painel web, apenas avisa e não navega.
  */
 @HiltViewModel
 class NotificationDeepLinkViewModel @Inject constructor(
     private val pendingQrCodeNavigation: PendingQrCodeNavigation,
     private val resolveProtectedNavigationUseCase: ResolveProtectedNavigationUseCase,
-    private val getQrCodeByIdUseCase: GetQrCodeByIdUseCase
+    private val getQrCodeByIdUseCase: GetQrCodeByIdUseCase,
+    private val observeFeatureFlagsUseCase: ObserveFeatureFlagsUseCase,
 ) : ViewModel() {
 
     val pendingQrCodeId: StateFlow<String?> = pendingQrCodeNavigation.pendingQrCodeId
@@ -46,6 +49,10 @@ class NotificationDeepLinkViewModel @Inject constructor(
     fun consumePending(activity: FragmentActivity?) {
         val qrCodeId = pendingQrCodeNavigation.consume() ?: return
         viewModelScope.launch {
+            if (!observeFeatureFlagsUseCase().first().isQrCodeEnabled) {
+                _effect.emit(NotificationDeepLinkEffect.ShowToast(QR_DISABLED_MESSAGE))
+                return@launch
+            }
             val auth = resolveProtectedNavigationUseCase(
                 route = Screen.QrCodeListScreen.route,
                 passwordRequired = true,
@@ -74,5 +81,9 @@ class NotificationDeepLinkViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    companion object {
+        const val QR_DISABLED_MESSAGE = "QR Code está desativado no painel web"
     }
 }

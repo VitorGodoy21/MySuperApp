@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.domain.model.FeatureFlags
+import com.vfdeginformatica.mysuperapp.domain.use_case.feature_flags.ObserveFeatureFlagsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.summary.GetMonthFinancialSummaryUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.CountQrCodesUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.ProtectedNavigationResult
@@ -16,10 +18,12 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEve
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeUiState
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,6 +40,7 @@ class HomeViewModel @Inject constructor(
     private val getMonthFinancialSummaryUseCase: GetMonthFinancialSummaryUseCase,
     private val countQrCodesUseCase: CountQrCodesUseCase,
     private val getWorkoutHomeSummaryUseCase: GetWorkoutHomeSummaryUseCase,
+    private val observeFeatureFlagsUseCase: ObserveFeatureFlagsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -44,8 +49,17 @@ class HomeViewModel @Inject constructor(
     private val _effect = Channel<HomeEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
 
+    private var financeJob: Job? = null
+    private var smartTagsJob: Job? = null
+    private var workoutJob: Job? = null
+
     init {
-        loadAll()
+        viewModelScope.launch {
+            observeFeatureFlagsUseCase().distinctUntilChanged().collect { flags ->
+                _uiState.update { it.copy(flags = flags) }
+                loadAll()
+            }
+        }
     }
 
     fun onEvent(event: HomeEvent) {
@@ -69,14 +83,17 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /** Só carrega as seções habilitadas; seções desligadas não disparam consultas ao Firestore. */
     private fun loadAll() {
-        loadFinance()
-        loadSmartTags()
-        loadWorkout()
+        val flags = _uiState.value.flags
+        if (flags.finance) loadFinance() else financeJob?.cancel()
+        if (flags.isQrCodeEnabled) loadSmartTags() else smartTagsJob?.cancel()
+        if (flags.workout) loadWorkout() else workoutJob?.cancel()
     }
 
     private fun loadFinance() {
-        viewModelScope.launch {
+        financeJob?.cancel()
+        financeJob = viewModelScope.launch {
             getMonthFinancialSummaryUseCase().collect { result ->
                 _uiState.update { state ->
                     state.copy(
@@ -92,7 +109,8 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadSmartTags() {
-        viewModelScope.launch {
+        smartTagsJob?.cancel()
+        smartTagsJob = viewModelScope.launch {
             countQrCodesUseCase().collect { result ->
                 _uiState.update { state ->
                     state.copy(
@@ -108,7 +126,8 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadWorkout() {
-        viewModelScope.launch {
+        workoutJob?.cancel()
+        workoutJob = viewModelScope.launch {
             getWorkoutHomeSummaryUseCase().collect { result ->
                 _uiState.update { state ->
                     state.copy(

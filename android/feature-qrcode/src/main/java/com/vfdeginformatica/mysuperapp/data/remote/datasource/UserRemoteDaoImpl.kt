@@ -5,6 +5,8 @@ import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.vfdeginformatica.mysuperapp.data.mapper.toFeatureFlags
+import com.vfdeginformatica.mysuperapp.domain.model.FeatureFlags
 import com.vfdeginformatica.mysuperapp.domain.model.NotificationSettings
 import com.vfdeginformatica.mysuperapp.domain.model.UserSession
 import kotlinx.coroutines.tasks.await
@@ -58,6 +60,11 @@ class UserRemoteDaoImpl(
             .update(mapOf("name" to name, "email" to email))
             .await()
         Log.d("UserRemoteDaoImpl", "updateUser: uid=$uid name=$name email=$email")
+    }
+
+    override suspend fun getFeatureFlags(uid: String): FeatureFlags {
+        val snapshot = db.collection("users").document(uid).get().await()
+        return (snapshot.get("featureFlags") as? Map<*, *>).toFeatureFlags()
     }
 
     override suspend fun getNotificationSettings(uid: String): NotificationSettings {

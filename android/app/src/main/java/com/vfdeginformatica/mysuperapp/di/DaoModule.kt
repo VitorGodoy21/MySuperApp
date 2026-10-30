@@ -1,7 +1,10 @@
 package com.vfdeginformatica.mysuperapp.di
 
+import android.content.Context
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
+import com.vfdeginformatica.mysuperapp.data.local.datasource.FeatureFlagsLocalStorage
+import com.vfdeginformatica.mysuperapp.data.local.datasource.FeatureFlagsLocalStorageImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.DietDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.DietDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDao
@@ -21,12 +24,19 @@ import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutSessionDaoI
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DaoModule {
+
+    @Provides
+    @Singleton
+    fun provideFeatureFlagsLocalStorage(
+        @ApplicationContext context: Context
+    ): FeatureFlagsLocalStorage = FeatureFlagsLocalStorageImpl(context)
 
     @Provides
     @Singleton

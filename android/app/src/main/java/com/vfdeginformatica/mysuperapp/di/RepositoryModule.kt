@@ -1,6 +1,11 @@
 package com.vfdeginformatica.mysuperapp.di
 
 import android.content.Context
+import com.vfdeginformatica.mysuperapp.data.local.datasource.FeatureFlagsLocalStorage
+import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
+import com.vfdeginformatica.mysuperapp.data.remote.repository.FeatureFlagsRepositoryImpl
+import com.vfdeginformatica.mysuperapp.domain.repository.FeatureFlagsRepository
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.DietDao
 import com.vfdeginformatica.mysuperapp.data.remote.repository.DietRepositoryImpl
 import com.vfdeginformatica.mysuperapp.domain.repository.DietRepository
@@ -37,6 +42,14 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideFeatureFlagsRepository(
+        userRemoteDao: UserRemoteDao,
+        localStorage: FeatureFlagsLocalStorage,
+        sessionStorage: UserSessionSecureStorage,
+    ): FeatureFlagsRepository = FeatureFlagsRepositoryImpl(userRemoteDao, localStorage, sessionStorage)
 
     @Provides
     @Singleton

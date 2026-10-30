@@ -3,7 +3,9 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.home
 import androidx.fragment.app.FragmentActivity
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.domain.model.FeatureFlags
 import com.vfdeginformatica.mysuperapp.domain.model.MonthFinancialSummary
+import com.vfdeginformatica.mysuperapp.domain.use_case.feature_flags.ObserveFeatureFlagsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.summary.GetMonthFinancialSummaryUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.CountQrCodesUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.user.ProtectedNavigationResult
@@ -48,6 +50,7 @@ class HomeViewModelTest {
     private val getMonthFinancialSummaryUseCase: GetMonthFinancialSummaryUseCase = mock()
     private val countQrCodesUseCase: CountQrCodesUseCase = mock()
     private val getWorkoutHomeSummaryUseCase: GetWorkoutHomeSummaryUseCase = mock()
+    private val observeFeatureFlagsUseCase: ObserveFeatureFlagsUseCase = mock()
     private val activity: FragmentActivity = mock()
 
     private val financeSummary = MonthFinancialSummary(YearMonth.of(2026, 10), totalIncome = 1000.0, cashExpense = 400.0)
@@ -56,6 +59,7 @@ class HomeViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        `when`(observeFeatureFlagsUseCase()).thenReturn(flowOf(FeatureFlags()))
         `when`(getMonthFinancialSummaryUseCase()).thenReturn(flowOf(Resource.Loading(), Resource.Success(financeSummary)))
         `when`(countQrCodesUseCase()).thenReturn(flowOf(Resource.Loading(), Resource.Success(3)))
         `when`(getWorkoutHomeSummaryUseCase()).thenReturn(flowOf(Resource.Loading(), Resource.Success(workoutSummary)))
@@ -71,6 +75,7 @@ class HomeViewModelTest {
         getMonthFinancialSummaryUseCase,
         countQrCodesUseCase,
         getWorkoutHomeSummaryUseCase,
+        observeFeatureFlagsUseCase,
     )
 
     private fun allow(route: String) {
@@ -89,6 +94,34 @@ class HomeViewModelTest {
         assertFalse(state.finance.isRevealed)
         assertEquals(3, state.smartTags.qrCount)
         assertEquals(workoutSummary, state.workout.summary)
+    }
+
+    @Test
+    fun disabledSectionsAreNotLoaded() = runTest(testDispatcher) {
+        `when`(observeFeatureFlagsUseCase()).thenReturn(flowOf(FeatureFlags(finance = false, smartTags = false)))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertFalse(state.flags.finance)
+        assertFalse(state.flags.isSmartTagsEnabled)
+        assertTrue(state.flags.hasAnyEnabled)
+        verify(getMonthFinancialSummaryUseCase, never()).invoke()
+        verify(countQrCodesUseCase, never()).invoke()
+        assertNull(state.finance.summary)
+        assertNull(state.smartTags.qrCount)
+        assertEquals(workoutSummary, state.workout.summary)
+    }
+
+    @Test
+    fun allDisabledExposesEmptyState() = runTest(testDispatcher) {
+        `when`(observeFeatureFlagsUseCase())
+            .thenReturn(flowOf(FeatureFlags(finance = false, smartTags = false, workout = false)))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.flags.hasAnyEnabled)
+        verify(getWorkoutHomeSummaryUseCase, never()).invoke()
     }
 
     @Test

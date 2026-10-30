@@ -136,7 +136,7 @@ fun AppDrawerMenuScreen(
 
                 var isFinancialExpanded by rememberSaveable { mutableStateOf(false) }
 
-                NavigationDrawerItem(
+                if (state.flags.finance) NavigationDrawerItem(
                     label = { Text("Controle Financeiro") },
                     selected = false,
                     onClick = { isFinancialExpanded = !isFinancialExpanded },
@@ -162,7 +162,7 @@ fun AppDrawerMenuScreen(
                     }
                 )
 
-                if (isFinancialExpanded) {
+                if (state.flags.finance && isFinancialExpanded) {
                     NavigationDrawerItem(
                         label = { Text("Dashboard") },
                         selected = false,
@@ -205,7 +205,7 @@ fun AppDrawerMenuScreen(
 
                 var isWorkoutExpanded by rememberSaveable { mutableStateOf(false) }
 
-                NavigationDrawerItem(
+                if (state.flags.workout) NavigationDrawerItem(
                     label = { Text("Academia") },
                     selected = false,
                     onClick = { isWorkoutExpanded = !isWorkoutExpanded },
@@ -231,7 +231,7 @@ fun AppDrawerMenuScreen(
                     }
                 )
 
-                if (isWorkoutExpanded) {
+                if (state.flags.workout && isWorkoutExpanded) {
                     NavigationDrawerItem(
                         label = { Text("Dados físicos") },
                         selected = false,
@@ -270,7 +270,7 @@ fun AppDrawerMenuScreen(
                         },
                         modifier = Modifier.padding(start = 24.dp)
                     )
-                    NavigationDrawerItem(
+                    if (state.flags.isDietEnabled) NavigationDrawerItem(
                         label = { Text("Dieta") },
                         selected = false,
                         onClick = onWorkoutDiet,
@@ -286,7 +286,7 @@ fun AppDrawerMenuScreen(
 
                 var isSmartTagsExpanded by rememberSaveable { mutableStateOf(false) }
 
-                NavigationDrawerItem(
+                if (state.flags.isSmartTagsEnabled) NavigationDrawerItem(
                     label = { Text("Smart Tags") },
                     selected = false,
                     onClick = { isSmartTagsExpanded = !isSmartTagsExpanded },
@@ -312,8 +312,8 @@ fun AppDrawerMenuScreen(
                     }
                 )
 
-                if (isSmartTagsExpanded) {
-                    NavigationDrawerItem(
+                if (state.flags.isSmartTagsEnabled && isSmartTagsExpanded) {
+                    if (state.flags.isQrCodeEnabled) NavigationDrawerItem(
                         label = { Text("QR Code") },
                         selected = false,
                         onClick = { onQrCode.invoke() },
@@ -326,7 +326,7 @@ fun AppDrawerMenuScreen(
                         modifier = Modifier.padding(start = 24.dp)
                     )
 
-                    NavigationDrawerItem(
+                    if (state.flags.isNfcEnabled) NavigationDrawerItem(
                         label = { Text("NFC") },
                         selected = false,
                         onClick = { onNfc.invoke() },

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>My Super App · Painel</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --bg: #f4f5fb;
+            --card: #ffffff;
+            --text: #1f2333;
+            --muted: #6b7083;
+            --border: #e4e6ef;
+            --danger: #c0392b;
+            --success: #2e7d32;
+            --finance: #0f766e;
+            --smart: #2563eb;
+            --workout: #ea580c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ===== Login ===== */
+        #login-view {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        .login-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .login-card h1 { font-size: 24px; margin-bottom: 4px; }
+        .login-card p.sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color .2s;
+        }
+        input:focus { border-color: var(--primary); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .2s, transform .1s;
+        }
+        .btn:disabled { opacity: .6; cursor: default; }
+        .btn:not(:disabled):active { transform: scale(.98); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; width: 100%; }
+        .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+        .msg { font-size: 14px; padding: 10px 12px; border-radius: 8px; margin-top: 12px; }
+        .msg-error { background: #fdecea; color: var(--danger); }
+        .msg-success { background: #e8f5e9; color: var(--success); }
+
+        /* ===== Painel ===== */
+        #panel-view { display: flex; min-height: 100vh; }
+
+        aside {
+            width: 240px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 18px;
+            padding: 0 12px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--text);
+            text-decoration: none;
+            border: none;
+            background: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+        .nav-item.active { background: rgba(102, 126, 234, .12); color: var(--primary); font-weight: 600; }
+        .nav-item[disabled] { color: var(--muted); cursor: default; }
+        .soon {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            background: var(--border);
+            color: var(--muted);
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+        .user-email { font-size: 12px; color: var(--muted); padding: 0 12px 10px; word-break: break-all; }
+
+        main { flex: 1; padding: 32px; max-width: 900px; }
+
+        main h2 { font-size: 22px; margin-bottom: 4px; }
+        main p.sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+        .topic {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--accent, var(--primary));
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+        .topic[data-topic="finance"] { --accent: var(--finance); }
+        .topic[data-topic="smartTags"] { --accent: var(--smart); }
+        .topic[data-topic="workout"] { --accent: var(--workout); }
+
+        .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .row + .row { margin-top: 10px; }
+        .row.sub-row { padding-left: 20px; }
+        .row .title { font-weight: 600; font-size: 16px; }
+        .row .desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+        .sub-row .title { font-weight: 500; font-size: 14px; }
+        .topic.off .sub-row { opacity: .45; }
+        .sub-list { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+
+        /* switch */
+        .switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; inset: 0; cursor: pointer;
+            background: #cfd3e0; border-radius: 26px; transition: .2s;
+        }
+        .slider::before {
+            content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px;
+            background: #fff; border-radius: 50%; transition: .2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,.3);
+        }
+        .switch input:checked + .slider { background: var(--accent, var(--primary)); }
+        .switch input:checked + .slider::before { transform: translateX(20px); }
+        .switch input:disabled + .slider { cursor: default; }
+
+        .actions { display: flex; align-items: center; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
+        .actions .btn-primary { width: auto; }
+        .hint { font-size: 13px; color: var(--muted); }
+
+        .loading { color: var(--muted); font-size: 14px; padding: 20px 0; }
+
+        @media (max-width: 720px) {
+            #panel-view { flex-direction: column; }
+            aside { width: 100%; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; align-items: center; padding: 12px; }
+            .brand { padding: 0 8px; width: 100%; margin-bottom: 8px; }
+            .sidebar-footer { margin-top: 0; margin-left: auto; padding-top: 0; border-top: none; display: flex; align-items: center; gap: 8px; }
+            .user-email { padding: 0; }
+            main { padding: 20px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== Login ===== -->
+<section id="login-view">
+    <form class="login-card" id="login-form" novalidate>
+        <h1>My Super App</h1>
+        <p class="sub">Entre com a mesma conta do aplicativo.</p>
+
+        <label for="email">E-mail</label>
+        <input type="email" id="email" autocomplete="username" required>
+
+        <label for="password">Senha</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+
+        <button type="submit" class="btn btn-primary" id="login-btn">Entrar</button>
+        <div id="login-msg" class="msg msg-error hidden" role="alert"></div>
+    </form>
+</section>
+
+<!-- ===== Painel ===== -->
+<section id="panel-view" class="hidden">
+    <aside>
+        <div class="brand">My Super App</div>
+        <button class="nav-item active" type="button">Configurações</button>
+        <button class="nav-item" type="button" disabled>Finanças <span class="soon">em breve</span></button>
+        <button class="nav-item" type="button" disabled>Smart Tags <span class="soon">em breve</span></button>
+        <button class="nav-item" type="button" disabled>Academia <span class="soon">em breve</span></button>
+        <div class="sidebar-footer">
+            <div class="user-email" id="user-email"></div>
+            <button class="btn btn-ghost" type="button" id="logout-btn">Sair</button>
+        </div>
+    </aside>
+
+    <main>
+        <h2>Configurações</h2>
+        <p class="sub">Ative ou desative as funções exibidas no aplicativo. Funções desativadas somem da tela inicial e do menu.</p>
+
+        <div id="flags-loading" class="loading">Carregando configurações…</div>
+
+        <div id="flags-form" class="hidden">
+            <div class="topic" data-topic="finance">
+                <div class="row">
+                    <div>
+                        <div class="title">Finanças</div>
+                        <div class="desc">Dashboard, gastos, receitas, cartões e categorias.</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" data-flag="finance"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="topic" data-topic="smartTags">
+                <div class="row">
+                    <div>
+                        <div class="title">Smart Tags</div>
+                        <div class="desc">QR Codes e tags NFC.</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" data-flag="smartTags" data-parent><span class="slider"></span></label>
+                </div>
+                <div class="sub-list">
+                    <div class="row sub-row">
+                        <div class="title">QR Code</div>
+                        <label class="switch"><input type="checkbox" data-flag="qrCode" data-child="smartTags"><span class="slider"></span></label>
+                    </div>
+                    <div class="row sub-row">
+                        <div class="title">NFC</div>
+                        <label class="switch"><input type="checkbox" data-flag="nfc" data-child="smartTags"><span class="slider"></span></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="topic" data-topic="workout">
+                <div class="row">
+                    <div>
+                        <div class="title">Academia</div>
+                        <div class="desc">Treinos, exercícios, dados físicos e dieta.</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" data-flag="workout" data-parent><span class="slider"></span></label>
+                </div>
+                <div class="sub-list">
+                    <div class="row sub-row">
+                        <div class="title">Dieta</div>
+                        <label class="switch"><input type="checkbox" data-flag="diet" data-child="workout"><span class="slider"></span></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" type="button" id="save-btn">Salvar</button>
+                <span class="hint">O aplicativo aplica as mudanças ao ser aberto.</span>
+            </div>
+            <div id="save-msg" class="msg hidden" role="status"></div>
+        </div>
+    </main>
+</section>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyABFQMxeK9BohIfDdDyX-1gJkvML9xxl-o",
+        authDomain: "baila-675c6.firebaseapp.com",
+        projectId: "baila-675c6"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Mesmas chaves lidas pelo app Android (users/{uid}.featureFlags); ausente = habilitado.
+    const FLAG_KEYS = ['finance', 'smartTags', 'qrCode', 'nfc', 'workout', 'diet'];
+
+    const $ = (id) => document.getElementById(id);
+    const loginView = $('login-view');
+    const panelView = $('panel-view');
+    const loginForm = $('login-form');
+    const loginBtn = $('login-btn');
+    const loginMsg = $('login-msg');
+    const saveBtn = $('save-btn');
+    const saveMsg = $('save-msg');
+    const flagInputs = Array.from(document.querySelectorAll('input[data-flag]'));
+
+    function showMsg(el, text, type) {
+        el.textContent = text;
+        el.classList.remove('hidden', 'msg-error', 'msg-success');
+        el.classList.add(type === 'error' ? 'msg-error' : 'msg-success');
+    }
+    function hideMsg(el) { el.classList.add('hidden'); }
+
+    function authErrorMessage(code) {
+        switch (code) {
+            case 'auth/invalid-email': return 'E-mail inválido.';
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+            case 'auth/invalid-login-credentials': return 'E-mail ou senha incorretos.';
+            case 'auth/too-many-requests': return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+            case 'auth/network-request-failed': return 'Sem conexão. Verifique sua internet.';
+            case 'auth/user-disabled': return 'Esta conta está desativada.';
+            default: return 'Não foi possível entrar. Tente novamente.';
+        }
+    }
+
+    // ===== Login =====
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMsg(loginMsg);
+        const email = $('email').value.trim();
+        const password = $('password').value;
+        if (!email || !password) {
+            showMsg(loginMsg, 'Informe e-mail e senha.', 'error');
+            return;
+        }
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Entrando…';
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+        } catch (err) {
+            console.error('Login falhou', err);
+            showMsg(loginMsg, authErrorMessage(err && err.code), 'error');
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Entrar';
+        }
+    });
+
+    $('logout-btn').addEventListener('click', () => auth.signOut());
+
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            loginView.classList.add('hidden');
+            panelView.classList.remove('hidden');
+            $('user-email').textContent = user.email || '';
+            loadFlags(user.uid);
+        } else {
+            panelView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+            $('password').value = '';
+            hideMsg(saveMsg);
+        }
+    });
+
+    // ===== Configurações =====
+    function readFlagsFromForm() {
+        const flags = {};
+        flagInputs.forEach((input) => { flags[input.dataset.flag] = input.checked; });
+        return flags;
+    }
+
+    function applyFlagsToForm(flags) {
+        flagInputs.forEach((input) => {
+            const value = flags && typeof flags[input.dataset.flag] === 'boolean' ? flags[input.dataset.flag] : true;
+            input.checked = value;
+        });
+        syncChildren();
+    }
+
+    // Desligar o tópico só desabilita visualmente os subitens; os valores são preservados.
+    function syncChildren() {
+        flagInputs.filter((i) => i.hasAttribute('data-parent')).forEach((parent) => {
+            const topic = parent.closest('.topic');
+            topic.classList.toggle('off', !parent.checked);
+            flagInputs
+                .filter((child) => child.dataset.child === parent.dataset.flag)
+                .forEach((child) => { child.disabled = !parent.checked; });
+        });
+    }
+
+    flagInputs.forEach((input) => input.addEventListener('change', () => {
+        hideMsg(saveMsg);
+        if (input.hasAttribute('data-parent')) syncChildren();
+    }));
+
+    async function loadFlags(uid) {
+        $('flags-loading').classList.remove('hidden');
+        $('flags-form').classList.add('hidden');
+        try {
+            const snap = await db.collection('users').doc(uid).get();
+            const data = snap.exists ? snap.data() : {};
+            applyFlagsToForm(data && data.featureFlags);
+            $('flags-form').classList.remove('hidden');
+        } catch (err) {
+            console.error('Falha ao carregar flags', err);
+            $('flags-loading').textContent = 'Não foi possível carregar as configurações. Recarregue a página.';
+            return;
+        }
+        $('flags-loading').classList.add('hidden');
+    }
+
+    saveBtn.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+        hideMsg(saveMsg);
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Salvando…';
+        const featureFlags = readFlagsFromForm();
+        const ref = db.collection('users').doc(user.uid);
+        try {
+            try {
+                await ref.update({ featureFlags });
+            } catch (err) {
+                if (err && err.code === 'not-found') {
+                    await ref.set({ featureFlags }, { merge: true });
+                } else {
+                    throw err;
+                }
+            }
+            showMsg(saveMsg, 'Configurações salvas. Abra o app para aplicar.', 'success');
+        } catch (err) {
+            console.error('Falha ao salvar flags', err);
+            showMsg(saveMsg, 'Não foi possível salvar. Tente novamente.', 'error');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Salvar';
+        }
+    });
+</script>
+</body>
+</html>

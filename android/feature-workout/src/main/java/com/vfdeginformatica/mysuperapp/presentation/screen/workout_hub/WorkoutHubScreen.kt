@@ -48,6 +48,8 @@ fun WorkoutHubScreen(
     uiState: WorkoutHubUiState,
     onEvent: (WorkoutHubEvent) -> Unit,
     modifier: Modifier = Modifier,
+    /** `false` quando a função Dieta está desabilitada no painel web. */
+    showDiet: Boolean = true,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -100,7 +102,7 @@ fun WorkoutHubScreen(
         item(key = "shortcuts_divider") {
             HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
         }
-        item(key = "diet") {
+        if (showDiet) item(key = "diet") {
             HighlightCard(
                 icon = Icons.Default.Restaurant,
                 title = "Minha dieta",

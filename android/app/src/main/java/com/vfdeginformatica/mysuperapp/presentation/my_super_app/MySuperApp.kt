@@ -2,7 +2,9 @@ package com.vfdeginformatica.mysuperapp.presentation.my_super_app
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,10 +16,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.presentation.common.FeatureDisabledScreen
+import com.vfdeginformatica.mysuperapp.presentation.common.FeatureGate
 import com.vfdeginformatica.mysuperapp.presentation.common.getFragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.common.ui.theme.MySuperAppTheme
 import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.accessLogMapRoute
@@ -57,6 +62,7 @@ fun MySuperApp(
     deepLinkViewModel: NotificationDeepLinkViewModel = hiltViewModel()
 ) {
     val state by sessionViewModel.uiState.collectAsStateWithLifecycle()
+    val featureFlags by sessionViewModel.featureFlags.collectAsStateWithLifecycle()
     val pendingQrCodeId by deepLinkViewModel.pendingQrCodeId.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = (context.getFragmentActivity())
@@ -65,6 +71,9 @@ fun MySuperApp(
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Log.d("MainActivity", "onCreate: $innerPadding")
             val navController = rememberNavController()
+            val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+            // Último bloqueio: destinos de tópicos desativados no painel web mostram aviso no lugar da tela.
+            val blockedFeature = FeatureGate.blockedBy(featureFlags, currentRoute)
 
             // Toque em notificação de QR Code: resolve após a sessão estar logada.
             LaunchedEffect(pendingQrCodeId, state.isLoggedIn) {
@@ -90,6 +99,7 @@ fun MySuperApp(
                 }
             }
 
+            Box(modifier = Modifier.fillMaxSize()) {
             NavHost(
                 navController = navController,
                 startDestination = Screen.SplashScreen.route
@@ -254,6 +264,7 @@ fun MySuperApp(
                 // Academia (feature-workout)
                 composable(route = Screen.WorkoutHubScreen.route) {
                     WorkoutHubRoute(
+                        showDiet = featureFlags.isDietEnabled,
                         onNavigateUp = { navController.navigateUp() },
                         onNavigateToWorkout = { workoutId ->
                             navController.navigate(Screen.WorkoutViewScreen.createRoute(workoutId))
@@ -417,6 +428,20 @@ fun MySuperApp(
                 composable(route = Screen.NotificationsScreen.route) {
                     NotificationsRoute(onNavigateUp = { navController.navigateUp() })
                 }
+            }
+
+            blockedFeature?.let { feature ->
+                FeatureDisabledScreen(
+                    feature = feature,
+                    onBack = {
+                        navController.navigate(Screen.HomeScreen.route) {
+                            popUpTo(Screen.HomeScreen.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.padding(innerPadding),
+                )
+            }
             }
         }
     }

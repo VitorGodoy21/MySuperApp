@@ -1,9 +1,11 @@
 package com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.contract
 
+import com.vfdeginformatica.mysuperapp.domain.model.FeatureFlags
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.model.UiMenuItem
 
 data class AppDrawerMenuUiState(
     val isOpen: Boolean = true,
+    val flags: FeatureFlags = FeatureFlags(),
     val userName: String? = null,
     val userEmail: String? = null,
     val userTypeName: String? = null,
