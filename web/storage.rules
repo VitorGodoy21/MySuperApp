@@ -16,6 +16,14 @@ service firebase.storage {
         && request.auth.uid == userId;
     }
 
+    // Instalador e fontes do auxiliar de downloads (portal web → aba Downloads).
+    // Leitura só para contas autenticadas; upload apenas via Admin SDK
+    // (`npm --prefix web\functions run publish:downloader`), nunca pelo cliente.
+    match /downloader/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

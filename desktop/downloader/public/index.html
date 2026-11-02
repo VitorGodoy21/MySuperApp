@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Super App · Downloads</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+    <main>
+        <header><span class="brand">My Super App</span><span class="badge">No seu computador · 0.2.0</span></header>
+        <h1>Seus áudios e vídeos, do seu jeito</h1>
+        <p class="sub">Baixe um vídeo em MP3 ou MP4, ou escolha músicas de uma playlist. Tudo é processado e salvo no seu computador.</p>
+        <form id="download-form">
+            <div class="options">
+                <div><label for="mode">O que baixar?</label><select id="mode"><option value="video">Vídeo individual</option><option value="playlist">Playlist em MP3</option></select></div>
+                <div id="format-field"><label for="format">Formato</label><select id="format"><option value="mp3">MP3 · áudio 192 kbps</option><option value="mp4">MP4 · vídeo e áudio</option></select></div>
+                <div id="height-field" hidden><label for="height">Resolução máxima</label><select id="height"><option value="360">Até 360p</option><option value="720" selected>Até 720p</option><option value="1080">Até 1080p</option></select></div>
+            </div>
+            <p id="format-hint" class="hint">MP3 de 192 kbps. Um arquivo de cada vez, sem quotas diárias do aplicativo.</p>
+            <label for="url">Link do YouTube</label>
+            <input id="url" type="url" placeholder="https://www.youtube.com/watch?v=..." required autocomplete="off">
+            <p class="hint">No modo Playlist, carregue a lista e selecione os itens antes de baixar. Mixes, lives em andamento e conteúdo privado não são suportados.</p>
+            <label for="folder">Pasta de destino</label>
+            <div class="folder-row"><input id="folder" readonly><button id="choose" type="button" class="secondary">Escolher pasta</button></div>
+            <p id="destination" class="hint"></p>
+            <label class="consent"><input id="authorized" type="checkbox"> Tenho autorização para baixar o conteúdo selecionado (próprio, domínio público ou permitido pelo titular).</label>
+            <div class="actions">
+                <button id="start" type="submit">Baixar MP3</button>
+                <button id="cancel" type="button" class="secondary" hidden>Cancelar operação</button>
+                <button id="open" type="button" class="secondary">Abrir pasta</button>
+                <button id="retry" type="button" class="secondary" hidden>Repetir falhas/cancelados</button>
+            </div>
+            <p id="error" role="alert" hidden></p>
+        </form>
+        <section class="status" aria-labelledby="status-heading">
+            <h2 id="status-heading">Acompanhamento</h2>
+            <div aria-live="polite">
+                <span id="phase" class="badge">Pronto</span>
+                <p id="message">Conectando ao aplicativo local...</p>
+                <p id="summary" class="hint"></p>
+            </div>
+            <h3 id="title"></h3>
+            <p id="item-message"></p>
+            <progress id="progress" max="100" hidden aria-label="Download da faixa atual"></progress>
+            <p id="progress-hint" class="hint"></p>
+            <div id="list-section" hidden>
+                <div class="actions">
+                    <button id="select-all" type="button" class="secondary">Selecionar todos</button>
+                    <button id="select-none" type="button" class="secondary">Limpar seleção</button>
+                    <span id="selection" class="hint"></span>
+                </div>
+                <ol id="items" class="items"></ol>
+                <div class="actions">
+                    <button id="previous" type="button" class="secondary">Anterior</button>
+                    <span id="page-label"></span>
+                    <button id="next" type="button" class="secondary">Próxima</button>
+                </div>
+            </div>
+        </section>
+        <footer>
+            <p>Playlists e vídeos consomem mais internet e disco. MP4 usa H.264/AAC, sem recodificação pesada; a resolução pode ser inferior ao limite escolhido.</p>
+            <p>Os arquivos não passam pelo site. Limites e bloqueios do YouTube ainda podem ocorrer. Fechar apenas esta aba não encerra o auxiliar.</p>
+            <button id="exit" type="button" class="secondary">Encerrar aplicativo</button>
+        </footer>
+    </main>
+</body>
+</html>

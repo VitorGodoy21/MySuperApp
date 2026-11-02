@@ -1,0 +1,43 @@
+My Super App Downloader 0.2.0
+
+The application starts independent external programs. Original binaries and DLLs
+are not modified. FFmpeg shared DLLs remain replaceable in _internal\vendor.
+Reverse engineering of these components for debugging modifications is not
+restricted by this application.
+
+yt-dlp 2026.10.26: Unlicense, with bundled third-party components under their own
+licenses. See yt-dlp-LICENSE.txt and yt-dlp-THIRD_PARTY_LICENSES.txt.
+https://github.com/yt-dlp/yt-dlp/tree/2026.10.26
+
+Deno 2.9.8: MIT and third-party licenses.
+https://github.com/denoland/deno/tree/v2.9.8
+See deno-LICENSE.txt and Deno's source for bundled components.
+
+FFmpeg n9.0.2-45-g1e65c6cd5d: BtbN LGPL shared Windows build, not the GPL variant.
+See the included FFmpeg license files, ffmpeg -L and ffmpeg -buildconf.
+Build recipe: https://github.com/BtbN/FFmpeg-Builds
+Source: https://github.com/FFmpeg/FFmpeg/commit/1e65c6cd5d
+The full build configuration and dependency sources accompany every public
+binary distribution as required by the relevant licenses (see WRITTEN OFFER).
+
+Python 3.12: PSF license, with Tcl/Tk licenses bundled by PyInstaller.
+PyInstaller bootloader: GPL with an exception allowing application bundling.
+https://www.pyinstaller.org/en/stable/license.html
+
+WRITTEN OFFER (CORRESPONDING SOURCE):
+The complete corresponding source of every LGPL/GPL-licensed component shipped
+with this installer (FFmpeg at the exact commit above, every library linked into
+its DLLs at the revisions pinned by the BtbN recipe, the recipe itself, LAME,
+yt-dlp and Deno), together with SOURCES-MANIFEST.txt listing origin, revision
+and SHA256 of each archive, is published as
+MySuperAppDownloader-0.2.0-sources.zip next to this installer in the Downloads
+area of the My Super App portal (https://mysuperapp.com.br/login). Anyone who
+received this binary may also request a copy of that archive from the author
+through the portal profile contact; it will be provided at no charge other than
+the cost of media/transfer. This offer is valid for at least three years after
+the last distribution of this version.
+
+UNSIGNED BINARY:
+This installer is not code-signed. Windows SmartScreen shows an "unknown
+publisher" warning; compare the SHA256 shown in the portal with the downloaded
+file before choosing "More info" > "Run anyway".

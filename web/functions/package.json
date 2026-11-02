@@ -11,7 +11,8 @@
     "logs": "firebase functions:log",
     "migrate:transaction-type": "node scripts/backfillTransactionType.js",
     "migrate:user-id": "node scripts/backfillUserId.js",
-    "copy:workout-data": "node scripts/copyWorkoutData.js"
+    "copy:workout-data": "node scripts/copyWorkoutData.js",
+    "publish:downloader": "node scripts/publishDownloader.js"
   },
   "dependencies": {
     "firebase-admin": "^12.2.0",

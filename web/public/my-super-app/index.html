@@ -56,7 +56,7 @@
 
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
 
-        input[type="email"], input[type="password"] {
+        input[type="text"], input[type="email"], input[type="password"] {
             width: 100%;
             padding: 12px 14px;
             border: 1px solid var(--border);
@@ -67,6 +67,11 @@
             transition: border-color .2s;
         }
         input:focus { border-color: var(--primary); }
+        input[readonly] { background: var(--bg); color: var(--muted); }
+        button:focus-visible, input:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 3px;
+        }
 
         .btn {
             display: inline-flex;
@@ -131,6 +136,7 @@
         }
         .nav-item.active { background: rgba(102, 126, 234, .12); color: var(--primary); font-weight: 600; }
         .nav-item[disabled] { color: var(--muted); cursor: default; }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
         .soon {
             font-size: 10px;
             text-transform: uppercase;
@@ -147,6 +153,7 @@
         main { flex: 1; padding: 32px; max-width: 900px; }
 
         main h2 { font-size: 22px; margin-bottom: 4px; }
+        main h2:focus { outline: none; }
         main p.sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
 
         .topic {
@@ -192,13 +199,87 @@
 
         .loading { color: var(--muted); font-size: 14px; padding: 20px 0; }
 
+        .profile-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            max-width: 640px;
+        }
+        .profile-card h3 { font-size: 17px; margin-bottom: 6px; }
+        .profile-card .hint { margin-bottom: 20px; line-height: 1.5; }
+        .profile-card fieldset { border: 0; min-width: 0; }
+        .profile-card fieldset:disabled { opacity: .65; }
+        .profile-card .actions { margin-top: 4px; }
+        .profile-card input[readonly] { margin-bottom: 8px; }
+        .profile-card .field-hint { display: block; font-size: 12px; color: var(--muted); margin: -8px 0 16px; }
+        .profile-card .email-hint { margin: 0 0 20px; }
+        .password-field { position: relative; }
+        .password-field input { padding-right: 88px; }
+        .password-toggle {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 8px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--primary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Downloads */
+        .dl-card .hint { margin-bottom: 10px; }
+        .dl-card .actions { margin-top: 8px; }
+        .dl-card .actions .btn-ghost { width: auto; }
+        .dl-step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .dl-step-head h3 { margin-bottom: 0; }
+        .dl-step {
+            width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--primary); color: #fff; font-size: 13px; font-weight: 600;
+        }
+        .dl-badge {
+            font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600;
+            padding: 3px 8px; border-radius: 6px; background: rgba(46, 160, 67, .15); color: #1f7a33;
+        }
+        #downloader-section[data-installed="false"] #dl-open-card { order: 10; }
+        #dl-sources-card { order: 20; }
+        #downloader-section[data-installed="false"] #dl-open-badge { display: none; }
+        #downloader-section[data-installed="false"] #dl-forget-btn { display: none; }
+        #downloader-section[data-installed="true"] #dl-install-card .dl-step,
+        #downloader-section[data-installed="true"] #dl-smartscreen-card .dl-step { opacity: .55; }
+        #downloader-section[data-platform="other"] #dl-install-card,
+        #downloader-section[data-platform="other"] #dl-smartscreen-card,
+        #downloader-section[data-platform="other"] #dl-open-card { display: none; }
+        #downloader-section { display: flex; flex-direction: column; }
+        #downloader-section.hidden { display: none; }
+        #downloader-section > h2, #downloader-section > p.sub { order: -2; }
+        .dl-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px 16px; margin: 8px 0 14px; }
+        .dl-meta dt { font-size: 12px; color: var(--muted); }
+        .dl-meta dd { font-size: 15px; font-weight: 600; }
+        .dl-notes { padding-left: 18px; margin-bottom: 14px; }
+        .dl-notes li { margin-bottom: 4px; }
+        .dl-progress { height: 8px; background: var(--border); border-radius: 8px; overflow: hidden; margin-top: 14px; }
+        .dl-progress-bar { height: 100%; width: 0; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); transition: width .2s; }
+        .dl-notice { border: 1px solid #e5c07b; background: rgba(229, 192, 123, .15); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+        .dl-notice strong { display: block; margin-bottom: 6px; font-size: 14px; }
+        .dl-hash-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+        .dl-hash { font-size: 12px; word-break: break-all; background: var(--bg, #f5f6fa); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; flex: 1; min-width: 200px; }
+        .dl-card code { font-size: 12px; background: var(--bg, #f5f6fa); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+
         @media (max-width: 720px) {
             #panel-view { flex-direction: column; }
             aside { width: 100%; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; align-items: center; padding: 12px; }
             .brand { padding: 0 8px; width: 100%; margin-bottom: 8px; }
+            .sidebar-nav { flex-direction: row; flex-wrap: wrap; width: 100%; }
+            .sidebar-nav .nav-item { width: auto; gap: 8px; }
             .sidebar-footer { margin-top: 0; margin-left: auto; padding-top: 0; border-top: none; display: flex; align-items: center; gap: 8px; }
             .user-email { padding: 0; }
             main { padding: 20px 16px; }
+            .profile-card { padding: 20px 16px; }
         }
     </style>
 </head>
@@ -225,10 +306,14 @@
 <section id="panel-view" class="hidden">
     <aside>
         <div class="brand">My Super App</div>
-        <button class="nav-item active" type="button">Configurações</button>
-        <button class="nav-item" type="button" disabled>Finanças <span class="soon">em breve</span></button>
-        <button class="nav-item" type="button" disabled>Smart Tags <span class="soon">em breve</span></button>
-        <button class="nav-item" type="button" disabled>Academia <span class="soon">em breve</span></button>
+        <nav class="sidebar-nav" aria-label="Menu principal">
+            <button class="nav-item active" type="button" data-section="settings" aria-controls="settings-section" aria-current="page">Configurações</button>
+            <button class="nav-item" type="button" data-section="profile" aria-controls="profile-section">Perfil</button>
+            <button class="nav-item" type="button" data-section="downloader" aria-controls="downloader-section">Downloads</button>
+            <button class="nav-item" type="button" disabled>Finanças <span class="soon">em breve</span></button>
+            <button class="nav-item" type="button" disabled>Smart Tags <span class="soon">em breve</span></button>
+            <button class="nav-item" type="button" disabled>Academia <span class="soon">em breve</span></button>
+        </nav>
         <div class="sidebar-footer">
             <div class="user-email" id="user-email"></div>
             <button class="btn btn-ghost" type="button" id="logout-btn">Sair</button>
@@ -236,7 +321,8 @@
     </aside>
 
     <main>
-        <h2>Configurações</h2>
+        <section id="settings-section" aria-labelledby="settings-heading">
+        <h2 id="settings-heading" tabindex="-1">Configurações</h2>
         <p class="sub">Ative ou desative as funções exibidas no aplicativo. Funções desativadas somem da tela inicial e do menu.</p>
 
         <div id="flags-loading" class="loading">Carregando configurações…</div>
@@ -294,6 +380,152 @@
             </div>
             <div id="save-msg" class="msg hidden" role="status"></div>
         </div>
+        </section>
+
+        <section id="downloader-section" class="hidden" aria-labelledby="downloader-heading">
+            <h2 id="downloader-heading" tabindex="-1">Downloads · MP3 e MP4</h2>
+            <p class="sub">A praticidade do painel, com os arquivos salvos no seu computador.</p>
+
+            <div class="profile-card dl-card" id="dl-open-card">
+                <div class="dl-step-head">
+                    <span class="dl-badge" id="dl-open-badge">Instalado aqui</span>
+                    <h3>Abrir o downloader</h3>
+                </div>
+                <p class="hint">O navegador vai pedir para abrir o “My Super App Downloader”. A interface aparece em uma nova aba ou janela, conectada ao auxiliar deste computador.</p>
+                <div class="actions">
+                    <button class="btn btn-primary" type="button" id="dl-open-btn">Abrir downloader</button>
+                    <button class="btn btn-ghost" type="button" id="dl-forget-btn">Não está mais instalado</button>
+                </div>
+                <p class="hint" id="dl-open-status" role="status" aria-live="polite" style="margin-top: 12px;"></p>
+                <div class="dl-notice hidden" id="dl-not-detected">
+                    <strong>Não detectamos o auxiliar neste computador.</strong>
+                    <p class="hint">A detecção é aproximada: se a interface abriu em outra aba, ignore este aviso. Caso contrário, instale (ou reinstale) pelos passos abaixo, abra pelo menu Iniciar e clique em “Já instalei, tentar de novo”.</p>
+                    <div class="actions">
+                        <button class="btn btn-ghost" type="button" id="dl-retry-open-btn">Já instalei, tentar de novo</button>
+                    </div>
+                </div>
+                <p class="hint hidden" id="dl-update-hint" role="status">Atualização disponível: a versão publicada é mais nova que a última aberta neste computador. Feche o auxiliar (“Encerrar aplicativo”) e instale a nova versão abaixo; a instalação substitui a anterior.</p>
+            </div>
+
+            <div class="profile-card dl-card" id="dl-why-card">
+                <div class="dl-step-head"><span class="dl-step">1</span><h3>Por que preciso de um programa?</h3></div>
+                <p class="hint">O download e a conversão para MP3 ou MP4 acontecem <strong>no seu computador</strong>, pelo auxiliar “My Super App Downloader”. Nada passa pelo site: não há fila na nuvem, custo de servidor nem cópia dos seus arquivos aqui. O portal só abre a interface local e distribui o instalador para quem está logado.</p>
+                <p class="hint">Vídeos individuais: MP3 192 kbps ou MP4 até 360p, 720p ou 1080p. Playlists: carregue a lista, selecione e acompanhe os MP3 um a um. Baixe apenas conteúdo próprio, de domínio público ou autorizado.</p>
+                <p class="hint" id="dl-platform-note"></p>
+            </div>
+
+            <div class="profile-card dl-card" id="dl-install-card">
+                <div class="dl-step-head"><span class="dl-step">2</span><h3>Instalar no Windows</h3></div>
+                <p class="hint">Requer Windows 10/11 de 64 bits. Instalação por usuário, sem precisar de administrador. Se já tiver uma versão anterior, feche-a antes (“Encerrar aplicativo”); a instalação substitui a antiga.</p>
+                <p class="loading" id="dl-manifest-loading">Carregando informações da versão…</p>
+                <div class="hidden" id="dl-manifest-error">
+                    <p class="hint" id="dl-manifest-error-text">Não foi possível carregar as informações do instalador.</p>
+                    <div class="actions"><button class="btn btn-ghost" type="button" id="dl-manifest-retry-btn">Tentar novamente</button></div>
+                </div>
+                <div class="hidden" id="dl-manifest-ok">
+                    <dl class="dl-meta">
+                        <div><dt>Versão</dt><dd id="dl-version"></dd></div>
+                        <div><dt>Tamanho</dt><dd id="dl-size"></dd></div>
+                        <div><dt>Publicado em</dt><dd id="dl-date"></dd></div>
+                    </dl>
+                    <ul class="hint dl-notes hidden" id="dl-notes"></ul>
+                    <div class="actions">
+                        <button class="btn btn-primary" type="button" id="dl-install-btn">Baixar instalador</button>
+                        <button class="btn btn-ghost hidden" type="button" id="dl-cancel-btn">Cancelar download</button>
+                    </div>
+                    <div class="dl-progress hidden" id="dl-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso do download">
+                        <div class="dl-progress-bar" id="dl-progress-bar"></div>
+                    </div>
+                    <p class="hint" id="dl-install-status" role="status" aria-live="polite"></p>
+                    <p class="hint">Depois de baixar, abra o arquivo <code>MySuperAppDownloader-Setup.exe</code> e siga o instalador. Ao terminar, o auxiliar abre automaticamente.</p>
+                </div>
+            </div>
+
+            <div class="profile-card dl-card" id="dl-smartscreen-card">
+                <div class="dl-step-head"><span class="dl-step">3</span><h3>Aviso do Windows SmartScreen</h3></div>
+                <p class="hint">O instalador ainda não tem assinatura digital, então o Windows mostra “O Windows protegeu o computador” / “Editor desconhecido”. Isso é esperado para esta versão. Para continuar: clique em <strong>Mais informações</strong> e depois em <strong>Executar assim mesmo</strong>.</p>
+                <p class="hint">Antes disso, confira se o arquivo é o mesmo publicado aqui. O portal verifica o SHA256 automaticamente ao baixar; para conferir por conta própria, no PowerShell: <code>Get-FileHash .\MySuperAppDownloader-Setup.exe</code> e compare com:</p>
+                <div class="dl-hash-row hidden" id="dl-hash-row">
+                    <code class="dl-hash" id="dl-hash" aria-label="SHA256 do instalador"></code>
+                    <button class="btn btn-ghost" type="button" id="dl-copy-hash-btn">Copiar</button>
+                </div>
+                <p class="hint" id="dl-hash-status" role="status" aria-live="polite"></p>
+            </div>
+
+            <div class="profile-card dl-card" id="dl-use-card">
+                <div class="dl-step-head"><span class="dl-step">4</span><h3>Abrir e usar</h3></div>
+                <p class="hint">Com o auxiliar instalado, use o botão “Abrir downloader” no topo desta página (ou o atalho no menu Iniciar). Autorize o navegador a abrir o aplicativo quando ele perguntar.</p>
+                <p class="hint">Escolha vídeo ou playlist. Para vídeo, selecione MP3 ou MP4; para playlist, carregue a lista e escolha as músicas. Confirme a pasta e a autorização para baixar o conteúdo.</p>
+                <p class="hint">Playlists são salvas em subpasta, sem numeração nos arquivos. Arquivos existentes são pulados. Você pode cancelar a fila e repetir falhas/cancelados enquanto o auxiliar estiver aberto.</p>
+                <p class="hint">MP4 usa a melhor resolução H.264/AAC disponível até o limite escolhido, sem recodificação pesada. Playlists e vídeos consomem mais internet e disco; limites do YouTube ainda podem ocorrer.</p>
+                <p class="hint">O computador precisa estar ligado. Fechar apenas a aba não encerra o auxiliar; use “Encerrar aplicativo” ou feche sua janela de controle.</p>
+            </div>
+
+            <div class="profile-card dl-card" id="dl-sources-card">
+                <h3>Código-fonte e licenças</h3>
+                <p class="hint">O auxiliar inclui FFmpeg (LGPL), LAME, yt-dlp, Deno e outras bibliotecas de código aberto. O código-fonte correspondente exato de cada componente, com o manifesto de versões e hashes, é publicado junto com o instalador.</p>
+                <div class="actions">
+                    <button class="btn btn-ghost" type="button" id="dl-sources-btn" disabled>Baixar fontes (licenças)</button>
+                    <span class="hint" id="dl-sources-size"></span>
+                </div>
+                <p class="hint" id="dl-sources-status" role="status" aria-live="polite"></p>
+            </div>
+        </section>
+
+        <section id="profile-section" class="hidden" aria-labelledby="profile-heading">
+            <h2 id="profile-heading" tabindex="-1">Perfil</h2>
+            <p class="sub">Cuide dos seus dados e da segurança da sua conta.</p>
+
+            <form class="profile-card" id="profile-form" aria-labelledby="personal-heading" novalidate>
+                <h3 id="personal-heading">Dados pessoais</h3>
+                <p class="hint">Seu nome é compartilhado com o aplicativo.</p>
+                <div id="profile-loading" class="loading" role="status">Carregando perfil…</div>
+                <div id="profile-load-error" class="hidden">
+                    <p class="msg msg-error" role="alert">Não foi possível carregar seu perfil.</p>
+                    <div class="actions">
+                        <button class="btn btn-ghost" type="button" id="profile-retry-btn">Tentar novamente</button>
+                    </div>
+                </div>
+                <fieldset id="profile-fields" disabled>
+                    <label for="profile-name">Nome</label>
+                    <input type="text" id="profile-name" autocomplete="name" required>
+                    <label for="profile-email">E-mail</label>
+                    <input type="email" id="profile-email" autocomplete="email" readonly aria-describedby="profile-email-hint">
+                    <span class="field-hint email-hint" id="profile-email-hint">O e-mail da conta não pode ser alterado aqui.</span>
+                    <div class="actions">
+                        <button class="btn btn-primary" type="submit" id="profile-save-btn">Salvar nome</button>
+                    </div>
+                </fieldset>
+                <div id="profile-msg" class="msg hidden" role="status" aria-live="polite"></div>
+            </form>
+
+            <form class="profile-card" id="password-form" aria-labelledby="security-heading" novalidate>
+                <h3 id="security-heading">Segurança</h3>
+                <p class="hint">Para alterar sua senha, confirme a senha atual. A nova senha também será usada para entrar no aplicativo.</p>
+                <fieldset id="password-fields">
+                    <label for="current-password">Senha atual</label>
+                    <div class="password-field">
+                        <input type="password" id="current-password" autocomplete="current-password" required>
+                        <button class="password-toggle" type="button" data-password="current-password" aria-label="Mostrar senha atual" aria-pressed="false">Mostrar</button>
+                    </div>
+                    <label for="new-password">Nova senha</label>
+                    <div class="password-field">
+                        <input type="password" id="new-password" autocomplete="new-password" minlength="6" required aria-describedby="password-hint">
+                        <button class="password-toggle" type="button" data-password="new-password" aria-label="Mostrar nova senha" aria-pressed="false">Mostrar</button>
+                    </div>
+                    <span class="field-hint" id="password-hint">Use pelo menos 6 caracteres e uma senha diferente da atual.</span>
+                    <label for="confirm-password">Confirmar nova senha</label>
+                    <div class="password-field">
+                        <input type="password" id="confirm-password" autocomplete="new-password" required>
+                        <button class="password-toggle" type="button" data-password="confirm-password" aria-label="Mostrar confirmação da nova senha" aria-pressed="false">Mostrar</button>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-primary" type="submit" id="password-save-btn">Alterar senha</button>
+                    </div>
+                </fieldset>
+                <div id="password-msg" class="msg hidden" role="status" aria-live="polite"></div>
+            </form>
+        </section>
     </main>
 </section>
 
@@ -322,6 +554,65 @@
     const saveBtn = $('save-btn');
     const saveMsg = $('save-msg');
     const flagInputs = Array.from(document.querySelectorAll('input[data-flag]'));
+    const sectionButtons = Array.from(document.querySelectorAll('[data-section]'));
+    const passwordToggles = Array.from(document.querySelectorAll('[data-password]'));
+    const profileMsg = $('profile-msg');
+    const passwordMsg = $('password-msg');
+    let sessionVersion = 0;
+
+    // Estado da aba Downloads (declarado aqui porque onAuthStateChanged pode disparar cedo).
+    const STORAGE_BUCKET = 'baila-675c6.firebasestorage.app';
+    const STORAGE_BASE = 'https://firebasestorage.googleapis.com/v0/b/' + STORAGE_BUCKET + '/o/';
+    const INSTALLED_KEY = 'downloaderInstalled';
+    const PROTOCOL_URL = 'mysuperapp-downloader://open';
+    const OPEN_TIMEOUT_MS = 2500;
+    const dlSection = $('downloader-section');
+    let dlManifest = null;
+    let dlManifestVersion = -1;
+    let dlLoadingVersion = -1;
+    let dlTransfer = null;
+    let dlOpenProbe = null;
+
+    function isCurrentSession(user, version) {
+        return auth.currentUser === user && sessionVersion === version;
+    }
+
+    function clearPasswords() {
+        $('password-form').reset();
+        passwordToggles.forEach((button) => {
+            $(button.dataset.password).type = 'password';
+            button.textContent = 'Mostrar';
+            button.setAttribute('aria-pressed', 'false');
+            button.setAttribute('aria-label', 'Mostrar ' + document.querySelector(`label[for="${button.dataset.password}"]`).textContent.toLowerCase());
+        });
+    }
+
+    function showSection(section, focus = false) {
+        sectionButtons.forEach((button) => {
+            const active = button.dataset.section === section;
+            button.classList.toggle('active', active);
+            if (active) button.setAttribute('aria-current', 'page');
+            else button.removeAttribute('aria-current');
+            $(button.dataset.section + '-section').classList.toggle('hidden', !active);
+        });
+        clearPasswords();
+        hideMsg(passwordMsg);
+        if (section === 'downloader' && auth.currentUser) ensureDownloaderManifest(auth.currentUser, sessionVersion);
+        if (focus) $(section + '-heading').focus();
+    }
+
+    sectionButtons.forEach((button) => button.addEventListener('click', () => {
+        showSection(button.dataset.section, true);
+    }));
+
+    passwordToggles.forEach((button) => button.addEventListener('click', () => {
+        const input = $(button.dataset.password);
+        const visible = input.type === 'password';
+        input.type = visible ? 'text' : 'password';
+        button.textContent = visible ? 'Ocultar' : 'Mostrar';
+        button.setAttribute('aria-pressed', String(visible));
+        button.setAttribute('aria-label', (visible ? 'Ocultar ' : 'Mostrar ') + document.querySelector(`label[for="${input.id}"]`).textContent.toLowerCase());
+    }));
 
     function showMsg(el, text, type) {
         el.textContent = text;
@@ -370,16 +661,154 @@
     $('logout-btn').addEventListener('click', () => auth.signOut());
 
     auth.onAuthStateChanged((user) => {
+        sessionVersion++;
+        showSection('settings');
+        $('profile-form').reset();
+        $('profile-fields').disabled = true;
+        $('password-fields').disabled = false;
+        $('profile-save-btn').textContent = 'Salvar nome';
+        $('password-save-btn').textContent = 'Alterar senha';
+        hideMsg(profileMsg);
         if (user) {
             loginView.classList.add('hidden');
             panelView.classList.remove('hidden');
             $('user-email').textContent = user.email || '';
+            $('profile-email').value = user.email || '';
+            loadProfile(user, sessionVersion);
             loadFlags(user.uid);
+            initDownloaderSection();
         } else {
             panelView.classList.add('hidden');
             loginView.classList.remove('hidden');
             $('password').value = '';
             hideMsg(saveMsg);
+            resetDownloaderUi();
+        }
+    });
+
+    // ===== Perfil =====
+    async function loadProfile(user, version) {
+        $('profile-fields').disabled = true;
+        $('profile-loading').classList.remove('hidden');
+        $('profile-load-error').classList.add('hidden');
+        hideMsg(profileMsg);
+        try {
+            const snap = await db.collection('users').doc(user.uid).get();
+            if (!isCurrentSession(user, version)) return;
+            const data = snap.exists ? snap.data() : {};
+            $('profile-name').value = data && typeof data.name === 'string' ? data.name : '';
+            $('profile-fields').disabled = false;
+        } catch (err) {
+            if (!isCurrentSession(user, version)) return;
+            $('profile-load-error').classList.remove('hidden');
+        } finally {
+            if (isCurrentSession(user, version)) $('profile-loading').classList.add('hidden');
+        }
+    }
+
+    $('profile-retry-btn').addEventListener('click', () => {
+        const user = auth.currentUser;
+        if (user) loadProfile(user, sessionVersion);
+    });
+
+    $('profile-name').addEventListener('input', () => hideMsg(profileMsg));
+    $('password-form').addEventListener('input', () => hideMsg(passwordMsg));
+
+    $('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        const version = sessionVersion;
+        if (!user || $('profile-fields').disabled) return;
+        hideMsg(profileMsg);
+        const name = $('profile-name').value.trim();
+        if (!name) {
+            showMsg(profileMsg, 'Informe seu nome.', 'error');
+            $('profile-name').focus();
+            return;
+        }
+        $('profile-fields').disabled = true;
+        $('profile-save-btn').textContent = 'Salvando…';
+        try {
+            await db.collection('users').doc(user.uid).set({ name }, { merge: true });
+            if (!isCurrentSession(user, version)) return;
+            $('profile-name').value = name;
+            showMsg(profileMsg, 'Nome salvo. No aplicativo, ele será atualizado no próximo login.', 'success');
+        } catch (err) {
+            if (!isCurrentSession(user, version)) return;
+            showMsg(profileMsg, 'Não foi possível salvar seu nome. Verifique a conexão e tente novamente.', 'error');
+        } finally {
+            if (isCurrentSession(user, version)) {
+                $('profile-fields').disabled = false;
+                $('profile-save-btn').textContent = 'Salvar nome';
+            }
+        }
+    });
+
+    function passwordErrorMessage(code) {
+        switch (code) {
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+            case 'auth/invalid-login-credentials': return 'Senha atual incorreta.';
+            case 'auth/weak-password':
+            case 'auth/password-does-not-meet-requirements': return 'A nova senha não atende aos requisitos de segurança da conta. Use uma senha mais forte.';
+            case 'auth/requires-recent-login':
+            case 'auth/user-token-expired':
+            case 'auth/invalid-user-token':
+            case 'auth/user-mismatch':
+            case 'auth/user-not-found':
+            case 'auth/user-disabled': return 'Sua sessão não é mais válida. Saia e entre novamente.';
+            case 'auth/too-many-requests': return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+            case 'auth/network-request-failed': return 'Sem conexão. Verifique sua internet e tente novamente.';
+            default: return 'Não foi possível alterar a senha. Tente novamente.';
+        }
+    }
+
+    $('password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        const version = sessionVersion;
+        if (!user || $('password-fields').disabled) return;
+        hideMsg(passwordMsg);
+        const currentPassword = $('current-password').value;
+        const newPassword = $('new-password').value;
+        const confirmation = $('confirm-password').value;
+        if (!currentPassword || !newPassword || !confirmation) {
+            showMsg(passwordMsg, 'Preencha a senha atual, a nova senha e a confirmação.', 'error');
+            return;
+        }
+        if (newPassword.length < 6) {
+            showMsg(passwordMsg, 'A nova senha deve ter pelo menos 6 caracteres.', 'error');
+            $('new-password').focus();
+            return;
+        }
+        if (newPassword !== confirmation) {
+            showMsg(passwordMsg, 'A confirmação não corresponde à nova senha.', 'error');
+            $('confirm-password').focus();
+            return;
+        }
+        if (newPassword === currentPassword) {
+            showMsg(passwordMsg, 'Escolha uma senha diferente da atual.', 'error');
+            $('new-password').focus();
+            return;
+        }
+        $('password-fields').disabled = true;
+        $('password-save-btn').textContent = 'Alterando…';
+        try {
+            const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+            await user.reauthenticateWithCredential(credential);
+            if (!isCurrentSession(user, version)) return;
+            await user.updatePassword(newPassword);
+            if (!isCurrentSession(user, version)) return;
+            clearPasswords();
+            showMsg(passwordMsg, 'Senha alterada. Use a nova senha nos próximos acessos ao site e ao aplicativo.', 'success');
+        } catch (err) {
+            if (!isCurrentSession(user, version)) return;
+            showMsg(passwordMsg, passwordErrorMessage(err && err.code), 'error');
+        } finally {
+            if (isCurrentSession(user, version)) {
+                $('password-fields').disabled = false;
+                $('password-save-btn').textContent = 'Alterar senha';
+            }
         }
     });
 
@@ -455,6 +884,338 @@
         } finally {
             saveBtn.disabled = false;
             saveBtn.textContent = 'Salvar';
+        }
+    });
+
+    // ===== Downloads =====
+    // Instalador e fontes ficam no Firebase Storage (web/storage.rules: leitura só
+    // autenticada). Sem SDK de Storage: REST com o ID token da sessão.
+    function storageUrl(objectPath) {
+        return STORAGE_BASE + encodeURIComponent(objectPath) + '?alt=media';
+    }
+
+    function formatBytes(bytes) {
+        if (!(bytes >= 0)) return '—';
+        if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+        if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        if (bytes >= 1024) return Math.round(bytes / 1024) + ' KB';
+        return bytes + ' bytes';
+    }
+
+    function detectPlatform() {
+        const ua = navigator.userAgentData && navigator.userAgentData.platform;
+        const platform = (ua || navigator.platform || '').toLowerCase();
+        const agent = (navigator.userAgent || '').toLowerCase();
+        if (/android|iphone|ipad|ipod|mobile/.test(agent)) return 'other';
+        return platform.startsWith('win') ? 'windows' : 'other';
+    }
+
+    function compareVersions(a, b) {
+        const pa = String(a).split('.').map(Number);
+        const pb = String(b).split('.').map(Number);
+        for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+            const diff = (pa[i] || 0) - (pb[i] || 0);
+            if (diff) return diff;
+        }
+        return 0;
+    }
+
+    function readInstalledVersion() {
+        try { return localStorage.getItem(INSTALLED_KEY) || ''; } catch (e) { return ''; }
+    }
+    function writeInstalledVersion(version) {
+        try {
+            if (version) localStorage.setItem(INSTALLED_KEY, version);
+            else localStorage.removeItem(INSTALLED_KEY);
+        } catch (e) { /* armazenamento indisponível: só perde a lembrança */ }
+    }
+
+    function renderInstalledState() {
+        const installed = readInstalledVersion();
+        dlSection.dataset.installed = installed ? 'true' : 'false';
+        const update = Boolean(installed && dlManifest && compareVersions(dlManifest.version, installed) > 0);
+        $('dl-update-hint').classList.toggle('hidden', !update);
+        $('dl-install-btn').textContent = installed ? (update ? 'Baixar atualização' : 'Baixar instalador novamente') : 'Baixar instalador';
+    }
+
+    function isValidManifest(m) {
+        const file = (f) => f && typeof f.path === 'string' && f.path.startsWith('downloader/')
+            && Number.isInteger(f.size) && f.size > 0 && /^[0-9a-f]{64}$/i.test(f.sha256 || '')
+            && typeof f.fileName === 'string' && /^[A-Za-z0-9._-]+$/.test(f.fileName);
+        return m && /^\d+\.\d+\.\d+$/.test(m.version || '') && file(m.installer) && file(m.sources);
+    }
+
+    async function authorizedFetch(objectPath, user, signal) {
+        const token = await user.getIdToken();
+        const response = await fetch(storageUrl(objectPath), {
+            headers: { Authorization: 'Firebase ' + token },
+            cache: 'no-store',
+            signal
+        });
+        if (!response.ok) {
+            const err = new Error('HTTP ' + response.status);
+            err.status = response.status;
+            throw err;
+        }
+        return response;
+    }
+
+    function manifestErrorText(err) {
+        if (err && (err.status === 403 || err.status === 401)) return 'Sua conta não tem permissão para acessar o instalador. Saia e entre novamente.';
+        if (err && err.status === 404) return 'Nenhuma versão publicada ainda. Volte mais tarde.';
+        return 'Não foi possível carregar as informações do instalador. Verifique a conexão.';
+    }
+
+    async function loadDownloaderManifest(user, version) {
+        dlManifest = null;
+        $('dl-manifest-loading').classList.remove('hidden');
+        $('dl-manifest-error').classList.add('hidden');
+        $('dl-manifest-ok').classList.add('hidden');
+        $('dl-hash-row').classList.add('hidden');
+        $('dl-sources-btn').disabled = true;
+        $('dl-sources-size').textContent = '';
+        renderInstalledState();
+        try {
+            const response = await authorizedFetch('downloader/latest.json', user);
+            const manifest = await response.json();
+            if (!isCurrentSession(user, version)) return;
+            if (!isValidManifest(manifest)) throw new Error('manifesto inválido');
+            dlManifest = manifest;
+            dlManifestVersion = version;
+            $('dl-version').textContent = manifest.version;
+            $('dl-size').textContent = formatBytes(manifest.installer.size);
+            const published = new Date(manifest.publishedAt);
+            $('dl-date').textContent = isNaN(published) ? '—' : published.toLocaleDateString('pt-BR');
+            const notes = $('dl-notes');
+            notes.replaceChildren();
+            (Array.isArray(manifest.notes) ? manifest.notes : []).filter((n) => typeof n === 'string' && n).forEach((n) => {
+                const li = document.createElement('li');
+                li.textContent = n;
+                notes.appendChild(li);
+            });
+            notes.classList.toggle('hidden', notes.childElementCount === 0);
+            $('dl-hash').textContent = manifest.installer.sha256.toLowerCase();
+            $('dl-hash-row').classList.remove('hidden');
+            $('dl-sources-size').textContent = formatBytes(manifest.sources.size) + ' · SHA256 ' + manifest.sources.sha256.slice(0, 12).toLowerCase() + '…';
+            $('dl-sources-btn').disabled = false;
+            $('dl-manifest-ok').classList.remove('hidden');
+            renderInstalledState();
+        } catch (err) {
+            if (!isCurrentSession(user, version)) return;
+            console.error('Falha ao carregar manifesto do downloader', err);
+            $('dl-manifest-error-text').textContent = manifestErrorText(err);
+            $('dl-manifest-error').classList.remove('hidden');
+        } finally {
+            if (isCurrentSession(user, version)) $('dl-manifest-loading').classList.add('hidden');
+        }
+    }
+
+    function hexOf(buffer) {
+        return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function saveBlob(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+
+    function cancelTransfer(reason) {
+        if (dlTransfer) {
+            dlTransfer.controller.abort();
+            dlTransfer.reason = reason;
+        }
+    }
+
+    // Baixa o objeto autenticado em stream, mostra progresso, confere o SHA256 do
+    // manifesto e só então entrega o arquivo ao navegador. Divergência = não salva.
+    async function downloadArtifact(kind) {
+        const user = auth.currentUser;
+        const version = sessionVersion;
+        if (!user || !dlManifest || dlManifestVersion !== version || dlTransfer) return;
+        const entry = dlManifest[kind];
+        const isInstaller = kind === 'installer';
+        const status = $(isInstaller ? 'dl-install-status' : 'dl-sources-status');
+        const progress = $('dl-progress');
+        const bar = $('dl-progress-bar');
+        const controller = new AbortController();
+        dlTransfer = { controller, kind, reason: '' };
+        $('dl-install-btn').disabled = true;
+        $('dl-sources-btn').disabled = true;
+        $('dl-cancel-btn').classList.toggle('hidden', !isInstaller);
+        if (isInstaller) {
+            progress.classList.remove('hidden');
+            progress.setAttribute('aria-valuenow', '0');
+            bar.style.width = '0%';
+        }
+        status.textContent = 'Preparando download…';
+        try {
+            const response = await authorizedFetch(entry.path, user, controller.signal);
+            const chunks = [];
+            let received = 0;
+            if (response.body && response.body.getReader) {
+                const reader = response.body.getReader();
+                for (;;) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    chunks.push(value);
+                    received += value.byteLength;
+                    if (received > entry.size) throw new Error('tamanho maior que o esperado');
+                    const pct = Math.min(100, Math.floor((received / entry.size) * 100));
+                    if (isInstaller) {
+                        bar.style.width = pct + '%';
+                        progress.setAttribute('aria-valuenow', String(pct));
+                    }
+                    status.textContent = 'Baixando… ' + formatBytes(received) + ' de ' + formatBytes(entry.size) + ' (' + pct + '%)';
+                }
+            } else {
+                const buffer = await response.arrayBuffer();
+                chunks.push(new Uint8Array(buffer));
+                received = buffer.byteLength;
+            }
+            if (!isCurrentSession(user, version)) return;
+            if (received !== entry.size) throw new Error('tamanho diferente do manifesto');
+            status.textContent = 'Verificando integridade (SHA256)…';
+            const blob = new Blob(chunks, { type: isInstaller ? 'application/octet-stream' : 'application/zip' });
+            const digest = hexOf(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer()));
+            if (!isCurrentSession(user, version)) return;
+            if (digest !== entry.sha256.toLowerCase()) {
+                throw Object.assign(new Error('hash divergente'), { integrity: true });
+            }
+            saveBlob(blob, entry.fileName);
+            if (isInstaller) {
+                bar.style.width = '100%';
+                progress.setAttribute('aria-valuenow', '100');
+                status.textContent = 'Download concluído e verificado (SHA256 confere). Abra o arquivo ' + entry.fileName + ' para instalar; veja o passo 3 sobre o aviso do SmartScreen.';
+            } else {
+                status.textContent = 'Pacote de fontes baixado e verificado (SHA256 confere).';
+            }
+        } catch (err) {
+            if (!isCurrentSession(user, version)) return;
+            if (controller.signal.aborted) {
+                status.textContent = dlTransfer && dlTransfer.reason ? dlTransfer.reason : 'Download cancelado.';
+            } else if (err && err.integrity) {
+                status.textContent = 'O arquivo baixado não confere com o hash publicado e NÃO foi salvo. Tente novamente; se persistir, não instale.';
+            } else if (err && (err.status === 403 || err.status === 401)) {
+                status.textContent = 'Sem permissão para baixar. Saia e entre novamente.';
+            } else {
+                console.error('Falha no download do artefato', err);
+                status.textContent = 'O download falhou. Verifique a conexão e tente novamente.';
+            }
+            if (isInstaller) progress.classList.add('hidden');
+        } finally {
+            if (dlTransfer && dlTransfer.controller === controller) dlTransfer = null;
+            if (isCurrentSession(user, version)) {
+                $('dl-cancel-btn').classList.add('hidden');
+                $('dl-install-btn').disabled = !dlManifest;
+                $('dl-sources-btn').disabled = !dlManifest;
+            }
+        }
+    }
+
+    // Abre o protocolo e usa perda de foco/visibilidade como sinal (heurístico) de que
+    // o auxiliar respondeu. Sem sinal até o tempo limite, mostra o painel de instalação.
+    function openDownloader() {
+        if (dlOpenProbe) return;
+        const status = $('dl-open-status');
+        $('dl-not-detected').classList.add('hidden');
+        status.textContent = 'Abrindo o downloader… autorize o navegador se ele perguntar.';
+        $('dl-open-btn').disabled = true;
+        $('dl-retry-open-btn').disabled = true;
+        const probe = { detected: false, timer: 0 };
+        dlOpenProbe = probe;
+        const finish = (detected) => {
+            if (dlOpenProbe !== probe) return;
+            clearTimeout(probe.timer);
+            window.removeEventListener('blur', onSignal);
+            document.removeEventListener('visibilitychange', onVisibility);
+            window.removeEventListener('pagehide', onSignal);
+            dlOpenProbe = null;
+            $('dl-open-btn').disabled = false;
+            $('dl-retry-open-btn').disabled = false;
+            if (detected) {
+                writeInstalledVersion(dlManifest ? dlManifest.version : (readInstalledVersion() || 'unknown'));
+                status.textContent = 'Aberto. Veja a nova aba ou janela do downloader.';
+                renderInstalledState();
+            } else {
+                status.textContent = '';
+                $('dl-not-detected').classList.remove('hidden');
+            }
+        };
+        const onSignal = () => finish(true);
+        const onVisibility = () => { if (document.visibilityState === 'hidden') finish(true); };
+        window.addEventListener('blur', onSignal);
+        document.addEventListener('visibilitychange', onVisibility);
+        window.addEventListener('pagehide', onSignal);
+        probe.timer = setTimeout(() => finish(false), OPEN_TIMEOUT_MS);
+        // Navegação de nível superior: um esquema não registrado não sai da página nem
+        // rouba o foco (um iframe oculto dispara blur sozinho e gera falso positivo).
+        window.location.assign(PROTOCOL_URL);
+    }
+
+    function resetDownloaderUi() {
+        cancelTransfer('Download cancelado: sessão encerrada.');
+        if (dlOpenProbe) { clearTimeout(dlOpenProbe.timer); dlOpenProbe = null; }
+        dlManifest = null;
+        dlManifestVersion = -1;
+        ['dl-open-status', 'dl-install-status', 'dl-sources-status', 'dl-hash-status'].forEach((id) => { $(id).textContent = ''; });
+        $('dl-not-detected').classList.add('hidden');
+        $('dl-progress').classList.add('hidden');
+        $('dl-cancel-btn').classList.add('hidden');
+        $('dl-open-btn').disabled = false;
+        $('dl-retry-open-btn').disabled = false;
+        $('dl-install-btn').disabled = false;
+        $('dl-manifest-ok').classList.add('hidden');
+        $('dl-manifest-error').classList.add('hidden');
+    }
+
+    function initDownloaderSection() {
+        resetDownloaderUi();
+        const platform = detectPlatform();
+        dlSection.dataset.platform = platform;
+        $('dl-platform-note').textContent = platform === 'windows'
+            ? 'Detectamos Windows neste navegador: siga os passos abaixo.'
+            : 'Este dispositivo não parece ser um PC com Windows. O auxiliar funciona apenas no Windows 10/11 de 64 bits; abra esta página em um PC com Windows para instalar e usar o downloader.';
+        renderInstalledState();
+    }
+
+    // O manifesto só é buscado quando a aba Downloads é aberta, uma vez por sessão.
+    function ensureDownloaderManifest(user, version) {
+        if (dlManifest && dlManifestVersion === version) return;
+        if (dlLoadingVersion === version) return;
+        dlLoadingVersion = version;
+        loadDownloaderManifest(user, version).finally(() => {
+            if (dlLoadingVersion === version) dlLoadingVersion = -1;
+        });
+    }
+
+    $('dl-manifest-retry-btn').addEventListener('click', () => {
+        const user = auth.currentUser;
+        if (user) ensureDownloaderManifest(user, sessionVersion);
+    });
+    $('dl-install-btn').addEventListener('click', () => downloadArtifact('installer'));
+    $('dl-sources-btn').addEventListener('click', () => downloadArtifact('sources'));
+    $('dl-cancel-btn').addEventListener('click', () => cancelTransfer('Download cancelado.'));
+    $('dl-open-btn').addEventListener('click', openDownloader);
+    $('dl-retry-open-btn').addEventListener('click', openDownloader);
+    $('dl-forget-btn').addEventListener('click', () => {
+        writeInstalledVersion('');
+        $('dl-open-status').textContent = '';
+        renderInstalledState();
+    });
+    $('dl-copy-hash-btn').addEventListener('click', async () => {
+        const hash = $('dl-hash').textContent;
+        if (!hash) return;
+        try {
+            await navigator.clipboard.writeText(hash);
+            $('dl-hash-status').textContent = 'SHA256 copiado.';
+        } catch (e) {
+            $('dl-hash-status').textContent = 'Não foi possível copiar automaticamente; selecione o texto e copie.';
         }
     });
 </script>
