@@ -6,6 +6,7 @@ import com.google.firebase.firestore.DocumentId
 data class ExerciseDto(
     @DocumentId
     var id: String = "",
+    var userId: String = "",
     var name: String = "",
     var muscleGroup: String = "",
     var description: String = "",

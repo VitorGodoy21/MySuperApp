@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -12,13 +13,23 @@ import kotlinx.coroutines.tasks.await
 
 class TransactionDaoImpl(
     private val db: FirebaseFirestore,
+    private val auth: FirebaseAuth,
 ) : TransactionDao {
 
     private companion object {
         const val MAX_BATCH_OPERATIONS = 500
+        const val NOT_LOGGED_IN = "Entre na sua conta para acessar o financeiro"
     }
 
-    private fun TransactionDto.toMap(): Map<String, Any?> = mapOf(
+    private fun currentUserId(): String? = auth.currentUser?.uid?.takeIf { it.isNotBlank() }
+
+    private fun requireUserId(): String = checkNotNull(currentUserId()) { NOT_LOGGED_IN }
+
+    private fun userTransactions(userId: String): Query =
+        db.collection("transactions").whereEqualTo("userId", userId)
+
+    private fun TransactionDto.toMap(userId: String): Map<String, Any?> = mapOf(
+        "userId" to userId,
         "title" to title,
         "description" to description,
         "transactionType" to transactionType,
@@ -41,8 +52,9 @@ class TransactionDaoImpl(
 
     override suspend fun addTransaction(transaction: TransactionDto): Resource<Unit> {
         return try {
+            val userId = requireUserId()
             db.collection("transactions")
-                .add(transaction.toMap())
+                .add(transaction.toMap(userId))
                 .await()
             Log.d("Firebase", "Documento salvo com sucesso no Firestore")
             Resource.Success(Unit)
@@ -54,10 +66,11 @@ class TransactionDaoImpl(
 
     override suspend fun addTransactions(transactions: List<TransactionDto>): Resource<Unit> {
         return try {
+            val userId = requireUserId()
             val batch = db.batch()
             val collection = db.collection("transactions")
             transactions.forEach { transaction ->
-                batch.set(collection.document(), transaction.toMap())
+                batch.set(collection.document(), transaction.toMap(userId))
             }
             batch.commit().await()
             Log.d("Firebase", "${transactions.size} transações salvas em batch")
@@ -105,7 +118,7 @@ class TransactionDaoImpl(
         category: List<String>
     ): Resource<Unit> {
         return try {
-            val snap = db.collection("transactions")
+            val snap = userTransactions(requireUserId())
                 .whereEqualTo("installmentGroupId", groupId)
                 .get().await()
             snap.documents.chunked(MAX_BATCH_OPERATIONS).forEach { chunk ->
@@ -135,7 +148,7 @@ class TransactionDaoImpl(
 
     override suspend fun removeCategoryFromTransactions(categoryId: String): Resource<Unit> {
         return try {
-            val snap = db.collection("transactions")
+            val snap = userTransactions(requireUserId())
                 .whereArrayContains("category", categoryId)
                 .get().await()
             // WriteBatch aceita no máximo 500 operações por commit
@@ -159,7 +172,8 @@ class TransactionDaoImpl(
         end: Timestamp
     ): Resource<List<TransactionDto>> {
         return try {
-            val snap = db.collection("transactions")
+            val userId = currentUserId() ?: return Resource.Success(emptyList())
+            val snap = userTransactions(userId)
                 .whereGreaterThanOrEqualTo("transactionDate", start)
                 .whereLessThan("transactionDate", end)
                 .orderBy("transactionDate", Query.Direction.DESCENDING)
@@ -183,7 +197,8 @@ class TransactionDaoImpl(
         invoiceMonth: String
     ): Resource<List<TransactionDto>> {
         return try {
-            val snap = db.collection("transactions")
+            val userId = currentUserId() ?: return Resource.Success(emptyList())
+            val snap = userTransactions(userId)
                 .whereEqualTo("invoiceMonth", invoiceMonth)
                 .get().await()
             Resource.Success(snap.documents.mapNotNull { doc ->
@@ -202,7 +217,8 @@ class TransactionDaoImpl(
 
     override suspend fun getRecurringTransactions(): Resource<List<TransactionDto>> {
         return try {
-            val snap = db.collection("transactions")
+            val userId = currentUserId() ?: return Resource.Success(emptyList())
+            val snap = userTransactions(userId)
                 .whereEqualTo("isRecurring", true)
                 .get().await()
             Resource.Success(snap.documents.mapNotNull { doc ->
@@ -297,13 +313,14 @@ class TransactionDaoImpl(
         originalCategory: List<String>
     ): Resource<Unit> {
         return try {
+            val userId = requireUserId()
             val collection = db.collection("transactions")
             val batch = db.batch()
             batch.update(
                 collection.document(originalId),
                 mapOf("recurrenceEnd" to lastMonthOfOriginal, "category" to originalCategory)
             )
-            batch.set(collection.document(), newTransaction.toMap())
+            batch.set(collection.document(), newTransaction.toMap(userId))
             batch.commit().await()
             Resource.Success(Unit)
         } catch (e: Exception) {

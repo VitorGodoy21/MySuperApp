@@ -6,6 +6,7 @@ import com.google.firebase.firestore.DocumentId
 data class WorkoutSessionDto(
     @DocumentId
     var id: String = "",
+    var userId: String = "",
     var workoutId: String = "",
     var date: Timestamp? = null,
     var durationMinutes: Int? = null,

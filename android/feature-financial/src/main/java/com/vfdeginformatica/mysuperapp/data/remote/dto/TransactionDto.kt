@@ -8,6 +8,8 @@ import com.google.firebase.firestore.PropertyName
 @IgnoreExtraProperties
 data class TransactionDto(
     @DocumentId var id: String? = null,
+    // Dono do documento (uid do Firebase Auth); preenchido pelo DAO
+    var userId: String? = null,
     var title: String? = null,
     var description: String? = null,
     var transactionType: String? = null, //INCOME, EXPENSE

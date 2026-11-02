@@ -1,6 +1,7 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.vfdeginformatica.mysuperapp.common.Resource
@@ -8,7 +9,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.BodyMeasurementDto
 import kotlinx.coroutines.tasks.await
 
 class BodyMeasurementDaoImpl(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val auth: FirebaseAuth,
 ) : BodyMeasurementDao {
 
     private companion object {
@@ -16,9 +18,12 @@ class BodyMeasurementDaoImpl(
         const val TAG = "Firebase"
     }
 
+    private fun currentUserId(): String? = auth.currentUser?.uid?.takeIf { it.isNotBlank() }
+
     override suspend fun getMeasurements(): List<BodyMeasurementDto>? {
         return try {
-            val snap = db.collection(COLLECTION).get().await()
+            val userId = currentUserId() ?: return emptyList()
+            val snap = db.collection(COLLECTION).whereEqualTo("userId", userId).get().await()
             snap.documents.mapNotNull { it.toObject(BodyMeasurementDto::class.java) }
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao carregar medidas", e)
@@ -28,7 +33,9 @@ class BodyMeasurementDaoImpl(
 
     override suspend fun addMeasurement(measurement: BodyMeasurementDto): Resource<String> {
         return try {
+            val userId = checkNotNull(currentUserId()) { "Entre na sua conta para registrar medidas" }
             val data = mapOf(
+                "userId" to userId,
                 "weightKg" to measurement.weightKg,
                 "heightCm" to measurement.heightCm,
                 "measuredAt" to measurement.measuredAt,

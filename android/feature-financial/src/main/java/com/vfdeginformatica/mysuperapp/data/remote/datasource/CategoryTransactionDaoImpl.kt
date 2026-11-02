@@ -1,21 +1,26 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
 import kotlinx.coroutines.tasks.await
 
 class CategoryTransactionDaoImpl(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val auth: FirebaseAuth,
 ) : CategoryTransactionDao {
 
     private companion object {
         const val COLLECTION = "transactions_category"
     }
 
+    private fun currentUserId(): String? = auth.currentUser?.uid?.takeIf { it.isNotBlank() }
+
     override suspend fun getCategoriesTransaction(): List<CategoryTransactionDto> {
-        val snap = db.collection(COLLECTION).get().await()
+        val userId = currentUserId() ?: return emptyList()
+        val snap = db.collection(COLLECTION).whereEqualTo("userId", userId).get().await()
         return snap.documents.mapNotNull { doc ->
             doc.toObject(CategoryTransactionDto::class.java)
         }
@@ -23,7 +28,9 @@ class CategoryTransactionDaoImpl(
 
     override suspend fun addCategory(category: CategoryTransactionDto): Resource<String> {
         return try {
+            val userId = checkNotNull(currentUserId()) { "Entre na sua conta para criar categorias" }
             val data = mapOf(
+                "userId" to userId,
                 "title" to category.title,
                 "description" to category.description,
                 "transactionType" to category.transactionType,

@@ -10,6 +10,7 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "migrate:transaction-type": "node scripts/backfillTransactionType.js",
+    "migrate:user-id": "node scripts/backfillUserId.js",
     "copy:workout-data": "node scripts/copyWorkoutData.js"
   },
   "dependencies": {

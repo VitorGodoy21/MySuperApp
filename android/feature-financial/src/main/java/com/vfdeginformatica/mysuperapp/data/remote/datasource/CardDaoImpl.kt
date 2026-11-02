@@ -1,16 +1,22 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import kotlinx.coroutines.tasks.await
 
 class CardDaoImpl(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val auth: FirebaseAuth,
 ) : CardDao {
+
+    private fun currentUserId(): String? = auth.currentUser?.uid?.takeIf { it.isNotBlank() }
+
     override suspend fun getCards(): List<CardDto> {
-        val snap = db.collection("cards").get().await()
+        val userId = currentUserId() ?: return emptyList()
+        val snap = db.collection("cards").whereEqualTo("userId", userId).get().await()
         return snap.documents.mapNotNull { doc ->
             doc.toObject(CardDto::class.java)
         }
@@ -18,7 +24,9 @@ class CardDaoImpl(
 
     override suspend fun addCard(card: CardDto): Resource<String> {
         return try {
+            val userId = checkNotNull(currentUserId()) { "Entre na sua conta para cadastrar cartões" }
             val cardMap = mapOf(
+                "userId" to userId,
                 "bank" to card.bank,
                 "finalCode" to card.finalCode,
                 "paymentMethods" to card.paymentMethods,

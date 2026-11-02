@@ -1,15 +1,18 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.WorkoutDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.WorkoutItemDto
 import kotlinx.coroutines.tasks.await
 
 class WorkoutDaoImpl(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val auth: FirebaseAuth,
 ) : WorkoutDao {
 
     private companion object {
@@ -17,9 +20,15 @@ class WorkoutDaoImpl(
         const val TAG = "Firebase"
     }
 
+    private fun currentUserId(): String? = auth.currentUser?.uid?.takeIf { it.isNotBlank() }
+
+    private fun userWorkouts(userId: String): Query =
+        db.collection(COLLECTION).whereEqualTo("userId", userId)
+
     override suspend fun getWorkouts(): List<WorkoutDto>? {
         return try {
-            val snap = db.collection(COLLECTION).get().await()
+            val userId = currentUserId() ?: return emptyList()
+            val snap = userWorkouts(userId).get().await()
             snap.documents.mapNotNull { it.toObject(WorkoutDto::class.java) }
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao carregar treinos", e)
@@ -29,7 +38,8 @@ class WorkoutDaoImpl(
 
     override suspend fun getWorkoutsUsingExercise(exerciseId: String): List<WorkoutDto>? {
         return try {
-            val snap = db.collection(COLLECTION)
+            val userId = currentUserId() ?: return emptyList()
+            val snap = userWorkouts(userId)
                 .whereArrayContains("exerciseIds", exerciseId)
                 .get()
                 .await()
@@ -42,7 +52,9 @@ class WorkoutDaoImpl(
 
     override suspend fun addWorkout(workout: WorkoutDto): Resource<String> {
         return try {
+            val userId = checkNotNull(currentUserId()) { "Entre na sua conta para criar treinos" }
             val data = workout.toWriteMap() + mapOf(
+                "userId" to userId,
                 "createdAt" to FieldValue.serverTimestamp(),
                 "updatedAt" to FieldValue.serverTimestamp(),
             )

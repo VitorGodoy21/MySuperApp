@@ -7,6 +7,7 @@ import com.google.firebase.firestore.IgnoreExtraProperties
 data class CategoryTransactionDto(
     @DocumentId
     var id: String = "",
+    var userId: String = "",
     var title: String = "",
     var description: String = "",
     // EXPENSE | INCOME — documentos antigos sem o campo são tratados como EXPENSE

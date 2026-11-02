@@ -17,6 +17,7 @@ data class WorkoutItemDto(
 data class WorkoutDto(
     @DocumentId
     var id: String = "",
+    var userId: String = "",
     var name: String = "",
     var dayOfWeek: String? = null,
     var items: List<WorkoutItemDto> = emptyList(),

@@ -15,6 +15,16 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/qrcodes/$(qrId)).data.userId == request.auth.uid;
     }
 
+    // Dono do documento existente (financeiro/academia): campo userId gravado pelo app
+    function isOwner() {
+      return isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Documento novo pertence ao usuário autenticado
+    function createsOwn() {
+      return isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
     // Flags do painel web (users/{uid}.featureFlags): map só com booleanos; ausente = tudo habilitado
     function validFeatureFlags(data) {
       return !('featureFlags' in data)
@@ -82,10 +92,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Módulo financeiro (feature-financial): dados sem userId, acesso restrito a usuários autenticados
+    // Módulo financeiro (feature-financial): cada documento tem userId (dono);
+    // o app lista com whereEqualTo("userId", uid). userId é imutável (não está nas affectedKeys permitidas).
     match /transactions/{transactionId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
+      allow read: if isOwner();
+      allow create: if createsOwn()
         && request.resource.data.amount is number
         && request.resource.data.paymentMethod is string
         && request.resource.data.isRecurring is bool
@@ -94,7 +105,7 @@ service cloud.firestore {
       //  - título, valor e categorias (lista de ids; exclusão de categoria usa arrayRemove)
       //  - recorrência: recurrenceEnd (encerrar), excludedMonths (só cresce, via arrayUnion)
       //    e overrides (ajustes por mês {yyyy-MM: {amount, title}})
-      allow update: if isAuthenticated()
+      allow update: if isOwner()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
           ['title', 'amount', 'category', 'recurrenceEnd', 'excludedMonths', 'overrides']
         )
@@ -124,20 +135,20 @@ service cloud.firestore {
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['overrides'])
           || request.resource.data.overrides is map
         );
-      allow delete: if isAuthenticated();
+      allow delete: if isOwner();
     }
 
     match /cards/{cardId} {
-      allow read: if isAuthenticated();
+      allow read: if isOwner();
       // Cadastro de cartão pelo app
-      allow create: if isAuthenticated()
+      allow create: if createsOwn()
         && request.resource.data.bank is string
         && request.resource.data.paymentMethods is list
         && request.resource.data.allowsDeposit is bool
         && request.resource.data.closingDay is number
         && request.resource.data.invoiceDueDate is number;
       // Edição de cartão pelo app: somente campos de configuração
-      allow update: if isAuthenticated()
+      allow update: if isOwner()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['bank', 'paymentMethods', 'finalCode', 'closingDay', 'invoiceDueDate'])
         && request.resource.data.bank is string
@@ -151,13 +162,13 @@ service cloud.firestore {
     // Categorias de transação gerenciadas pelo app (tela "Categorias")
     // transactionType: 'EXPENSE' (despesa) | 'INCOME' (receita)
     match /transactions_category/{categoryId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
+      allow read: if isOwner();
+      allow create: if createsOwn()
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.description is string
         && request.resource.data.transactionType in ['EXPENSE', 'INCOME'];
-      allow update: if isAuthenticated()
+      allow update: if isOwner()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['title', 'description', 'transactionType'])
         && request.resource.data.title is string
@@ -165,7 +176,7 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.transactionType in ['EXPENSE', 'INCOME'];
       // A exclusão remove antes o id da categoria do campo `category` das transações (app)
-      allow delete: if isAuthenticated();
+      allow delete: if isOwner();
     }
 
     // Dieta diária privada: um documento por usuário.
@@ -178,19 +189,19 @@ service cloud.firestore {
         && request.resource.data.updatedAt is timestamp;
     }
 
-    // ===== Academia (feature-workout) — dados sem userId, igual ao financeiro =====
+    // ===== Academia (feature-workout) — cada documento tem userId (dono), igual ao financeiro =====
 
     // Histórico de pesagens (um documento por registro)
     match /body_measurements/{measurementId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
+      allow read: if isOwner();
+      allow create: if createsOwn()
         && request.resource.data.weightKg is number
         && request.resource.data.weightKg > 0
         && request.resource.data.heightCm is number
         && request.resource.data.heightCm > 0
         && request.resource.data.measuredAt is timestamp
         && request.resource.data.notes is string;
-      allow update: if isAuthenticated()
+      allow update: if isOwner()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['weightKg', 'heightCm', 'measuredAt', 'notes'])
         && request.resource.data.weightKg is number
@@ -199,20 +210,20 @@ service cloud.firestore {
         && request.resource.data.heightCm > 0
         && request.resource.data.measuredAt is timestamp
         && request.resource.data.notes is string;
-      allow delete: if isAuthenticated();
+      allow delete: if isOwner();
     }
 
-    // Exercícios reutilizáveis nos treinos
+    // Exercícios reutilizáveis nos treinos (catálogo por usuário)
     match /exercises/{exerciseId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
+      allow read: if isOwner();
+      allow create: if createsOwn()
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.muscleGroup is string
         && request.resource.data.description is string
         && request.resource.data.notes is string
         && request.resource.data.videoUrl is string;
-      allow update: if isAuthenticated()
+      allow update: if isOwner()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['name', 'muscleGroup', 'description', 'notes', 'videoUrl'])
         && request.resource.data.name is string
@@ -222,20 +233,20 @@ service cloud.firestore {
         && request.resource.data.notes is string
         && request.resource.data.videoUrl is string;
       // O app bloqueia a exclusão quando o exercício está em algum treino (workouts.exerciseIds)
-      allow delete: if isAuthenticated();
+      allow delete: if isOwner();
     }
 
     // Treinos: `items` é a lista ordenada de exercícios; `exerciseIds` é derivado de `items`
     match /workouts/{workoutId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
+      allow read: if isOwner();
+      allow create: if createsOwn()
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.items is list
         && request.resource.data.exerciseIds is list
         && request.resource.data.notes is string
         && (!('isOther' in request.resource.data) || request.resource.data.isOther is bool);
-      allow update: if isAuthenticated()
+      allow update: if isOwner()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['name', 'dayOfWeek', 'items', 'exerciseIds', 'notes', 'icon', 'isOther', 'updatedAt'])
         && request.resource.data.name is string
@@ -244,13 +255,13 @@ service cloud.firestore {
         && request.resource.data.exerciseIds is list
         && request.resource.data.notes is string
         && (!('isOther' in request.resource.data) || request.resource.data.isOther is bool);
-      allow delete: if isAuthenticated();
+      allow delete: if isOwner();
     }
 
     // Registro de treinos realizados (data, tempo na academia, calorias)
     match /workout_sessions/{sessionId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
+      allow read: if isOwner();
+      allow create: if createsOwn()
         && request.resource.data.workoutId is string
         && request.resource.data.workoutId.size() > 0
         && request.resource.data.date is timestamp
@@ -261,7 +272,7 @@ service cloud.firestore {
             || (request.resource.data.calories is int
                 && request.resource.data.calories > 0));
       allow update: if false;
-      allow delete: if isAuthenticated();
+      allow delete: if isOwner();
     }
 
     // Política definitiva: qualquer caminho não tratado explicitamente fica negado

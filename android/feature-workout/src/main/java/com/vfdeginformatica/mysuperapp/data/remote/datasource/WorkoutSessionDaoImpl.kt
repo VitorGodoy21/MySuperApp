@@ -2,14 +2,17 @@ package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.WorkoutSessionDto
 import kotlinx.coroutines.tasks.await
 
 class WorkoutSessionDaoImpl(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val auth: FirebaseAuth,
 ) : WorkoutSessionDao {
 
     private companion object {
@@ -17,9 +20,15 @@ class WorkoutSessionDaoImpl(
         const val TAG = "Firebase"
     }
 
+    private fun currentUserId(): String? = auth.currentUser?.uid?.takeIf { it.isNotBlank() }
+
+    private fun userSessions(userId: String): Query =
+        db.collection(COLLECTION).whereEqualTo("userId", userId)
+
     override suspend fun getSessions(workoutId: String): List<WorkoutSessionDto>? {
         return try {
-            val snap = db.collection(COLLECTION)
+            val userId = currentUserId() ?: return emptyList()
+            val snap = userSessions(userId)
                 .whereEqualTo("workoutId", workoutId)
                 .get()
                 .await()
@@ -32,7 +41,8 @@ class WorkoutSessionDaoImpl(
 
     override suspend fun getSessionsSince(from: Timestamp): List<WorkoutSessionDto>? {
         return try {
-            val snap = db.collection(COLLECTION)
+            val userId = currentUserId() ?: return emptyList()
+            val snap = userSessions(userId)
                 .whereGreaterThanOrEqualTo("date", from)
                 .get()
                 .await()
@@ -45,7 +55,9 @@ class WorkoutSessionDaoImpl(
 
     override suspend fun addSession(session: WorkoutSessionDto): Resource<String> {
         return try {
+            val userId = checkNotNull(currentUserId()) { "Entre na sua conta para registrar treinos" }
             val data = mapOf(
+                "userId" to userId,
                 "workoutId" to session.workoutId,
                 "date" to session.date,
                 "durationMinutes" to session.durationMinutes,

@@ -5,6 +5,7 @@ import com.google.firebase.firestore.DocumentId
 data class CardDto(
     @DocumentId
     var id: String = "",
+    var userId: String = "",
     var bank: String = "",
     var finalCode: String = "",
     var paymentMethods: List<String> = listOf(),

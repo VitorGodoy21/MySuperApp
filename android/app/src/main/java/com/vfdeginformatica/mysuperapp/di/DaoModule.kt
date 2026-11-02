@@ -47,7 +47,8 @@ object DaoModule {
     @Singleton
     fun provideTransactionDao(): TransactionDao {
         return TransactionDaoImpl(
-            db = FirebaseFirestore.getInstance()
+            db = FirebaseFirestore.getInstance(),
+            auth = FirebaseAuth.getInstance(),
         )
     }
 
@@ -55,7 +56,8 @@ object DaoModule {
     @Singleton
     fun provideCardDao(): CardDao {
         return CardDaoImpl(
-            db = FirebaseFirestore.getInstance()
+            db = FirebaseFirestore.getInstance(),
+            auth = FirebaseAuth.getInstance(),
         )
     }
 
@@ -63,31 +65,32 @@ object DaoModule {
     @Singleton
     fun provideCategoryTransactionDao(): CategoryTransactionDao {
         return CategoryTransactionDaoImpl(
-            db = FirebaseFirestore.getInstance()
+            db = FirebaseFirestore.getInstance(),
+            auth = FirebaseAuth.getInstance(),
         )
     }
 
     @Provides
     @Singleton
     fun provideBodyMeasurementDao(): BodyMeasurementDao {
-        return BodyMeasurementDaoImpl(db = FirebaseFirestore.getInstance())
+        return BodyMeasurementDaoImpl(FirebaseFirestore.getInstance(), FirebaseAuth.getInstance())
     }
 
     @Provides
     @Singleton
     fun provideExerciseDao(): ExerciseDao {
-        return ExerciseDaoImpl(db = FirebaseFirestore.getInstance())
+        return ExerciseDaoImpl(FirebaseFirestore.getInstance(), FirebaseAuth.getInstance())
     }
 
     @Provides
     @Singleton
     fun provideWorkoutDao(): WorkoutDao {
-        return WorkoutDaoImpl(db = FirebaseFirestore.getInstance())
+        return WorkoutDaoImpl(FirebaseFirestore.getInstance(), FirebaseAuth.getInstance())
     }
 
     @Provides
     @Singleton
     fun provideWorkoutSessionDao(): WorkoutSessionDao {
-        return WorkoutSessionDaoImpl(db = FirebaseFirestore.getInstance())
+        return WorkoutSessionDaoImpl(FirebaseFirestore.getInstance(), FirebaseAuth.getInstance())
     }
 }

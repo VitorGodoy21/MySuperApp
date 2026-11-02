@@ -15,6 +15,9 @@
  *   --source=<projectId>     origem  (default: my-super-app-dev-d6819)
  *   --target=<projectId>     destino (default: baila-675c6)
  *   --collections=a,b        subconjunto de exercises,workouts (default: ambas)
+ *   --target-uid=<uid>       obrigatório: dono (`userId`) gravado nos documentos copiados.
+ *                            Dev e prd têm contas com UIDs distintos, então o userId da
+ *                            origem nunca é reaproveitado; o UID precisa existir no Auth do destino.
  *
  * Credenciais: Application Default Credentials com acesso aos dois projetos
  * (`gcloud auth application-default login`).
@@ -38,6 +41,7 @@ function option(name, fallback) {
 
 const sourceProject = option("source", DEFAULT_SOURCE);
 const targetProject = option("target", DEFAULT_TARGET);
+const targetUid = option("target-uid", "").trim();
 const collections = option("collections", ALL_COLLECTIONS.join(","))
   .split(",")
   .map((c) => c.trim())
@@ -46,6 +50,9 @@ const collections = option("collections", ALL_COLLECTIONS.join(","))
 function validateArgs() {
   if (sourceProject === targetProject) {
     throw new Error(`Origem e destino são o mesmo projeto (${sourceProject}).`);
+  }
+  if (!targetUid) {
+    throw new Error("Informe --target-uid=<uid> (dono dos documentos no projeto de destino).");
   }
   const unknown = collections.filter((c) => !ALL_COLLECTIONS.includes(c));
   if (unknown.length > 0) {
@@ -94,7 +101,9 @@ async function copyCollection(targetDb, name, docs) {
   for (let i = 0; i < docs.length; i += BATCH_LIMIT) {
     const chunk = docs.slice(i, i + BATCH_LIMIT);
     const batch = targetDb.batch();
-    chunk.forEach((d) => batch.set(targetDb.collection(name).doc(d.id), d.data()));
+    chunk.forEach((d) =>
+      batch.set(targetDb.collection(name).doc(d.id), { ...d.data(), userId: targetUid })
+    );
     await batch.commit();
     console.log(`  commit ${i + chunk.length}/${docs.length}`);
   }
@@ -109,8 +118,13 @@ async function main() {
   const sourceDb = sourceApp.firestore();
   const targetDb = targetApp.firestore();
 
+  const owner = await targetApp.auth().getUser(targetUid).catch((err) => {
+    throw new Error(`UID ${targetUid} não encontrado no Auth de ${targetProject}: ${err.message}`);
+  });
+
   console.log(
-    `Copiando ${collections.join(", ")}: ${sourceProject} → ${targetProject}${dryRun ? " [DRY RUN]" : ""}`
+    `Copiando ${collections.join(", ")}: ${sourceProject} → ${targetProject}` +
+      ` (userId=${targetUid}, ${owner.email || "sem e-mail"})${dryRun ? " [DRY RUN]" : ""}`
   );
 
   // Lê tudo da origem antes de qualquer escrita no destino.

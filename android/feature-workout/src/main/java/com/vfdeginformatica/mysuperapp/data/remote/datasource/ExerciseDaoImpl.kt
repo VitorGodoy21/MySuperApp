@@ -1,6 +1,7 @@
 package com.vfdeginformatica.mysuperapp.data.remote.datasource
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.vfdeginformatica.mysuperapp.common.Resource
@@ -8,7 +9,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.ExerciseDto
 import kotlinx.coroutines.tasks.await
 
 class ExerciseDaoImpl(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val auth: FirebaseAuth,
 ) : ExerciseDao {
 
     private companion object {
@@ -16,9 +18,12 @@ class ExerciseDaoImpl(
         const val TAG = "Firebase"
     }
 
+    private fun currentUserId(): String? = auth.currentUser?.uid?.takeIf { it.isNotBlank() }
+
     override suspend fun getExercises(): List<ExerciseDto>? {
         return try {
-            val snap = db.collection(COLLECTION).get().await()
+            val userId = currentUserId() ?: return emptyList()
+            val snap = db.collection(COLLECTION).whereEqualTo("userId", userId).get().await()
             snap.documents.mapNotNull { it.toObject(ExerciseDto::class.java) }
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao carregar exercícios", e)
@@ -28,7 +33,9 @@ class ExerciseDaoImpl(
 
     override suspend fun addExercise(exercise: ExerciseDto): Resource<String> {
         return try {
+            val userId = checkNotNull(currentUserId()) { "Entre na sua conta para criar exercícios" }
             val data = mapOf(
+                "userId" to userId,
                 "name" to exercise.name,
                 "muscleGroup" to exercise.muscleGroup,
                 "description" to exercise.description,

@@ -6,6 +6,7 @@ import com.google.firebase.firestore.DocumentId
 data class BodyMeasurementDto(
     @DocumentId
     var id: String = "",
+    var userId: String = "",
     var weightKg: Double = 0.0,
     var heightCm: Double = 0.0,
     var measuredAt: Timestamp? = null,
