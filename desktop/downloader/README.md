@@ -73,7 +73,8 @@ Fluxo completo, a partir da raiz do repositorio:
    `collect-sources.ps1` (pule com `-SkipSources`), que produz
    `output\MySuperAppDownloader-<versao>-sources.zip`: FFmpeg no commit exato, a
    receita BtbN na tag usada, cada biblioteca habilitada em `ffmpeg -buildconf`
-   no commit fixado pela receita (LAME via snapshot SVN do SourceForge), yt-dlp,
+   no commit fixado pela receita (LAME via WebDAV do SVN do SourceForge,
+   `!svn/bc/<rev>`), yt-dlp,
    Deno, licencas e `SOURCES-MANIFEST.txt` (origem, revisao, SHA256). O script
    falha listando qualquer fonte nao resolvida; nao publique sem o zip.
    `collect-sources.ps1 -Plan` so imprime a tabela de componentes incluidos/
@@ -84,7 +85,10 @@ Fluxo completo, a partir da raiz do repositorio:
    `downloader/MySuperAppDownloader-<versao>-sources.zip` e grava
    `downloader/latest.json` (versao, tamanho, SHA256, data, `--notes=a;b`).
    Objetos versionados existentes so sao sobrescritos com `--force`. Nenhum token
-   de download publico e criado.
+   de download publico e criado. O script tambem garante o CORS do bucket para os
+   dominios do portal (obrigatorio: respostas 200 de `?alt=media` so trazem
+   `Access-Control-Allow-Origin` com CORS configurado no bucket; sem isso o fetch
+   do navegador falha mesmo com as rules corretas). `--cors-only` aplica so isso.
 3. `firebase deploy --only storage,hosting` em `web\`: `storage.rules` libera
    leitura de `downloader/**` apenas para usuarios autenticados; o portal
    (`web\public\my-super-app\index.html`, aba Downloads) le o manifesto pela REST

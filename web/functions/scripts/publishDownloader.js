@@ -17,6 +17,8 @@
  *   --version=<x.y.z>      default: lida de desktop/downloader/installer.iss (AppVersion)
  *   --notes=a;b;c          notas exibidas no portal (separadas por ';')
  *   --force                permite sobrescrever objetos versionados já publicados
+ *   --cors-only            só garante o CORS do bucket para os domínios do portal
+ *                          (necessário para o fetch `alt=media` no navegador)
  *
  * Credenciais: Application Default Credentials (`gcloud auth application-default login`).
  */
@@ -36,6 +38,7 @@ const MIN_SOURCES_BYTES = 10 * 1024 * 1024;
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const force = args.includes("--force");
+const corsOnly = args.includes("--cors-only");
 
 function option(name, fallback) {
   const prefix = `--${name}=`;
@@ -95,7 +98,31 @@ async function uploadObject(bucket, localPath, objectName, contentType) {
   console.log(`enviado gs://${bucket.name}/${objectName}`);
 }
 
+// Downloads `?alt=media` bem-sucedidos só trazem Access-Control-Allow-Origin se o
+// bucket tiver CORS configurado (respostas de erro e o preflight não dependem
+// disso). Sem isto o fetch do portal falha com TypeError apesar do 200.
+const PORTAL_ORIGINS = ["https://mysuperapp.com.br", "https://baila.space", "https://baila-675c6.web.app", "https://baila-675c6.firebaseapp.com"];
+const PORTAL_CORS = [{ origin: PORTAL_ORIGINS, method: ["GET", "HEAD"], responseHeader: ["Content-Type", "Content-Length", "Content-Range", "Cache-Control"], maxAgeSeconds: 3600 }];
+
+async function ensureCors(bucket) {
+  const [meta] = await bucket.getMetadata();
+  const current = JSON.stringify(meta.cors || []);
+  if (current === JSON.stringify(PORTAL_CORS)) return;
+  if (dryRun) {
+    console.log(`[dry-run] configuraria CORS do bucket (atual: ${current}) para ${PORTAL_ORIGINS.join(", ")}`);
+    return;
+  }
+  await bucket.setCorsConfiguration(PORTAL_CORS);
+  console.log(`CORS do bucket configurado para ${PORTAL_ORIGINS.join(", ")}`);
+}
+
 async function main() {
+  if (corsOnly) {
+    console.log(`Projeto: ${projectId}${dryRun ? " (dry-run)" : ""} — somente CORS`);
+    admin.initializeApp({ projectId, storageBucket: `${projectId}.firebasestorage.app` });
+    await ensureCors(admin.storage().bucket());
+    return;
+  }
   const installer = describeFile(installerPath, MIN_INSTALLER_BYTES, "Instalador");
   const sources = describeFile(sourcesPath, MIN_SOURCES_BYTES, "Pacote de fontes");
   const installerObject = `${STORAGE_PREFIX}MySuperAppDownloader-Setup-${version}.exe`;
@@ -112,6 +139,7 @@ async function main() {
 
   admin.initializeApp({ projectId, storageBucket: `${projectId}.firebasestorage.app` });
   const bucket = admin.storage().bucket();
+  await ensureCors(bucket);
   await uploadObject(bucket, installerPath, installerObject, "application/vnd.microsoft.portable-executable");
   await uploadObject(bucket, sourcesPath, sourcesObject, "application/zip");
 

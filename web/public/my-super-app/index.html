@@ -963,6 +963,7 @@
     function manifestErrorText(err) {
         if (err && (err.status === 403 || err.status === 401)) return 'Sua conta não tem permissão para acessar o instalador. Saia e entre novamente.';
         if (err && err.status === 404) return 'Nenhuma versão publicada ainda. Volte mais tarde.';
+        if (err instanceof TypeError) return 'O navegador não conseguiu acessar o armazenamento (rede, extensão bloqueando ou CORS do bucket). Tente novamente.';
         return 'Não foi possível carregar as informações do instalador. Verifique a conexão.';
     }
 
