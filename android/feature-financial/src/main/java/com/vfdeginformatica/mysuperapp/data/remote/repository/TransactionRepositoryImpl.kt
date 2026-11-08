@@ -65,6 +65,10 @@ class TransactionRepositoryImpl(
         return transactionDao.getRecurringTransactions()
     }
 
+    override suspend fun getInvoicePayments(invoicePaymentMonth: String): Resource<List<TransactionDto>> {
+        return transactionDao.getInvoicePayments(invoicePaymentMonth)
+    }
+
     override suspend fun excludeRecurrenceMonth(id: String, month: String): Resource<Unit> {
         return transactionDao.excludeRecurrenceMonth(id, month)
     }

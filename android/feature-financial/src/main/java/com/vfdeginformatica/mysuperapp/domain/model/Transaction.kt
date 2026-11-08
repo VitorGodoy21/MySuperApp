@@ -20,6 +20,8 @@ data class Transaction(
     val installmentNumber: Int?,
     val installmentGroupId: String?,
     val invoiceMonth: String?,
+    // Mês (yyyy-MM) da fatura quitada quando a transação é um pagamento de fatura
+    val invoicePaymentMonth: String? = null,
     // Recorrência: primeiro mês (null em não recorrentes), último mês inclusive (null = sem fim)
     val recurrenceStart: YearMonth? = null,
     val recurrenceEnd: YearMonth? = null,

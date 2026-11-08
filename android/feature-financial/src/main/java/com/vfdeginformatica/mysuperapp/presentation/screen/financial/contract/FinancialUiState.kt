@@ -7,6 +7,8 @@ import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.creditExpens
 import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.debitExpenseTotal
 import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.expenses
 import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.incomeTotal
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.isInvoicePayment
+import com.vfdeginformatica.mysuperapp.domain.model.PaidInvoice
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 import java.time.YearMonth
@@ -31,10 +33,12 @@ data class FinancialUiState(
     val isLoadingProjection: Boolean = false,
     val invoiceTransactions: List<Transaction> = emptyList(),
     val recurringTransactions: List<Transaction> = emptyList(),
-    // Fatura fechada no mês anterior (paga neste mês) — compõe o saldo de caixa
+    // Faturas pagas no mês selecionado (uma por cartão, regra fecha/vence) — compõem o saldo de caixa
     val isLoadingPaidInvoice: Boolean = false,
-    val paidInvoiceTransactions: List<Transaction> = emptyList(),
-    val paidInvoiceRecurringTransactions: List<Transaction> = emptyList(),
+    val paidInvoices: List<PaidInvoice> = emptyList(),
+    // Fatura em pagamento (dialog "Pagar fatura")
+    val payingInvoice: PaidInvoice? = null,
+    val isPayingInvoice: Boolean = false,
     // Aba Filtros
     val typeFilter: TransactionTypeFilter = TransactionTypeFilter.ALL,
     val paymentMethodFilter: PaymentMethodFilter = PaymentMethodFilter.ALL,
@@ -67,8 +71,8 @@ data class FinancialUiState(
 
     /**
      * Saldo de caixa do mês: receitas menos o que efetivamente sai da conta no mês —
-     * compras no débito e a fatura fechada no mês anterior. Compras no crédito do mês
-     * só debitam no mês seguinte, quando a fatura é paga.
+     * compras no débito e as faturas de cartão pagas no mês (regra fecha/vence por cartão).
+     * Compras no crédito só debitam quando a fatura em que caem é paga.
      */
     val balance: Double
         get() = FinancialTotals.balance(totalIncome, cashExpense)
@@ -79,7 +83,7 @@ data class FinancialUiState(
     val debitExpense: Double
         get() = transactions.debitExpenseTotal()
 
-    /** Despesas que saem da conta no mês: débito + fatura paga (fechada em M-1). */
+    /** Despesas que saem da conta no mês: débito + faturas pagas (valor pago ou projetado). */
     val cashExpense: Double
         get() = FinancialTotals.cashExpense(debitExpense, paidInvoiceTotal)
 
@@ -162,17 +166,13 @@ data class FinancialUiState(
     val projectedInvoiceTotal: Double
         get() = projectedInvoiceItems.sumOf { it.amount }
 
-    // ---- Fatura paga no mês (fechada em M-1) ----
+    // ---- Faturas pagas no mês selecionado ----
 
-    val paidInvoiceMonth: YearMonth
-        get() = selectedMonth.minusMonths(1)
-
-    /** Itens da fatura de M-1 (compras/parcelas + recorrentes de crédito, sem duplicar). */
-    val paidInvoiceItems: List<Transaction>
-        get() = FinancialTotals.invoiceItems(paidInvoiceMonth, paidInvoiceTransactions, paidInvoiceRecurringTransactions)
-
+    /** Total das faturas que saem da conta no mês (valor pago quando quitada, senão o projetado). */
     val paidInvoiceTotal: Double
-        get() = paidInvoiceItems.sumOf { it.amount }
+        get() = FinancialTotals.paidInvoiceTotal(paidInvoices)
+
+    fun paidInvoiceFor(cardId: String): PaidInvoice? = paidInvoices.firstOrNull { it.cardId == cardId }
 
     // ---- Aba Filtros ----
 
@@ -208,7 +208,7 @@ data class FinancialUiState(
                 PaymentMethodFilter.CREDIT ->
                     t.type == TransactionType.EXPENSE && t.paymentMethod == CREDIT
                 PaymentMethodFilter.DEBIT ->
-                    t.type == TransactionType.EXPENSE && t.paymentMethod != CREDIT
+                    t.type == TransactionType.EXPENSE && t.paymentMethod != CREDIT && !t.isInvoicePayment
             }
             val matchesCategory = categoryFilterIds.isEmpty() ||
                     t.categoryIds.any { it in categoryFilterIds }

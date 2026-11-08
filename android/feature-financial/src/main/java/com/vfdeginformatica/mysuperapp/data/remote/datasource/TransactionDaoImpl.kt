@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.remote.dto.TransactionDto
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals
 import kotlinx.coroutines.tasks.await
 
 class TransactionDaoImpl(
@@ -19,6 +20,7 @@ class TransactionDaoImpl(
     private companion object {
         const val MAX_BATCH_OPERATIONS = 500
         const val NOT_LOGGED_IN = "Entre na sua conta para acessar o financeiro"
+        const val INVOICE_PAYMENT = FinancialTotals.INVOICE_PAYMENT
     }
 
     private fun currentUserId(): String? = auth.currentUser?.uid?.takeIf { it.isNotBlank() }
@@ -44,6 +46,7 @@ class TransactionDaoImpl(
         "installmentGroupId" to installmentGroupId,
         "installments" to installments,
         "installmentNumber" to installmentNumber,
+        "invoicePaymentMonth" to invoicePaymentMonth,
         "recurrenceStart" to recurrenceStart,
         "recurrenceEnd" to recurrenceEnd,
         "excludedMonths" to excludedMonths,
@@ -232,6 +235,27 @@ class TransactionDaoImpl(
         } catch (e: Exception) {
             Log.e("Firebase", "Erro ao buscar transações recorrentes", e)
             Resource.Error(e.message ?: "Erro inesperado ao buscar recorrentes")
+        }
+    }
+
+    override suspend fun getInvoicePayments(invoicePaymentMonth: String): Resource<List<TransactionDto>> {
+        return try {
+            val userId = currentUserId() ?: return Resource.Success(emptyList())
+            val snap = userTransactions(userId)
+                .whereEqualTo("paymentMethod", INVOICE_PAYMENT)
+                .whereEqualTo("invoicePaymentMonth", invoicePaymentMonth)
+                .get().await()
+            Resource.Success(snap.documents.mapNotNull { doc ->
+                try {
+                    doc.toObject(TransactionDto::class.java)
+                } catch (e: Exception) {
+                    Log.e("Firebase", "Erro ao mapear transação ${doc.id}", e)
+                    null
+                }
+            })
+        } catch (e: Exception) {
+            Log.e("Firebase", "Erro ao buscar pagamentos de fatura de $invoicePaymentMonth", e)
+            Resource.Error(e.message ?: "Erro inesperado ao buscar pagamentos de fatura")
         }
     }
 

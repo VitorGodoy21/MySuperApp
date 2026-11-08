@@ -6,12 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.GetInvoicePaymentUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.PayInvoiceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteRecurringOccurrenceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.GetInvoiceProjectionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.UpdateRecurringOccurrenceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.UpdateTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_category.GetTransactionsCategoriesUseCase
+import com.vfdeginformatica.mysuperapp.presentation.common.toTransactionTimestamp
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.contract.CardInvoiceEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.contract.CardInvoiceEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.contract.CardInvoiceUiState
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
 
@@ -31,6 +35,8 @@ import javax.inject.Inject
 class CardInvoiceViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getInvoiceProjectionUseCase: GetInvoiceProjectionUseCase,
+    private val getInvoicePaymentUseCase: GetInvoicePaymentUseCase,
+    private val payInvoiceUseCase: PayInvoiceUseCase,
     private val getCardsUseCase: GetCardsUseCase,
     private val getTransactionsCategoriesUseCase: GetTransactionsCategoriesUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
@@ -58,6 +64,7 @@ class CardInvoiceViewModel @Inject constructor(
     val effect: SharedFlow<CardInvoiceEffect> = _effect
 
     private var loadInvoiceJob: Job? = null
+    private var loadPaymentJob: Job? = null
 
     init {
         loadSources()
@@ -67,6 +74,22 @@ class CardInvoiceViewModel @Inject constructor(
     fun onEvent(event: CardInvoiceEvent) {
         when (event) {
             CardInvoiceEvent.OnRefresh -> loadInvoice()
+
+            CardInvoiceEvent.OnPayClicked -> {
+                if (!_uiState.value.isPaid) _uiState.update { it.copy(isPayDialogOpen = true) }
+            }
+
+            CardInvoiceEvent.OnPayDismiss -> {
+                if (!_uiState.value.isPaying) _uiState.update { it.copy(isPayDialogOpen = false) }
+            }
+
+            is CardInvoiceEvent.OnPayConfirm -> payInvoice(event.amount, event.date)
+
+            CardInvoiceEvent.OnPaymentClicked -> {
+                _uiState.value.payment?.let { payment ->
+                    _uiState.update { it.copy(editingTransaction = payment) }
+                }
+            }
 
             is CardInvoiceEvent.OnTransactionClicked -> {
                 _uiState.update { it.copy(editingTransaction = event.transaction) }
@@ -108,6 +131,7 @@ class CardInvoiceViewModel @Inject constructor(
     }
 
     private fun loadInvoice() {
+        loadPayment()
         loadInvoiceJob?.cancel()
         loadInvoiceJob = viewModelScope.launch {
             getInvoiceProjectionUseCase(invoiceMonth).collect { result ->
@@ -133,6 +157,45 @@ class CardInvoiceViewModel @Inject constructor(
                                 errorMessage = result.message ?: "Erro ao carregar fatura"
                             )
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadPayment() {
+        loadPaymentJob?.cancel()
+        loadPaymentJob = viewModelScope.launch {
+            getInvoicePaymentUseCase(cardId, invoiceMonth).collect { result ->
+                when (result) {
+                    is Resource.Success -> _uiState.update { it.copy(payment = result.data) }
+                    is Resource.Error -> _effect.emit(
+                        CardInvoiceEffect.ShowToast(result.message ?: "Erro ao carregar pagamento")
+                    )
+                    is Resource.Loading -> Unit
+                }
+            }
+        }
+    }
+
+    private fun payInvoice(amount: Double, date: LocalDate) {
+        val invoice = _uiState.value.paidInvoice
+        viewModelScope.launch {
+            payInvoiceUseCase(invoice, amount, date.toTransactionTimestamp()).collect { result ->
+                when (result) {
+                    is Resource.Loading -> _uiState.update { it.copy(isPaying = true) }
+
+                    is Resource.Success -> {
+                        _uiState.update { it.copy(isPaying = false, isPayDialogOpen = false) }
+                        _effect.emit(CardInvoiceEffect.ShowToast("Pagamento registrado"))
+                        loadInvoice()
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(isPaying = false) }
+                        _effect.emit(
+                            CardInvoiceEffect.ShowToast(result.message ?: "Erro ao registrar pagamento")
+                        )
                     }
                 }
             }

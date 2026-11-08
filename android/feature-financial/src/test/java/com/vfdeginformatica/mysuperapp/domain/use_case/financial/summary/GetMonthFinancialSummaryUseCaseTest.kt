@@ -2,8 +2,11 @@ package com.vfdeginformatica.mysuperapp.domain.use_case.financial.summary
 
 import com.google.firebase.Timestamp
 import com.vfdeginformatica.mysuperapp.common.Resource
+import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.TransactionDto
+import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.FakeTransactionRepository
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.GetPaidInvoicesUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.GetInvoiceProjectionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.GetTransactionsUseCase
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialUiState
@@ -44,8 +47,20 @@ class GetMonthFinancialSummaryUseCaseTest {
         recurrenceStart = recurrenceStart,
     )
 
+    private val cards = object : CardRepository {
+        override suspend fun getCards(): List<CardDto>? = emptyList()
+        override suspend fun addCard(card: CardDto): Resource<String> = Resource.Success("id")
+        override suspend fun updateCard(
+            cardId: String, bank: String, paymentMethods: List<String>,
+            finalCode: String, closingDay: Int, invoiceDueDate: Int
+        ): Resource<Unit> = Resource.Success(Unit)
+    }
+
+    private fun paidInvoices(repo: FakeTransactionRepository) =
+        GetPaidInvoicesUseCase(cards, repo, GetInvoiceProjectionUseCase(repo))
+
     private fun useCase(repo: FakeTransactionRepository) =
-        GetMonthFinancialSummaryUseCase(GetTransactionsUseCase(repo), GetInvoiceProjectionUseCase(repo))
+        GetMonthFinancialSummaryUseCase(GetTransactionsUseCase(repo), paidInvoices(repo))
 
     @Test
     fun `balance matches dashboard cash rule and ignores credit purchases of the month`() = runTest {
@@ -72,12 +87,11 @@ class GetMonthFinancialSummaryUseCaseTest {
 
         // Same numbers the dashboard would show for that month
         val transactions = GetTransactionsUseCase(repo)(month).toList().last().data.orEmpty()
-        val paid = GetInvoiceProjectionUseCase(repo)(month.minusMonths(1)).toList().last().data!!
+        val invoices = paidInvoices(repo)(month).toList().last().data!!
         val dashboard = FinancialUiState(
             selectedMonth = month,
             transactions = transactions,
-            paidInvoiceTransactions = paid.invoiceTransactions,
-            paidInvoiceRecurringTransactions = paid.recurringTransactions,
+            paidInvoices = invoices,
         )
         assertEquals(dashboard.balance, summary.balance, 0.001)
         assertEquals(dashboard.cashExpense, summary.cashExpense, 0.001)

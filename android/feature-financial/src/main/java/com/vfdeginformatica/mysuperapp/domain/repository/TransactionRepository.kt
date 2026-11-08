@@ -25,6 +25,7 @@ interface TransactionRepository {
     suspend fun getTransactions(start: Timestamp, end: Timestamp): Resource<List<TransactionDto>>
     suspend fun getTransactionsByInvoiceMonth(invoiceMonth: String): Resource<List<TransactionDto>>
     suspend fun getRecurringTransactions(): Resource<List<TransactionDto>>
+    suspend fun getInvoicePayments(invoicePaymentMonth: String): Resource<List<TransactionDto>>
 
     // ---- Recorrência (meses no formato yyyy-MM) ----
     suspend fun excludeRecurrenceMonth(id: String, month: String): Resource<Unit>

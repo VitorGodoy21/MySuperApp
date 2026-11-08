@@ -9,6 +9,8 @@ import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CategoryTransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.FakeTransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.GetInvoicePaymentUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.PayInvoiceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteRecurringOccurrenceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.GetInvoiceProjectionUseCase
@@ -80,6 +82,8 @@ class CardInvoiceViewModelTest {
                 )
             ),
             getInvoiceProjectionUseCase = GetInvoiceProjectionUseCase(repo),
+            getInvoicePaymentUseCase = GetInvoicePaymentUseCase(repo),
+            payInvoiceUseCase = PayInvoiceUseCase(repo),
             getCardsUseCase = GetCardsUseCase(FakeCardRepository()),
             getTransactionsCategoriesUseCase = GetTransactionsCategoriesUseCase(FakeCategoryRepository()),
             updateTransactionUseCase = UpdateTransactionUseCase(repo),

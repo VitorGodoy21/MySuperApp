@@ -49,10 +49,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vfdeginformatica.mysuperapp.data.mapper.toModel
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.isInvoicePayment
+import com.vfdeginformatica.mysuperapp.domain.model.PaidInvoice
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.domain.model.hasOverrideForOccurrence
 import com.vfdeginformatica.mysuperapp.presentation.common.EditTransactionDialog
+import com.vfdeginformatica.mysuperapp.presentation.common.PayInvoiceDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.RecurrenceScopeDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.balanceColor
 import com.vfdeginformatica.mysuperapp.presentation.common.expenseColor
@@ -109,6 +112,15 @@ fun FinancialScreen(
                     .align(Alignment.Center)
             )
         }
+    }
+
+    uiState.payingInvoice?.let { invoice ->
+        PayInvoiceDialog(
+            invoice = invoice,
+            isSaving = uiState.isPayingInvoice,
+            onDismiss = { onEvent(FinancialEvent.OnPayInvoiceDismiss) },
+            onConfirm = { amount, date -> onEvent(FinancialEvent.OnPayInvoiceConfirm(amount, date)) }
+        )
     }
 
     uiState.editingTransaction?.let { transaction ->
@@ -194,7 +206,7 @@ private fun MonthContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 96.dp)
     ) {
-        item { SummaryCard(uiState) }
+        item { SummaryCard(uiState, onEvent) }
 
         if (uiState.invoiceByCard.isNotEmpty()) {
             item { InvoiceByCardCard(uiState, onEvent) }
@@ -234,7 +246,10 @@ private fun MonthContent(
 }
 
 @Composable
-private fun SummaryCard(uiState: FinancialUiState) {
+private fun SummaryCard(
+    uiState: FinancialUiState,
+    onEvent: (FinancialEvent) -> Unit
+) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
@@ -272,17 +287,63 @@ private fun SummaryCard(uiState: FinancialUiState) {
             }
             Text(
                 text = "Débito ${formatCurrency(uiState.debitExpense)} • " +
-                        "Fatura de ${shortMonthLabel(uiState.paidInvoiceMonth)} " +
-                        formatCurrency(uiState.paidInvoiceTotal),
+                        "Faturas ${formatCurrency(uiState.paidInvoiceTotal)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            uiState.paidInvoices.forEach { invoice ->
+                PaidInvoiceRow(invoice, uiState, onEvent)
+            }
             Text(
                 text = "Compras no crédito do mês: ${formatCurrency(uiState.creditExpense)} " +
                         "(entram na próxima fatura)",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+/**
+ * Linha de uma fatura que sai da conta no mês: cartão, mês da fatura, vencimento e total, com
+ * o botão "Pagar" enquanto estiver em aberto ou a data/valor do pagamento quando quitada.
+ */
+@Composable
+private fun PaidInvoiceRow(
+    invoice: PaidInvoice,
+    uiState: FinancialUiState,
+    onEvent: (FinancialEvent) -> Unit
+) {
+    val canOpen = invoice.cardId.isNotBlank()
+    val due = invoice.invoiceDueDate.takeIf { it > 0 }?.let { " • vence dia $it" }.orEmpty()
+    val paidOn = invoice.payment?.date?.toDate()?.let { SimpleDateFormat("dd/MM", ptBr).format(it) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .let { m -> if (canOpen) m.clickable { onEvent(FinancialEvent.OnPaidInvoiceClicked(invoice.cardId)) } else m },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${invoice.bank} • Fatura de ${shortMonthLabel(invoice.invoiceMonth)}$due",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = if (invoice.isPaid) {
+                    "Paga${paidOn?.let { " em $it" }.orEmpty()} • ${formatCurrency(invoice.effectiveTotal)}"
+                } else {
+                    "Em aberto • ${formatCurrency(invoice.projectedTotal)}"
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = if (invoice.isPaid) incomeColor else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (!invoice.isPaid && canOpen) {
+            TextButton(
+                enabled = !uiState.isLoadingPaidInvoice,
+                onClick = { onEvent(FinancialEvent.OnPayInvoiceClicked(invoice.cardId)) }
+            ) { Text("Pagar") }
         }
     }
 }
@@ -859,6 +920,12 @@ private fun TransactionListItem(
                     fontWeight = FontWeight.Bold
                 )
                 when {
+                    transaction.isInvoicePayment -> Text(
+                        text = "Pagamento de fatura",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
                     transaction.isRecurring -> Text(
                         text = if (transaction.hasOverrideForOccurrence) {
                             "Recorrente • ajustado"

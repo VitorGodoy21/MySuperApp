@@ -9,6 +9,8 @@ import com.vfdeginformatica.mysuperapp.domain.repository.CardRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.CategoryTransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.FakeTransactionRepository
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.GetPaidInvoicesUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.PayInvoiceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteRecurringOccurrenceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.GetInvoiceProjectionUseCase
@@ -94,6 +96,8 @@ class FinancialViewModelTest {
         getCardsUseCase = GetCardsUseCase(FakeCardRepository()),
         getTransactionsCategoriesUseCase = GetTransactionsCategoriesUseCase(FakeCategoryRepository()),
         getInvoiceProjectionUseCase = GetInvoiceProjectionUseCase(repo),
+        getPaidInvoicesUseCase = GetPaidInvoicesUseCase(FakeCardRepository(), repo, GetInvoiceProjectionUseCase(repo)),
+        payInvoiceUseCase = PayInvoiceUseCase(repo),
         updateTransactionUseCase = UpdateTransactionUseCase(repo),
         deleteTransactionUseCase = DeleteTransactionUseCase(repo),
         updateRecurringOccurrenceUseCase = UpdateRecurringOccurrenceUseCase(repo),
@@ -146,7 +150,8 @@ class FinancialViewModelTest {
         advanceUntilIdle()
 
         assertTrue(repo.requestedInvoiceMonths.contains(key(prev)))
-        assertEquals(listOf("prev-credit"), vm.uiState.value.paidInvoiceTransactions.map { it.id })
+        // sem cartões cadastrados, a fatura de M-1 cai no grupo "Outros cartões"
+        assertEquals(listOf("prev-credit"), vm.uiState.value.paidInvoices.flatMap { it.items }.map { it.id })
         assertEquals(300.0, vm.uiState.value.paidInvoiceTotal, 0.001)
         assertEquals(-300.0, vm.uiState.value.balance, 0.001)
         assertFalse(vm.uiState.value.isLoadingPaidInvoice)

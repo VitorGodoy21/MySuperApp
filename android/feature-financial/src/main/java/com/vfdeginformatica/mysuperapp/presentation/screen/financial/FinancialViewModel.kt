@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.GetPaidInvoicesUseCase
+import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.PayInvoiceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteRecurringOccurrenceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.GetInvoiceProjectionUseCase
@@ -12,6 +14,7 @@ import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.Get
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.UpdateRecurringOccurrenceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.UpdateTransactionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction_category.GetTransactionsCategoriesUseCase
+import com.vfdeginformatica.mysuperapp.presentation.common.toTransactionTimestamp
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FilterGroupBy
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.FinancialEvent
@@ -27,6 +30,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +39,8 @@ class FinancialViewModel @Inject constructor(
     private val getCardsUseCase: GetCardsUseCase,
     private val getTransactionsCategoriesUseCase: GetTransactionsCategoriesUseCase,
     private val getInvoiceProjectionUseCase: GetInvoiceProjectionUseCase,
+    private val getPaidInvoicesUseCase: GetPaidInvoicesUseCase,
+    private val payInvoiceUseCase: PayInvoiceUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val updateRecurringOccurrenceUseCase: UpdateRecurringOccurrenceUseCase,
@@ -88,6 +94,33 @@ class FinancialViewModel @Inject constructor(
                     )
                 }
             }
+
+            is FinancialEvent.OnPaidInvoiceClicked -> {
+                val invoice = _uiState.value.paidInvoiceFor(event.cardId) ?: return
+                if (invoice.cardId.isBlank()) return
+                viewModelScope.launch {
+                    _effect.emit(
+                        FinancialEffect.NavigateToCardInvoice(
+                            cardId = invoice.cardId,
+                            invoiceMonth = invoice.invoiceMonthKey
+                        )
+                    )
+                }
+            }
+
+            is FinancialEvent.OnPayInvoiceClicked -> {
+                val invoice = _uiState.value.paidInvoiceFor(event.cardId) ?: return
+                if (invoice.isPaid || invoice.cardId.isBlank()) return
+                _uiState.update { it.copy(payingInvoice = invoice) }
+            }
+
+            FinancialEvent.OnPayInvoiceDismiss -> {
+                if (!_uiState.value.isPayingInvoice) {
+                    _uiState.update { it.copy(payingInvoice = null) }
+                }
+            }
+
+            is FinancialEvent.OnPayInvoiceConfirm -> payInvoice(event.amount, event.date)
 
             is FinancialEvent.OnTransactionClicked -> {
                 _uiState.update { it.copy(editingTransaction = event.transaction) }
@@ -256,12 +289,11 @@ class FinancialViewModel @Inject constructor(
         }
     }
 
-    /** Fatura fechada no mês anterior: é o que sai da conta no mês selecionado. */
-    private fun loadPaidInvoice() {
+    /** Faturas que saem da conta no mês selecionado (uma por cartão, regra fecha/vence). */
+    private fun loadPaidInvoices() {
         loadPaidInvoiceJob?.cancel()
         loadPaidInvoiceJob = viewModelScope.launch {
-            val paidMonth = _uiState.value.selectedMonth.minusMonths(1)
-            getInvoiceProjectionUseCase(paidMonth).collect { result ->
+            getPaidInvoicesUseCase(_uiState.value.selectedMonth).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoadingPaidInvoice = true) }
@@ -271,8 +303,7 @@ class FinancialViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoadingPaidInvoice = false,
-                                paidInvoiceTransactions = result.data?.invoiceTransactions.orEmpty(),
-                                paidInvoiceRecurringTransactions = result.data?.recurringTransactions.orEmpty()
+                                paidInvoices = result.data.orEmpty()
                             )
                         }
                     }
@@ -281,8 +312,32 @@ class FinancialViewModel @Inject constructor(
                         _uiState.update { it.copy(isLoadingPaidInvoice = false) }
                         _effect.emit(
                             FinancialEffect.ShowToast(
-                                result.message ?: "Erro ao carregar fatura anterior"
+                                result.message ?: "Erro ao carregar faturas do mês"
                             )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun payInvoice(amount: Double, date: LocalDate) {
+        val invoice = _uiState.value.payingInvoice ?: return
+        viewModelScope.launch {
+            payInvoiceUseCase(invoice, amount, date.toTransactionTimestamp()).collect { result ->
+                when (result) {
+                    is Resource.Loading -> _uiState.update { it.copy(isPayingInvoice = true) }
+
+                    is Resource.Success -> {
+                        _uiState.update { it.copy(isPayingInvoice = false, payingInvoice = null) }
+                        _effect.emit(FinancialEffect.ShowToast("Pagamento registrado"))
+                        reloadAll()
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(isPayingInvoice = false) }
+                        _effect.emit(
+                            FinancialEffect.ShowToast(result.message ?: "Erro ao registrar pagamento")
                         )
                     }
                 }
@@ -401,7 +456,7 @@ class FinancialViewModel @Inject constructor(
     private fun reloadAll() {
         loadTransactions()
         loadProjection()
-        loadPaidInvoice()
+        loadPaidInvoices()
     }
 
     private fun loadFilterSources() {

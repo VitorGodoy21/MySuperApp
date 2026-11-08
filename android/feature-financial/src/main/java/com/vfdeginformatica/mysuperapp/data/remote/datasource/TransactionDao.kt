@@ -29,6 +29,9 @@ interface TransactionDao {
     suspend fun getTransactionsByInvoiceMonth(invoiceMonth: String): Resource<List<TransactionDto>>
     suspend fun getRecurringTransactions(): Resource<List<TransactionDto>>
 
+    /** Pagamentos de fatura (paymentMethod INVOICE_PAYMENT) cuja fatura quitada é [invoicePaymentMonth]. */
+    suspend fun getInvoicePayments(invoicePaymentMonth: String): Resource<List<TransactionDto>>
+
     // ---- Recorrência (meses no formato yyyy-MM) ----
 
     /** Exclui apenas a ocorrência do mês informado (arrayUnion em excludedMonths). */

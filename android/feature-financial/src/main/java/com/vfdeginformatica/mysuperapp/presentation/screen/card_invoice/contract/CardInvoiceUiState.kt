@@ -2,6 +2,8 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.contrac
 
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CardDto
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals
+import com.vfdeginformatica.mysuperapp.domain.model.PaidInvoice
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.PendingRecurringAction
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
@@ -17,6 +19,10 @@ data class CardInvoiceUiState(
     // Resultado de GetInvoiceProjectionUseCase(invoiceMonth), ainda sem filtro de cartão
     val invoiceTransactions: List<Transaction> = emptyList(),
     val recurringTransactions: List<Transaction> = emptyList(),
+    // Pagamento registrado para esta fatura (null = em aberto)
+    val payment: Transaction? = null,
+    val isPayDialogOpen: Boolean = false,
+    val isPaying: Boolean = false,
     // Edição (dialog)
     val editingTransaction: Transaction? = null,
     val isSavingEdit: Boolean = false,
@@ -59,6 +65,24 @@ data class CardInvoiceUiState(
 
     val singleTotal: Double
         get() = items.filter { !it.isInstallment && !it.isRecurring }.sumOf { it.amount }
+
+    val isPaid: Boolean get() = payment != null
+
+    /** Mês em que esta fatura sai da conta (regra fecha/vence do cartão). */
+    val paymentMonth: YearMonth
+        get() = FinancialTotals.paymentMonthOf(card?.closingDay ?: 0, card?.invoiceDueDate ?: 0, invoiceMonth)
+
+    /** Fatura deste cartão no formato usado pelo dialog "Pagar fatura" e pelo [PayInvoiceUseCase]. */
+    val paidInvoice: PaidInvoice
+        get() = PaidInvoice(
+            cardId = cardId,
+            bank = card?.bank ?: "Cartão",
+            closingDay = card?.closingDay ?: 0,
+            invoiceDueDate = card?.invoiceDueDate ?: 0,
+            invoiceMonth = invoiceMonth,
+            items = items,
+            payment = payment,
+        )
 }
 
 val Transaction.isInstallment: Boolean

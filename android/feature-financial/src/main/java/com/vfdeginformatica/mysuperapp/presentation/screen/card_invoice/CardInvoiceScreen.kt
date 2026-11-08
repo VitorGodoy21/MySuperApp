@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -26,9 +27,11 @@ import com.vfdeginformatica.mysuperapp.data.mapper.toModel
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.domain.model.hasOverrideForOccurrence
 import com.vfdeginformatica.mysuperapp.presentation.common.EditTransactionDialog
+import com.vfdeginformatica.mysuperapp.presentation.common.PayInvoiceDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.RecurrenceScopeDialog
 import com.vfdeginformatica.mysuperapp.presentation.common.expenseColor
 import com.vfdeginformatica.mysuperapp.presentation.common.formatCurrency
+import com.vfdeginformatica.mysuperapp.presentation.common.incomeColor
 import com.vfdeginformatica.mysuperapp.presentation.common.monthLabel
 import com.vfdeginformatica.mysuperapp.presentation.common.ptBr
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.contract.CardInvoiceEvent
@@ -51,7 +54,7 @@ fun CardInvoiceScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)
         ) {
-            item { InvoiceHeaderCard(uiState) }
+            item { InvoiceHeaderCard(uiState, onEvent) }
 
             if (!uiState.isLoading && uiState.errorMessage == null && uiState.items.isEmpty()) {
                 item {
@@ -92,6 +95,15 @@ fun CardInvoiceScreen(
         }
     }
 
+    if (uiState.isPayDialogOpen) {
+        PayInvoiceDialog(
+            invoice = uiState.paidInvoice,
+            isSaving = uiState.isPaying,
+            onDismiss = { onEvent(CardInvoiceEvent.OnPayDismiss) },
+            onConfirm = { amount, date -> onEvent(CardInvoiceEvent.OnPayConfirm(amount, date)) }
+        )
+    }
+
     uiState.editingTransaction?.let { transaction ->
         EditTransactionDialog(
             transaction = transaction,
@@ -116,7 +128,7 @@ fun CardInvoiceScreen(
 }
 
 @Composable
-private fun InvoiceHeaderCard(uiState: CardInvoiceUiState) {
+private fun InvoiceHeaderCard(uiState: CardInvoiceUiState, onEvent: (CardInvoiceEvent) -> Unit) {
     val card = uiState.card
     val cardTitle = buildString {
         append(card?.bank ?: "Cartão")
@@ -154,6 +166,35 @@ private fun InvoiceHeaderCard(uiState: CardInvoiceUiState) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (uiState.card != null) {
+                val payment = uiState.payment
+                if (payment != null) {
+                    val paidDate = payment.date?.toDate()?.let { SimpleDateFormat("dd/MM/yyyy", ptBr).format(it) }
+                    Text(
+                        text = listOfNotNull(paidDate?.let { "Paga em $it" } ?: "Paga", formatCurrency(payment.amount))
+                            .joinToString(" • "),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = incomeColor,
+                        modifier = Modifier
+                            .clickable { onEvent(CardInvoiceEvent.OnPaymentClicked) }
+                            .padding(vertical = 4.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Em aberto • sai do saldo de ${monthLabel(uiState.paymentMonth)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Button(
+                        onClick = { onEvent(CardInvoiceEvent.OnPayClicked) },
+                        enabled = !uiState.isLoading,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Pagar fatura")
+                    }
+                }
+            }
             if (uiState.items.isNotEmpty()) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                 SubtotalLine("Parceladas", uiState.installmentsTotal)

@@ -2,6 +2,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract
 
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
+import java.time.LocalDate
 
 sealed interface FinancialEvent {
     data object OnPreviousMonth : FinancialEvent
@@ -14,6 +15,12 @@ sealed interface FinancialEvent {
 
     // Aba Mês: abre a fatura do cartão no mês selecionado
     data class OnCardInvoiceClicked(val cardId: String) : FinancialEvent
+
+    // Aba Mês: faturas pagas no mês (resumo) — abrir a fatura paga / registrar pagamento
+    data class OnPaidInvoiceClicked(val cardId: String) : FinancialEvent
+    data class OnPayInvoiceClicked(val cardId: String) : FinancialEvent
+    data class OnPayInvoiceConfirm(val amount: Double, val date: LocalDate) : FinancialEvent
+    data object OnPayInvoiceDismiss : FinancialEvent
 
     // Aba Filtros
     data class OnTypeFilterChanged(val filter: TransactionTypeFilter) : FinancialEvent

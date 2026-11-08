@@ -28,6 +28,8 @@ data class TransactionDto(
     var installmentGroupId: String? = null,
     var installments: Int? = null,
     var installmentNumber: Int? = null,
+    // Pagamento de fatura (paymentMethod == INVOICE_PAYMENT): mês yyyy-MM da fatura quitada
+    var invoicePaymentMonth: String? = null,
     // Recorrência (apenas quando isRecurring == true). Meses no formato yyyy-MM.
     // recurrenceStart ausente => mês da transactionDate (compat com documentos antigos).
     var recurrenceStart: String? = null,

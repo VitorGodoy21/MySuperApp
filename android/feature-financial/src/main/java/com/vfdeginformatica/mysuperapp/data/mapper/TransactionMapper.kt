@@ -29,6 +29,7 @@ fun TransactionDto.toModel(): Transaction {
         installmentNumber = installmentNumber,
         installmentGroupId = installmentGroupId,
         invoiceMonth = invoiceMonth,
+        invoicePaymentMonth = invoicePaymentMonth,
         recurrenceStart = start,
         recurrenceEnd = RecurrenceRules.parseMonth(recurrenceEnd),
         excludedMonths = excludedMonths.orEmpty()
@@ -64,6 +65,7 @@ fun Transaction.toDto(): TransactionDto {
         installmentGroupId = installmentGroupId,
         installments = installments,
         installmentNumber = installmentNumber,
+        invoicePaymentMonth = invoicePaymentMonth,
         recurrenceStart = recurrenceStart?.let { RecurrenceRules.formatMonth(it) },
         recurrenceEnd = recurrenceEnd?.let { RecurrenceRules.formatMonth(it) },
         excludedMonths = excludedMonths.map { RecurrenceRules.formatMonth(it) },

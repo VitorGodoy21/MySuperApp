@@ -96,6 +96,8 @@ service cloud.firestore {
     // o app lista com whereEqualTo("userId", uid). userId é imutável (não está nas affectedKeys permitidas).
     match /transactions/{transactionId} {
       allow read: if isOwner();
+      // Pagamentos de fatura são transações EXPENSE com paymentMethod == 'INVOICE_PAYMENT',
+      // cardId e invoicePaymentMonth (yyyy-MM da fatura quitada); passam pelas mesmas regras.
       allow create: if createsOwn()
         && request.resource.data.amount is number
         && request.resource.data.paymentMethod is string

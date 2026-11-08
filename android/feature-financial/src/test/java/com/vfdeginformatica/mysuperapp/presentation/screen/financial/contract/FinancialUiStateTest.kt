@@ -1,6 +1,7 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract
 
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
+import com.vfdeginformatica.mysuperapp.domain.model.PaidInvoice
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 import org.junit.Assert.assertEquals
@@ -62,7 +63,19 @@ class FinancialUiStateTest {
         assertEquals(4500.0, state.balance, 0.001)
     }
 
-    // ---- Saldo de caixa (débito + fatura de M-1) ----
+    // ---- Saldo de caixa (débito + faturas pagas no mês) ----
+
+    private fun invoice(
+        cardId: String,
+        invoiceMonth: YearMonth,
+        items: List<Transaction>,
+        payment: Transaction? = null,
+        closingDay: Int = 6,
+        invoiceDueDate: Int = 12
+    ) = PaidInvoice(
+        cardId = cardId, bank = cardId, closingDay = closingDay, invoiceDueDate = invoiceDueDate,
+        invoiceMonth = invoiceMonth, items = items, payment = payment
+    )
 
     @Test
     fun `balance ignores credit purchases of the month`() {
@@ -72,40 +85,55 @@ class FinancialUiStateTest {
     }
 
     @Test
-    fun `balance includes invoice closed in previous month`() {
+    fun `balance includes the invoices paid in the month`() {
         val state = base.copy(
-            paidInvoiceTransactions = listOf(
-                tx("tv-prev", 300.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-09"),
-                tx("shoes", 200.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-09")
+            paidInvoices = listOf(
+                invoice(
+                    "c1", YearMonth.of(2026, 10),
+                    listOf(
+                        tx("tv-prev", 300.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-10"),
+                        tx("shoes", 200.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-10")
+                    )
+                )
             )
         )
-        assertEquals(YearMonth.of(2026, 9), state.paidInvoiceMonth)
         assertEquals(500.0, state.paidInvoiceTotal, 0.001)
         assertEquals(1000.0, state.cashExpense, 0.001)
         assertEquals(4000.0, state.balance, 0.001)
         assertEquals(5000.0, state.totalIncome, 0.001)
         assertEquals(500.0, state.debitExpense, 0.001)
+        assertEquals("c1", state.paidInvoiceFor("c1")?.cardId)
     }
 
     @Test
-    fun `paid invoice adds recurring credit without duplicating items already in invoice`() {
+    fun `paid amount replaces projected total and payment is not counted as purchase`() {
+        val payment = tx("pay", 450.0, paymentMethod = "INVOICE_PAYMENT", cardId = "c1")
         val state = base.copy(
-            paidInvoiceTransactions = listOf(
-                tx("tv-prev", 300.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-09")
-            ),
-            paidInvoiceRecurringTransactions = listOf(
-                // já contado em paidInvoiceTransactions
-                tx("netflix-dup", 50.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1", invoiceMonth = "2026-09"),
-                // recorrente de crédito materializado, entra
-                tx("spotify", 20.0, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1", invoiceMonth = "2026-10"),
-                // débito/receita recorrentes não entram na fatura
-                tx("rent", 1500.0, paymentMethod = "DEBIT", isRecurring = true),
-                tx("bonus", 100.0, type = TransactionType.INCOME, paymentMethod = "CREDIT", isRecurring = true, cardId = "c1")
+            transactions = sample + payment,
+            paidInvoices = listOf(
+                invoice(
+                    "c1", YearMonth.of(2026, 10),
+                    listOf(tx("tv-prev", 500.0, paymentMethod = "CREDIT", cardId = "c1", invoiceMonth = "2026-10")),
+                    payment = payment
+                )
             )
         )
-        assertEquals(listOf("tv-prev", "spotify"), state.paidInvoiceItems.map { it.id })
-        assertEquals(320.0, state.paidInvoiceTotal, 0.001)
-        assertEquals(5000.0 - 500.0 - 320.0, state.balance, 0.001)
+        assertTrue(state.paidInvoices.single().isPaid)
+        assertEquals(450.0, state.paidInvoiceTotal, 0.001)
+        assertEquals(500.0 + 450.0, state.cashExpense, 0.001)
+        // totais de compras não mudam com o pagamento
+        assertEquals(850.0, state.totalExpense, 0.001)
+        assertEquals(500.0, state.debitExpense, 0.001)
+        assertEquals(350.0, state.creditExpense, 0.001)
+    }
+
+    @Test
+    fun `debit filter does not include invoice payments`() {
+        val payment = tx("pay", 450.0, paymentMethod = "INVOICE_PAYMENT", cardId = "c1")
+        val state = base.copy(transactions = sample + payment, paymentMethodFilter = PaymentMethodFilter.DEBIT)
+        assertFalse(state.filteredTransactions.any { it.id == "pay" })
+        val all = base.copy(transactions = sample + payment)
+        assertTrue(all.filteredTransactions.any { it.id == "pay" })
     }
 
     @Test

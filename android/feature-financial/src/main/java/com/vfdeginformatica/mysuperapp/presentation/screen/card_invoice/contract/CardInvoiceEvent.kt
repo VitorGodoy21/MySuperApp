@@ -2,9 +2,17 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.contrac
 
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
+import java.time.LocalDate
 
 sealed interface CardInvoiceEvent {
     data object OnRefresh : CardInvoiceEvent
+
+    // Pagamento da fatura
+    data object OnPayClicked : CardInvoiceEvent
+    data class OnPayConfirm(val amount: Double, val date: LocalDate) : CardInvoiceEvent
+    data object OnPayDismiss : CardInvoiceEvent
+    /** Abre o pagamento já registrado no dialog de edição (ajustar valor / excluir = reabrir fatura). */
+    data object OnPaymentClicked : CardInvoiceEvent
 
     // Edição/exclusão de lançamentos
     data class OnTransactionClicked(val transaction: Transaction) : CardInvoiceEvent
