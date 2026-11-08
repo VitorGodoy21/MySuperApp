@@ -31,8 +31,11 @@ class GetRecentWorkoutSessionsUseCase @Inject constructor(
 
     /** Newest day first; within the same day, most recently logged first. */
     operator fun invoke(days: Long = DEFAULT_DAYS): Flow<Resource<List<WorkoutSession>>> =
+        invoke(from = LocalDate.now().minusDays(days))
+
+    /** Sessions dated on or after [from], same ordering as the day-based overload. */
+    operator fun invoke(from: LocalDate): Flow<Resource<List<WorkoutSession>>> =
         readFlow("Erro ao carregar histórico de treinos") {
-            val from = LocalDate.now().minusDays(days)
             repository.getSessionsSince(from)
                 ?.filter { !it.date.isBefore(from) }
                 ?.sortedWith(

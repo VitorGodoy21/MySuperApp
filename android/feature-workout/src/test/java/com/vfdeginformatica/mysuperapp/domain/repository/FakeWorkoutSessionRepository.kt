@@ -9,14 +9,17 @@ open class FakeWorkoutSessionRepository(
 ) : WorkoutSessionRepository {
     val added = mutableListOf<WorkoutSession>()
     val deletedIds = mutableListOf<String>()
+    val sinceRequests = mutableListOf<LocalDate>()
     var writeResult: Resource<Unit> = Resource.Success(Unit)
     var failReads: Boolean = false
 
     override suspend fun getSessions(workoutId: String): List<WorkoutSession>? =
         if (failReads) null else sessions.filter { it.workoutId == workoutId }
 
-    override suspend fun getSessionsSince(from: LocalDate): List<WorkoutSession>? =
-        if (failReads) null else sessions.filter { !it.date.isBefore(from) }
+    override suspend fun getSessionsSince(from: LocalDate): List<WorkoutSession>? {
+        sinceRequests += from
+        return if (failReads) null else sessions.filter { !it.date.isBefore(from) }
+    }
 
     override suspend fun addSession(session: WorkoutSession): Resource<String> {
         added += session

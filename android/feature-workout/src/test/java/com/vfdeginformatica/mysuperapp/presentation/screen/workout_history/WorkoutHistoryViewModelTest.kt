@@ -2,11 +2,13 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.workout_history
 
 import com.vfdeginformatica.mysuperapp.domain.model.Workout
 import com.vfdeginformatica.mysuperapp.domain.model.WorkoutSession
+import com.vfdeginformatica.mysuperapp.domain.model.WorkoutWeekRange
 import com.vfdeginformatica.mysuperapp.domain.repository.FakeWorkoutRepository
 import com.vfdeginformatica.mysuperapp.domain.repository.FakeWorkoutSessionRepository
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.DeleteWorkoutSessionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.GetRecentWorkoutSessionsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.GetWorkoutsUseCase
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_history.contract.HistoryMode
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_history.contract.WorkoutHistoryEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_history.contract.WorkoutHistoryEvent
 import kotlinx.coroutines.Dispatchers
@@ -145,5 +147,56 @@ class WorkoutHistoryViewModelTest {
         assertTrue(vm.uiState.value.historyDays.isEmpty())
         assertNull(vm.uiState.value.sessionPendingDelete)
         assertFalse(vm.uiState.value.isDeletingSession)
+    }
+
+    @Test
+    fun `switching to weeks loads the weekly window once and reloads it after deleting`() = runTest {
+        val repo = FakeWorkoutSessionRepository(
+            listOf(session("recent", "wA", daysAgo = 1), session("old", "wB", daysAgo = 45))
+        )
+        val vm = buildViewModel(repo)
+        vm.onEvent(WorkoutHistoryEvent.Reload)
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.weekSessions)
+        assertEquals(1, repo.sinceRequests.size)
+
+        vm.onEvent(WorkoutHistoryEvent.ModeChanged(HistoryMode.WEEKS))
+        advanceUntilIdle()
+        val state = vm.uiState.value
+        assertEquals(HistoryMode.WEEKS, state.mode)
+        assertEquals(state.weekWindowStart, repo.sinceRequests.last())
+        assertEquals(setOf("recent", "old"), state.weekSessions?.map { it.id }?.toSet())
+        assertFalse(state.isWeekSessionsLoading)
+
+        vm.onEvent(WorkoutHistoryEvent.ModeChanged(HistoryMode.DAYS))
+        vm.onEvent(WorkoutHistoryEvent.ModeChanged(HistoryMode.WEEKS))
+        advanceUntilIdle()
+        assertEquals(2, repo.sinceRequests.size)
+
+        vm.onEvent(WorkoutHistoryEvent.DeleteSessionClicked("old"))
+        vm.onEvent(WorkoutHistoryEvent.DeleteSessionConfirmed)
+        advanceUntilIdle()
+        assertEquals(listOf("old"), repo.deletedIds)
+        assertEquals(listOf("recent"), vm.uiState.value.weekSessions?.map { it.id })
+        assertEquals(4, repo.sinceRequests.size)
+    }
+
+    @Test
+    fun `week navigation stays within the current week and the oldest allowed week`() = runTest {
+        val vm = buildViewModel()
+        val start = vm.uiState.value.selectedWeekStart
+
+        vm.onEvent(WorkoutHistoryEvent.NextWeek)
+        assertEquals(start, vm.uiState.value.selectedWeekStart)
+
+        vm.onEvent(WorkoutHistoryEvent.PreviousWeek)
+        assertEquals(start.minusWeeks(1), vm.uiState.value.selectedWeekStart)
+
+        repeat(WorkoutWeekRange.WEEKS_BACK + 5) { vm.onEvent(WorkoutHistoryEvent.PreviousWeek) }
+        assertEquals(vm.uiState.value.oldestWeekStart, vm.uiState.value.selectedWeekStart)
+        assertFalse(vm.uiState.value.canGoPreviousWeek)
+
+        vm.onEvent(WorkoutHistoryEvent.NextWeek)
+        assertEquals(vm.uiState.value.oldestWeekStart.plusWeeks(1), vm.uiState.value.selectedWeekStart)
     }
 }

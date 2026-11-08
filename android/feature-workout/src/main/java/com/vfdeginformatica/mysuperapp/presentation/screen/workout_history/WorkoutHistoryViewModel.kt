@@ -6,6 +6,7 @@ import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.DeleteWorkoutSessionUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.session.GetRecentWorkoutSessionsUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.workout.workout.GetWorkoutsUseCase
+import com.vfdeginformatica.mysuperapp.presentation.screen.workout_history.contract.HistoryMode
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_history.contract.WorkoutHistoryEffect
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_history.contract.WorkoutHistoryEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_history.contract.WorkoutHistoryUiState
@@ -38,17 +39,34 @@ class WorkoutHistoryViewModel @Inject constructor(
 
     private var loadJob: Job? = null
     private var sessionsJob: Job? = null
+    private var weekSessionsJob: Job? = null
 
     fun onEvent(event: WorkoutHistoryEvent) {
         when (event) {
             WorkoutHistoryEvent.Reload -> {
                 loadWorkouts()
                 loadSessions()
+                if (_uiState.value.weekSessions != null) loadWeekSessions()
+            }
+
+            is WorkoutHistoryEvent.ModeChanged -> {
+                _uiState.update { it.copy(mode = event.mode) }
+                if (event.mode == HistoryMode.WEEKS && _uiState.value.weekSessions == null) loadWeekSessions()
+            }
+
+            WorkoutHistoryEvent.PreviousWeek -> _uiState.update { state ->
+                if (state.canGoPreviousWeek) state.copy(selectedWeekStart = state.selectedWeekStart.minusWeeks(1))
+                else state
+            }
+
+            WorkoutHistoryEvent.NextWeek -> _uiState.update { state ->
+                if (state.canGoNextWeek) state.copy(selectedWeekStart = state.selectedWeekStart.plusWeeks(1))
+                else state
             }
 
             is WorkoutHistoryEvent.SessionClicked -> {
                 val state = _uiState.value
-                val session = state.sessions.find { it.id == event.sessionId } ?: return
+                val session = state.findSession(event.sessionId) ?: return
                 val exists = state.workouts.any { it.id == session.workoutId }
                 viewModelScope.launch {
                     if (exists) _effect.emit(WorkoutHistoryEffect.NavigateToWorkout(session.workoutId))
@@ -58,7 +76,7 @@ class WorkoutHistoryViewModel @Inject constructor(
 
             is WorkoutHistoryEvent.DeleteSessionClicked -> _uiState.update { state ->
                 if (state.isBusy) state
-                else state.copy(sessionPendingDelete = state.sessions.find { it.id == event.sessionId })
+                else state.copy(sessionPendingDelete = state.findSession(event.sessionId))
             }
 
             WorkoutHistoryEvent.DeleteSessionDismissed -> _uiState.update { it.copy(sessionPendingDelete = null) }
@@ -111,6 +129,26 @@ class WorkoutHistoryViewModel @Inject constructor(
         }
     }
 
+    private fun loadWeekSessions() {
+        weekSessionsJob?.cancel()
+        weekSessionsJob = viewModelScope.launch {
+            getRecentWorkoutSessionsUseCase(from = _uiState.value.weekWindowStart).collect { result ->
+                when (result) {
+                    is Resource.Loading -> _uiState.update { it.copy(isWeekSessionsLoading = true) }
+                    is Resource.Success -> _uiState.update {
+                        it.copy(isWeekSessionsLoading = false, weekSessions = result.data.orEmpty())
+                    }
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(isWeekSessionsLoading = false) }
+                        _effect.emit(
+                            WorkoutHistoryEffect.ShowToast(result.message ?: "Erro ao carregar histórico")
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun deleteSession(id: String) {
         if (_uiState.value.isBusy) return
         viewModelScope.launch {
@@ -121,6 +159,7 @@ class WorkoutHistoryViewModel @Inject constructor(
                         _uiState.update { it.copy(isDeletingSession = false) }
                         _effect.emit(WorkoutHistoryEffect.ShowToast("Registro excluído"))
                         loadSessions()
+                        if (_uiState.value.weekSessions != null) loadWeekSessions()
                     }
                     is Resource.Error -> {
                         _uiState.update { it.copy(isDeletingSession = false) }
