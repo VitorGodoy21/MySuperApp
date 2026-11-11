@@ -14,10 +14,11 @@ data class FeatureFlags(
     val nfc: Boolean = true,
     val workout: Boolean = true,
     val diet: Boolean = true,
+    val recipes: Boolean = true,
 ) {
     val isQrCodeEnabled: Boolean get() = smartTags && qrCode
     val isNfcEnabled: Boolean get() = smartTags && nfc
     val isSmartTagsEnabled: Boolean get() = smartTags && (qrCode || nfc)
     val isDietEnabled: Boolean get() = workout && diet
-    val hasAnyEnabled: Boolean get() = finance || isSmartTagsEnabled || workout
+    val hasAnyEnabled: Boolean get() = finance || isSmartTagsEnabled || workout || recipes
 }

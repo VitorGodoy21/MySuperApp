@@ -68,6 +68,7 @@ fun AppDrawerMenuScreen(
     onQrCode: () -> Unit,
     onNfc: () -> Unit,
     onSettings: () -> Unit,
+    onRecipes: () -> Unit,
     onResume: () -> Unit = {},
     content: @Composable () -> Unit
 ) {
@@ -132,6 +133,13 @@ fun AppDrawerMenuScreen(
                             contentDescription = "home"
                         )
                     }
+                )
+
+                if (state.flags.recipes) NavigationDrawerItem(
+                    label = { Text("Receitas culinárias") },
+                    selected = false,
+                    onClick = onRecipes,
+                    icon = { Icon(Icons.Default.Restaurant, contentDescription = null) },
                 )
 
                 var isFinancialExpanded by rememberSaveable { mutableStateOf(false) }

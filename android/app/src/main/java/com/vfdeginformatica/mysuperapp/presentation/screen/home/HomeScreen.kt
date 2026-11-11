@@ -23,6 +23,7 @@ import androidx.fragment.app.FragmentActivity
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.components.FinanceTopicCard
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.components.SmartTagsTopicCard
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.components.WorkoutTopicCard
+import com.vfdeginformatica.mysuperapp.presentation.screen.home.components.RecipesTopicCard
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.contract.HomeUiState
 
@@ -75,6 +76,12 @@ fun HomeScreen(
                 onOpenTodayWorkout = { onEvent(HomeEvent.OnOpenTodayWorkout(it)) },
                 onOpenDiet = { onEvent(HomeEvent.OnOpenDiet) },
                 onRetry = { onEvent(HomeEvent.OnRefresh) },
+            )
+        }
+        if (flags.recipes) item(key = "recipes") {
+            RecipesTopicCard(
+                onOpen = { onEvent(HomeEvent.OnOpenRecipes) },
+                onAdd = { onEvent(HomeEvent.OnAddRecipe) },
             )
         }
     }

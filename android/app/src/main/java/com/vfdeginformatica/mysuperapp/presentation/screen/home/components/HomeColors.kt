@@ -18,6 +18,13 @@ data class HomeTopicColors(
 
 object HomeColors {
     @Composable
+    fun recipes(): HomeTopicColors = if (isSystemInDarkTheme()) {
+        HomeTopicColors(Color(0xFFA5D6A7), Color(0xFF12381B), Color(0xFF203D29), Color(0xFFE0F4E3))
+    } else {
+        HomeTopicColors(Color(0xFF2E7D32), Color.White, Color(0xFFE8F5E9), Color(0xFF173B1B))
+    }
+
+    @Composable
     fun finance(): HomeTopicColors = if (isSystemInDarkTheme()) {
         HomeTopicColors(
             accent = Color(0xFF4DB6AC),

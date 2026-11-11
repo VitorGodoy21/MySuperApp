@@ -28,6 +28,7 @@ class FeatureFlagsLocalStorageImpl(
                 nfc = p[key(uid, "nfc")] ?: true,
                 workout = p[key(uid, "workout")] ?: true,
                 diet = p[key(uid, "diet")] ?: true,
+                recipes = p[key(uid, "recipes")] ?: true,
             )
         }
 
@@ -40,6 +41,7 @@ class FeatureFlagsLocalStorageImpl(
             p[key(uid, "nfc")] = flags.nfc
             p[key(uid, "workout")] = flags.workout
             p[key(uid, "diet")] = flags.diet
+            p[key(uid, "recipes")] = flags.recipes
         }
     }
 

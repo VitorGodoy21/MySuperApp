@@ -44,6 +44,9 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.workout_list.WorkoutL
 import com.vfdeginformatica.mysuperapp.presentation.screen.category_list.CategoryListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.recipe_list.RecipeListRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.recipe_view.RecipeViewRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.recipe_detail.RecipeDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.login.LoginRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.muralCommentsRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_card.NewCardRoute
@@ -136,6 +139,42 @@ fun MySuperApp(
                         onNavigate = { route ->
                             navController.navigate(route)
                         }
+                    )
+                }
+
+                composable(route = Screen.RecipeListScreen.route) {
+                    RecipeListRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onAdd = { navController.navigate(Screen.RecipeDetailScreen.createRoute()) },
+                        onOpen = { navController.navigate(Screen.RecipeViewScreen.createRoute(it)) },
+                    )
+                }
+                composable(
+                    route = Screen.RecipeViewScreen.route,
+                    arguments = listOf(navArgument(Screen.RecipeViewScreen.RECIPE_ID) { type = NavType.StringType }),
+                ) {
+                    RecipeViewRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onEdit = { navController.navigate(Screen.RecipeDetailScreen.createRoute(it)) },
+                    )
+                }
+                composable(
+                    route = Screen.RecipeDetailScreen.route,
+                    arguments = listOf(navArgument(Screen.RecipeDetailScreen.RECIPE_ID) {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }),
+                ) { entry ->
+                    RecipeDetailRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        onSaved = { id ->
+                            if (entry.arguments?.getString(Screen.RecipeDetailScreen.RECIPE_ID).isNullOrBlank()) {
+                                navController.navigate(Screen.RecipeViewScreen.createRoute(id)) {
+                                    popUpTo(Screen.RecipeDetailScreen.route) { inclusive = true }
+                                }
+                            } else navController.navigateUp()
+                        },
                     )
                 }
 

@@ -20,7 +20,7 @@ class FeatureFlagsMapperTest {
 
     @Test
     fun `round trips through firestore map`() {
-        val original = FeatureFlags(finance = false, smartTags = true, qrCode = false, nfc = true, workout = false, diet = true)
+        val original = FeatureFlags(finance = false, smartTags = true, qrCode = false, nfc = true, workout = false, diet = true, recipes = false)
 
         assertEquals(original, original.toFirestoreMap().toFeatureFlags())
     }

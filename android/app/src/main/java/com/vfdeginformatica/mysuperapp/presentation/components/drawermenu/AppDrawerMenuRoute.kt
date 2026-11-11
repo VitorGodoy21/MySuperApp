@@ -96,6 +96,9 @@ fun AppDrawerMenuRoute(
         onSettings = {
             viewModel.navigateWithBiometric(Screen.SettingsScreen.route, passwordRequired = false, activity = activity)
         },
+        onRecipes = {
+            viewModel.navigateWithBiometric(Screen.RecipeListScreen.route, passwordRequired = false, activity = activity)
+        },
         onResume = { viewModel.onEvent(AppDrawerMenuEvent.OnResume) }
     ) {
         content {

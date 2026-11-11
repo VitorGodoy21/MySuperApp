@@ -116,7 +116,7 @@ class HomeViewModelTest {
     @Test
     fun allDisabledExposesEmptyState() = runTest(testDispatcher) {
         `when`(observeFeatureFlagsUseCase())
-            .thenReturn(flowOf(FeatureFlags(finance = false, smartTags = false, workout = false)))
+            .thenReturn(flowOf(FeatureFlags(finance = false, smartTags = false, workout = false, recipes = false)))
         val viewModel = createViewModel()
         advanceUntilIdle()
 
@@ -209,6 +209,28 @@ class HomeViewModelTest {
                 HomeEffect.NavigateToMenuItem(Screen.DietViewScreen.route),
             ),
             effects,
+        )
+    }
+
+    @Test
+    fun recipesKeepHomeAvailableAndNavigateWithoutBiometric() = runTest(testDispatcher) {
+        `when`(observeFeatureFlagsUseCase()).thenReturn(
+            flowOf(FeatureFlags(finance = false, smartTags = false, workout = false, recipes = true))
+        )
+        val viewModel = createViewModel()
+        val effects = mutableListOf<HomeEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.effect.toList(effects) }
+        viewModel.onEvent(HomeEvent.OnOpenRecipes)
+        viewModel.onEvent(HomeEvent.OnAddRecipe)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.flags.hasAnyEnabled)
+        verify(resolveProtectedNavigationUseCase, never()).invoke(anyString(), anyBoolean(), any())
+        assertEquals(
+            listOf(
+                HomeEffect.NavigateToMenuItem(Screen.RecipeListScreen.route),
+                HomeEffect.NavigateToMenuItem(Screen.RecipeDetailScreen.createRoute()),
+            ), effects,
         )
     }
 }

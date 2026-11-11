@@ -37,6 +37,17 @@ sealed class Screen(val route: String) {
             else "category_detail_screen?categoryId=$categoryId"
     }
 
+    object RecipeListScreen : Screen("recipe_list_screen")
+    object RecipeViewScreen : Screen("recipe_view_screen/{recipeId}") {
+        const val RECIPE_ID = "recipeId"
+        fun createRoute(id: String): String = "recipe_view_screen/$id"
+    }
+    object RecipeDetailScreen : Screen("recipe_detail_screen?recipeId={recipeId}") {
+        const val RECIPE_ID = "recipeId"
+        fun createRoute(id: String? = null): String =
+            if (id.isNullOrBlank()) "recipe_detail_screen" else "recipe_detail_screen?recipeId=$id"
+    }
+
     // Academia (feature-workout)
     object WorkoutHubScreen : Screen("workout_hub_screen")
     object WorkoutHistoryScreen : Screen("workout_history_screen")

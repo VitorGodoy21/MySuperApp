@@ -16,6 +16,13 @@ service firebase.storage {
         && request.auth.uid == userId;
     }
 
+    match /recipe_images/{userId}/{recipeId}/{fileName} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
     // Instalador e fontes do auxiliar de downloads (portal web → aba Downloads).
     // Leitura só para contas autenticadas; upload apenas via Admin SDK
     // (`npm --prefix web\functions run publish:downloader`), nunca pelo cliente.

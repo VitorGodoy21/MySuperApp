@@ -1,6 +1,16 @@
 package com.vfdeginformatica.mysuperapp.di
 
 import android.content.Context
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
+import com.vfdeginformatica.mysuperapp.data.local.ImageCompressor
+import com.vfdeginformatica.mysuperapp.data.local.RecipePhotoCompressorImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.RecipeDao
+import com.vfdeginformatica.mysuperapp.data.remote.repository.RecipeRepositoryImpl
+import com.vfdeginformatica.mysuperapp.data.remote.repository.RecipeImageRepositoryImpl
+import com.vfdeginformatica.mysuperapp.domain.repository.RecipeRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.RecipeImageRepository
+import com.vfdeginformatica.mysuperapp.domain.repository.RecipePhotoCompressor
 import com.vfdeginformatica.mysuperapp.data.local.datasource.FeatureFlagsLocalStorage
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
@@ -42,6 +52,25 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
+
+    @Provides
+    @Singleton
+    fun provideRecipeRepository(
+        dao: RecipeDao,
+    ): RecipeRepository = RecipeRepositoryImpl(dao)
+
+    @Provides
+    @Singleton
+    fun provideRecipeImages(): RecipeImageRepository =
+        RecipeImageRepositoryImpl(
+            FirebaseStorage.getInstance(),
+            FirebaseAuth.getInstance(),
+        )
+
+    @Provides
+    fun provideRecipePhotoCompressor(
+        compressor: ImageCompressor,
+    ): RecipePhotoCompressor = RecipePhotoCompressorImpl(compressor)
 
     @Provides
     @Singleton

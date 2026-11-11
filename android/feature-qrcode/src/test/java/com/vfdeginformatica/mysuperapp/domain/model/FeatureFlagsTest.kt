@@ -27,8 +27,9 @@ class FeatureFlagsTest {
     @Test
     fun `hasAnyEnabled reflects effective topics`() {
         assertTrue(FeatureFlags().hasAnyEnabled)
-        assertFalse(FeatureFlags(finance = false, smartTags = false, workout = false).hasAnyEnabled)
-        assertFalse(FeatureFlags(finance = false, qrCode = false, nfc = false, workout = false).hasAnyEnabled)
+        assertFalse(FeatureFlags(finance = false, smartTags = false, workout = false, recipes = false).hasAnyEnabled)
+        assertFalse(FeatureFlags(finance = false, qrCode = false, nfc = false, workout = false, recipes = false).hasAnyEnabled)
         assertTrue(FeatureFlags(finance = false, smartTags = false, workout = true, diet = false).hasAnyEnabled)
+        assertTrue(FeatureFlags(finance = false, smartTags = false, workout = false, recipes = true).hasAnyEnabled)
     }
 }

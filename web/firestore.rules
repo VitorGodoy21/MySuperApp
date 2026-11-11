@@ -29,13 +29,52 @@ service cloud.firestore {
     function validFeatureFlags(data) {
       return !('featureFlags' in data)
         || (data.featureFlags is map
-          && data.featureFlags.keys().hasOnly(['finance', 'smartTags', 'qrCode', 'nfc', 'workout', 'diet'])
+          && data.featureFlags.keys().hasOnly(['finance', 'smartTags', 'qrCode', 'nfc', 'workout', 'diet', 'recipes'])
           && (!('finance' in data.featureFlags) || data.featureFlags.finance is bool)
           && (!('smartTags' in data.featureFlags) || data.featureFlags.smartTags is bool)
           && (!('qrCode' in data.featureFlags) || data.featureFlags.qrCode is bool)
           && (!('nfc' in data.featureFlags) || data.featureFlags.nfc is bool)
           && (!('workout' in data.featureFlags) || data.featureFlags.workout is bool)
-          && (!('diet' in data.featureFlags) || data.featureFlags.diet is bool));
+          && (!('diet' in data.featureFlags) || data.featureFlags.diet is bool)
+          && (!('recipes' in data.featureFlags) || data.featureFlags.recipes is bool));
+    }
+
+    function validRecipe(data, recipeId) {
+      return recipeId.matches('[A-Za-z0-9_-]+')
+        && data.keys().hasAll(['userId', 'name', 'description', 'ingredients', 'steps',
+          'prepMinutes', 'cookMinutes', 'yield', 'category', 'difficulty', 'notes',
+          'isFavorite', 'imagePath', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'name', 'description', 'ingredients', 'steps',
+          'prepMinutes', 'cookMinutes', 'yield', 'category', 'difficulty', 'notes',
+          'isFavorite', 'imagePath', 'createdAt', 'updatedAt'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.description is string && data.description.size() <= 4000
+        && data.notes is string && data.notes.size() <= 4000
+        && data.yield is string && data.yield.size() <= 200
+        && data.ingredients is list && data.ingredients.size() > 0 && data.ingredients.size() <= 100
+        && data.steps is list && data.steps.size() > 0 && data.steps.size() <= 100
+        && (data.prepMinutes == null || (data.prepMinutes is int && data.prepMinutes >= 0 && data.prepMinutes <= 999999))
+        && (data.cookMinutes == null || (data.cookMinutes is int && data.cookMinutes >= 0 && data.cookMinutes <= 999999))
+        && (data.category == null || data.category in ['STARTER', 'MAIN', 'SIDE', 'SNACK', 'DESSERT', 'DRINK'])
+        && (data.difficulty == null || data.difficulty in ['EASY', 'MEDIUM', 'HARD'])
+        && data.isFavorite is bool
+        && (data.imagePath == null || (data.imagePath is string
+          && data.imagePath.matches('recipe_images/' + request.auth.uid + '/' + recipeId + '/[^/]+[.]jpg')))
+        && data.createdAt is timestamp && data.updatedAt == request.time;
+    }
+
+    match /recipes/{recipeId} {
+      // Saving a new, client-reserved id uses a transaction that first reads its absence.
+      allow get: if isAuthenticated()
+        && (!exists(/databases/$(database)/documents/recipes/$(recipeId)) || isOwner());
+      allow list: if isOwner();
+      allow create: if createsOwn() && validRecipe(request.resource.data, recipeId)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isOwner()
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validRecipe(request.resource.data, recipeId);
+      allow delete: if isOwner();
     }
 
     match /users/{userId} {

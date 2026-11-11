@@ -55,6 +55,16 @@
 
 ## Key conventions
 
+- **Receitas culinárias:** `android/feature-recipes` is an independent flavorless module used only by
+  `:app`. Home/menu → `recipe_list_screen` (search/favorites) → `recipe_view_screen/{recipeId}`
+  (read-only + edit/delete/favorite); Add/Edit → `recipe_detail_screen?recipeId={recipeId}`.
+  Recipes live in private per-owner `recipes` documents (`userId` immutable), with ordered ingredients
+  and steps, times, yield, category/difficulty, notes and one optional private gallery photo under
+  `recipe_images/{uid}/{recipeId}/`. Photos use authenticated Storage reads, not public QR URLs.
+  Independent `recipes` flag controls Home, drawer and direct routes; absent = enabled, no biometrics.
+  See `.github/instructions/feature-recipes.instructions.md`. Publish Firestore/Storage rules and
+  Hosting before use; `npm --prefix web\rules-tests test` validates changed rules with demo emulators.
+
 - The financial dashboard's new-transaction FAB expands into "Gasto" / "Receita" floating actions. Navigate with `Screen.NewTransactionScreen.createRoute(type.name)` (`new_transaction_screen/{transactionType}`); the required argument initializes `NewTransactionViewModel` via `SavedStateHandle`, and the form never allows changing that type. `AppScaffold.floatingActionButtonContent` supports this custom menu while retaining the default FAB on other screens.
 
 - Android feature modules follow the naming convention `feature-<featureName>` (e.g. `feature-qrcode`, `feature-nfc`, `feature-financial`, `feature-workout`). New shared feature modules should be added under `android/feature-<name>` and registered in `android/settings.gradle.kts` with a matching `include(":feature-<name>")`.

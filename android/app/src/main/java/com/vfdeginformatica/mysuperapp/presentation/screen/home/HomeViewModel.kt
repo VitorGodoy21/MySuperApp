@@ -78,6 +78,8 @@ class HomeViewModel @Inject constructor(
             HomeEvent.OnOpenWorkoutHub -> navigate(Screen.WorkoutHubScreen.route)
             is HomeEvent.OnOpenTodayWorkout -> navigate(Screen.WorkoutViewScreen.createRoute(event.workoutId))
             HomeEvent.OnOpenDiet -> navigate(Screen.DietViewScreen.route)
+            HomeEvent.OnOpenRecipes -> navigate(Screen.RecipeListScreen.route)
+            HomeEvent.OnAddRecipe -> navigate(Screen.RecipeDetailScreen.createRoute())
 
             HomeEvent.OnRefresh -> loadAll()
         }

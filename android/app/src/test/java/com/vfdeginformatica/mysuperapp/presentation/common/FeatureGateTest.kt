@@ -50,4 +50,19 @@ class FeatureGateTest {
         assertFalse(flags.allows(Screen.DietViewScreen.route))
         assertFalse(flags.allows(Screen.ExerciseListScreen.route))
     }
+
+    @Test
+    fun recipesAreIndependentAndEveryRecipeRouteIsGated() {
+        val disabled = FeatureFlags(recipes = false)
+        listOf(
+            Screen.RecipeListScreen.route, Screen.RecipeViewScreen.route,
+            Screen.RecipeViewScreen.createRoute("r1"), Screen.RecipeDetailScreen.route,
+            Screen.RecipeDetailScreen.createRoute(), Screen.RecipeDetailScreen.createRoute("r1"),
+        ).forEach { route ->
+            assertEquals(GatedFeature.RECIPES, FeatureGate.featureOf(route))
+            assertEquals(GatedFeature.RECIPES, FeatureGate.blockedBy(disabled, route))
+            assertTrue(FeatureFlags(workout = false, diet = false).allows(route))
+        }
+        assertTrue(disabled.allows(Screen.WorkoutHubScreen.route))
+    }
 }

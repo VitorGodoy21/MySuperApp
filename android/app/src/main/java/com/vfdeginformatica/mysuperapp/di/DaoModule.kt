@@ -3,6 +3,8 @@ package com.vfdeginformatica.mysuperapp.di
 import android.content.Context
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.RecipeDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.RecipeDaoImpl
 import com.vfdeginformatica.mysuperapp.data.local.datasource.FeatureFlagsLocalStorage
 import com.vfdeginformatica.mysuperapp.data.local.datasource.FeatureFlagsLocalStorageImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.DietDao
@@ -31,6 +33,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DaoModule {
+
+    @Provides
+    @Singleton
+    fun provideRecipeDao(): RecipeDao =
+        RecipeDaoImpl(
+            FirebaseFirestore.getInstance(), FirebaseAuth.getInstance(),
+        )
 
     @Provides
     @Singleton

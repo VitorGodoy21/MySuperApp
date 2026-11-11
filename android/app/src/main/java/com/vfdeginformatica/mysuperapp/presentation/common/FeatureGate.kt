@@ -11,6 +11,7 @@ enum class GatedFeature(val label: String) {
     NFC("NFC"),
     WORKOUT("Academia"),
     DIET("Dieta"),
+    RECIPES("Receitas culinárias"),
 }
 
 object FeatureGate {
@@ -25,6 +26,7 @@ object FeatureGate {
     ).map { it.route }
 
     private val dietRoutes = listOf(Screen.DietViewScreen, Screen.DietDetailScreen).map { it.route }
+    private val recipeRoutes = listOf(Screen.RecipeListScreen, Screen.RecipeViewScreen, Screen.RecipeDetailScreen).map { it.route }
 
     private val workoutRoutes = listOf(
         Screen.WorkoutHubScreen, Screen.WorkoutHistoryScreen, Screen.WorkoutViewScreen,
@@ -48,6 +50,7 @@ object FeatureGate {
             qrCodeRoutes.has() -> GatedFeature.QR_CODE
             base == SharedNfcRoutes.NFC_SCREEN -> GatedFeature.NFC
             dietRoutes.has() -> GatedFeature.DIET
+            recipeRoutes.has() -> GatedFeature.RECIPES
             workoutRoutes.has() -> GatedFeature.WORKOUT
             else -> null
         }
@@ -59,6 +62,7 @@ object FeatureGate {
         GatedFeature.NFC -> flags.isNfcEnabled
         GatedFeature.WORKOUT -> flags.workout
         GatedFeature.DIET -> flags.isDietEnabled
+        GatedFeature.RECIPES -> flags.recipes
     }
 
     /** Tópico desabilitado que bloqueia a [route], ou `null` quando a navegação é permitida. */

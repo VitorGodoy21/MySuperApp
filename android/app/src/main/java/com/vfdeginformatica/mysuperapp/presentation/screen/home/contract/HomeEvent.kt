@@ -15,6 +15,8 @@ sealed interface HomeEvent {
     data object OnOpenWorkoutHub : HomeEvent
     data class OnOpenTodayWorkout(val workoutId: String) : HomeEvent
     data object OnOpenDiet : HomeEvent
+    data object OnOpenRecipes : HomeEvent
+    data object OnAddRecipe : HomeEvent
 
     data object OnRefresh : HomeEvent
 }

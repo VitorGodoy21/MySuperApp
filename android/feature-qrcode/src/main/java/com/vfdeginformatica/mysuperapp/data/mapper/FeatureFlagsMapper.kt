@@ -11,6 +11,7 @@ fun Map<*, *>?.toFeatureFlags(): FeatureFlags = FeatureFlags(
     nfc = flag("nfc"),
     workout = flag("workout"),
     diet = flag("diet"),
+    recipes = flag("recipes"),
 )
 
 fun FeatureFlags.toFirestoreMap(): Map<String, Boolean> = mapOf(
@@ -20,4 +21,5 @@ fun FeatureFlags.toFirestoreMap(): Map<String, Boolean> = mapOf(
     "nfc" to nfc,
     "workout" to workout,
     "diet" to diet,
+    "recipes" to recipes,
 )
