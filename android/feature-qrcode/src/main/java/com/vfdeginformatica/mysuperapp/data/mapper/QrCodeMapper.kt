@@ -28,6 +28,13 @@ fun QrCodeDto.toModel(qrCodeGenerator: QrCodeGenerator): QrCode {
         userId = this.userId,
         imageUrl = this.imageUrl,
         imagePath = this.imagePath,
+        spotifyUri = this.spotifyUri,
+        spotifyName = this.spotifyName,
+        spotifySubtitle = this.spotifySubtitle,
+        spotifyImageUrl = this.spotifyImageUrl,
+        spotifyDeviceId = this.spotifyDeviceId,
+        spotifyDeviceName = this.spotifyDeviceName,
+        spotifyShuffle = this.spotifyShuffle,
         qrcodeBitmap = qrCodeGenerator.generate(this.staticUrl)
     )
 }

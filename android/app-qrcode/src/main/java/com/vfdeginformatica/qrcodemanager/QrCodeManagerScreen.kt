@@ -15,6 +15,7 @@ sealed class QrCodeManagerScreen(val route: String) {
     object Profile : QrCodeManagerScreen("profile")
     object Notifications : QrCodeManagerScreen("notifications")
     object Nfc : QrCodeManagerScreen(SharedNfcRoutes.NFC_SCREEN)
+    object SpotifyConnection : QrCodeManagerScreen(SharedQrCodeRoutes.SPOTIFY_CONNECTION)
 
     /** Detail / edit screen for a single QR code. */
     object QrCodeDetail : QrCodeManagerScreen(SharedQrCodeRoutes.QR_CODE_DETAIL) {

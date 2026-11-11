@@ -16,6 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.navigation.SharedQrCodeRoutes
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListScreen
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListViewModel
@@ -85,6 +86,9 @@ fun QrCodeManagerListRoute(
         onNfc = {
             navController.navigate(QrCodeManagerScreen.Nfc.route)
         },
+        onSpotify = {
+            navController.navigate(QrCodeManagerScreen.SpotifyConnection.route)
+        },
         onLogout = { logoutViewModel.logout() }
     ) {
         AppScaffold(
@@ -104,11 +108,14 @@ fun QrCodeManagerListRoute(
                 innerPadding = padding,
                 showCreateDialog = showCreateDialog,
                 onDismissCreateDialog = { showCreateDialog = false },
-                onConfirmCreateQrCode = { type, identifier, redirectUrl, text, imageUri ->
+                onConfirmCreateQrCode = { type, identifier, redirectUrl, text, imageUri, spotifyTarget ->
                     showCreateDialog = false
                     viewModel.onEvent(
-                        QrCodeListEvent.OnCreateQrCode(type, identifier, redirectUrl, text, imageUri)
+                        QrCodeListEvent.OnCreateQrCode(type, identifier, redirectUrl, text, imageUri, spotifyTarget)
                     )
+                },
+                onOpenSpotifyConnection = {
+                    navController.navigate(SharedQrCodeRoutes.SPOTIFY_CONNECTION)
                 }
             )
         }

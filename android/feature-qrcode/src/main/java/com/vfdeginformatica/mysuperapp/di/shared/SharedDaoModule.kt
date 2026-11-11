@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.FirebaseStorage
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorage
 import com.vfdeginformatica.mysuperapp.data.local.datasource.UserSessionSecureStorageImpl
@@ -15,6 +16,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrCodeDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrCodeDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrImageStorageDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.QrImageStorageDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.SpotifyRemoteDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.SpotifyRemoteDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.UserRemoteDaoImpl
 import dagger.Module
@@ -65,4 +68,16 @@ object SharedDaoModule {
             storage = FirebaseStorage.getInstance(),
             auth = FirebaseAuth.getInstance()
         )
+
+    @Provides
+    @Singleton
+    fun provideSpotifyRemoteDao(): SpotifyRemoteDao =
+        SpotifyRemoteDaoImpl(
+            db = FirebaseFirestore.getInstance(),
+            auth = FirebaseAuth.getInstance(),
+            functions = FirebaseFunctions.getInstance(SPOTIFY_FUNCTIONS_REGION)
+        )
+
+    /** Região onde as callables do Spotify estão publicadas (`web/functions/spotify.js`). */
+    private const val SPOTIFY_FUNCTIONS_REGION = "us-central1"
 }

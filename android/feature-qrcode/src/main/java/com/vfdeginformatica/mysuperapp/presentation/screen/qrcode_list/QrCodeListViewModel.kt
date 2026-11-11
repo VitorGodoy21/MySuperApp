@@ -7,6 +7,8 @@ import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.local.ImageCompressor
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.domain.model.SpotifyTarget
+import com.vfdeginformatica.mysuperapp.domain.model.withSpotifyTarget
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.CreateQrCodeUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.GetQrCodesUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
@@ -79,7 +81,7 @@ class QrCodeListViewModel @Inject constructor(
             }
 
             is QrCodeListEvent.OnCreateQrCode -> {
-                createQrCode(event.type, event.identifier, event.redirectUrl, event.text, event.imageUri)
+                createQrCode(event.type, event.identifier, event.redirectUrl, event.text, event.imageUri, event.spotifyTarget)
             }
         }
     }
@@ -89,13 +91,21 @@ class QrCodeListViewModel @Inject constructor(
         identifier: String,
         redirectUrl: String,
         text: String,
-        imageUri: Uri?
+        imageUri: Uri?,
+        spotifyTarget: SpotifyTarget?
     ) {
         if (_uiState.value.isCreating) return
 
         if (type == QrCodeType.IMAGE && imageUri == null) {
             viewModelScope.launch {
                 _effect.emit(QrCodeListEffect.ShowToast("Selecione uma imagem"))
+            }
+            return
+        }
+
+        if (type == QrCodeType.SPOTIFY && spotifyTarget == null) {
+            viewModelScope.launch {
+                _effect.emit(QrCodeListEffect.ShowToast("Escolha a playlist ou música e o dispositivo"))
             }
             return
         }
@@ -110,7 +120,7 @@ class QrCodeListViewModel @Inject constructor(
             type = type,
             text = if (type == QrCodeType.TEXT || type == QrCodeType.IMAGE) text.trim() else "",
             userId = ""
-        )
+        ).withSpotifyTarget(if (type == QrCodeType.SPOTIFY) spotifyTarget else null)
 
         createQrCodeUseCase.invoke(pendingQrCode).onEach { result ->
             when (result) {

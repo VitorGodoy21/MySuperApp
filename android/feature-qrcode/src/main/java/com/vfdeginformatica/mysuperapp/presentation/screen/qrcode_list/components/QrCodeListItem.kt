@@ -76,6 +76,8 @@ fun QrCodeListItem(
                     QrCodeType.IMAGE -> qrCode.text.ifBlank { "Imagem" }
                     QrCodeType.TEXT -> qrCode.text.ifBlank { "Sem texto configurado" }
                     QrCodeType.MURAL -> "Mural de comentários"
+                    QrCodeType.SPOTIFY -> qrCode.spotifyTarget?.let { "♫ ${it.name} • ${it.deviceName}" }
+                        ?: "Spotify (não configurado)"
                     QrCodeType.REDIRECT -> qrCode.redirectUrl.ifEmpty { "Sem URL configurada" }
                 },
                 style = MaterialTheme.typography.bodySmall,

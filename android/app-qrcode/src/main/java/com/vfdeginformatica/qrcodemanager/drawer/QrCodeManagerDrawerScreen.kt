@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DividerDefaults
@@ -36,6 +37,7 @@ fun QrCodeManagerDrawerScreen(
     onProfile: () -> Unit,
     onNotifications: () -> Unit,
     onNfc: () -> Unit,
+    onSpotify: () -> Unit,
     onLogout: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -108,6 +110,22 @@ fun QrCodeManagerDrawerScreen(
                         scope.launch { drawerState.close() }
                         onToggle()
                         onNfc()
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = { Text("Spotify") },
+                    selected = false,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.MusicNote,
+                            contentDescription = "Spotify"
+                        )
+                    },
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onToggle()
+                        onSpotify()
                     }
                 )
 

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -36,6 +37,23 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onEvent(SettingsEvent.OnNotificationsClick) }
+        )
+        HorizontalDivider()
+        ListItem(
+            headlineContent = { Text("Spotify") },
+            supportingContent = { Text("Conta usada pelas Smart Tags que tocam música") },
+            leadingContent = {
+                Icon(imageVector = Icons.Default.MusicNote, contentDescription = null)
+            },
+            trailingContent = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onEvent(SettingsEvent.OnSpotifyClick) }
         )
         HorizontalDivider()
     }

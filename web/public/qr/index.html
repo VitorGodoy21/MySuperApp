@@ -204,6 +204,101 @@
             object-fit: contain;
         }
 
+        /* === SPOTIFY === */
+        .spotify-card {
+            text-align: center;
+        }
+
+        .spotify-cover {
+            width: 180px;
+            height: 180px;
+            border-radius: 16px;
+            object-fit: cover;
+            background: #f0f0f0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .spotify-cover-placeholder {
+            width: 180px;
+            height: 180px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #1db954 0%, #158f41 100%);
+            color: white;
+            font-size: 72px;
+            line-height: 180px;
+            margin: 0 auto 20px;
+        }
+
+        .spotify-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #222;
+            word-break: break-word;
+        }
+
+        .spotify-subtitle {
+            margin-top: 4px;
+            font-size: 14px;
+            color: #777;
+            word-break: break-word;
+        }
+
+        .spotify-device {
+            margin-top: 14px;
+            font-size: 15px;
+            color: #444;
+        }
+
+        .spotify-status {
+            margin-top: 22px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .spotify-status.pending {
+            background: #f3f4ff;
+            color: #4c56b6;
+        }
+
+        .spotify-status.ok {
+            background: #e9f9ef;
+            color: #1a7a3e;
+        }
+
+        .spotify-status.fail {
+            background: #fee;
+            color: #b33;
+        }
+
+        .spotify-hint {
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .spotify-button {
+            margin-top: 18px;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 999px;
+            background: #1db954;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .spotify-button:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 35px 25px;
@@ -633,6 +728,130 @@
         return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '').slice(0, maxLen);
     }
 
+    function showSpotify(id, data) {
+        const container = document.querySelector('.container');
+        container.innerHTML = '';
+
+        const card = document.createElement('div');
+        card.className = 'spotify-card';
+
+        const imageUrl = typeof data.spotifyImageUrl === 'string' ? data.spotifyImageUrl : '';
+        if (/^https:\/\//.test(imageUrl)) {
+            const cover = document.createElement('img');
+            cover.className = 'spotify-cover';
+            cover.src = imageUrl;
+            cover.alt = '';
+            cover.onerror = () => cover.replaceWith(spotifyPlaceholder());
+            card.appendChild(cover);
+        } else {
+            card.appendChild(spotifyPlaceholder());
+        }
+
+        const name = document.createElement('div');
+        name.className = 'spotify-name';
+        name.textContent = data.spotifyName || (String(data.spotifyUri || '').includes(':track:') ? 'Música' : 'Playlist');
+        card.appendChild(name);
+
+        if (data.spotifySubtitle) {
+            const subtitle = document.createElement('div');
+            subtitle.className = 'spotify-subtitle';
+            subtitle.textContent = data.spotifySubtitle;
+            card.appendChild(subtitle);
+        }
+
+        const device = document.createElement('div');
+        device.className = 'spotify-device';
+        device.textContent = data.spotifyDeviceName ? `Tocando em ${data.spotifyDeviceName}` : 'Tocando no Spotify';
+        card.appendChild(device);
+
+        const status = document.createElement('div');
+        status.className = 'spotify-status pending';
+        card.appendChild(status);
+
+        const button = document.createElement('button');
+        button.className = 'spotify-button';
+        button.type = 'button';
+        button.textContent = 'Tentar novamente';
+        button.style.display = 'none';
+        card.appendChild(button);
+
+        container.appendChild(card);
+
+        function setStatus(kind, message, hint) {
+            status.className = `spotify-status ${kind}`;
+            status.textContent = message;
+            if (hint) {
+                const small = document.createElement('span');
+                small.className = 'spotify-hint';
+                small.textContent = hint;
+                status.appendChild(small);
+            }
+        }
+
+        function hintFor(code, payload) {
+            switch (code) {
+                case 'DEVICE_NOT_FOUND': {
+                    const list = Array.isArray(payload.availableDevices) && payload.availableDevices.length
+                        ? ` Dispositivos disponíveis: ${payload.availableDevices.join(', ')}.`
+                        : '';
+                    return `Diga "Alexa, abrir Spotify" ou toque algo no dispositivo uma vez e tente de novo.${list}`;
+                }
+                case 'NOT_CONNECTED':
+                case 'NEEDS_RECONNECT':
+                    return 'O dono desta tag precisa conectar o Spotify no app (Configurações → Spotify).';
+                case 'PREMIUM_REQUIRED':
+                    return 'Controlar a reprodução exige uma conta Spotify Premium.';
+                case 'RATE_LIMITED':
+                    return payload.retryAfter ? `Aguarde ${payload.retryAfter}s e tente novamente.` : 'Aguarde alguns segundos e tente novamente.';
+                default:
+                    return '';
+            }
+        }
+
+        async function play() {
+            button.style.display = 'none';
+            button.disabled = true;
+            setStatus('pending', 'Enviando para o Spotify…');
+            try {
+                const response = await fetch('/api/play-spotify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ qrCodeId: id })
+                });
+                let payload = {};
+                try { payload = await response.json(); } catch (_) { /* corpo vazio */ }
+
+                if (response.ok && payload.ok) {
+                    const where = payload.deviceName || data.spotifyDeviceName || 'Spotify';
+                    setStatus('ok', `🎵 Tocando em ${where}!`);
+                    device.textContent = `Tocando em ${where}`;
+                    button.textContent = 'Tocar de novo';
+                } else {
+                    const message = payload.error || 'Não foi possível iniciar a reprodução.';
+                    setStatus('fail', message, hintFor(payload.code, payload));
+                    button.textContent = 'Tentar novamente';
+                }
+            } catch (error) {
+                console.error(error);
+                setStatus('fail', 'Falha de conexão ao falar com o servidor.', 'Verifique sua internet e tente novamente.');
+                button.textContent = 'Tentar novamente';
+            } finally {
+                button.disabled = false;
+                button.style.display = 'inline-block';
+            }
+        }
+
+        button.addEventListener('click', play);
+        play();
+    }
+
+    function spotifyPlaceholder() {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'spotify-cover-placeholder';
+        placeholder.textContent = '♪';
+        return placeholder;
+    }
+
     function showMural(id) {
         const container = document.querySelector('.container');
         container.style.maxWidth = '600px';
@@ -939,6 +1158,9 @@
                     } else if (type === 'MURAL') {
                         trackScanInBackground(id);
                         showMural(id);
+                    } else if (type === 'SPOTIFY') {
+                        trackScanInBackground(id);
+                        showSpotify(id, data);
                     } else {
                         showError('Tipo não suportado', 'Este QR Code possui um tipo não reconhecido.');
                     }

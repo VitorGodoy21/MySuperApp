@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.navigation.SharedQrCodeRoutes
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.navigateToAccessLogMap
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEffect
@@ -53,6 +54,9 @@ fun QrCodeRoute(
             },
             onViewMural = { qrCodeId, identifier ->
                 navController.navigate(Screen.MuralCommentsScreen.createRoute(qrCodeId, identifier))
+            },
+            onOpenSpotifyConnection = {
+                navController.navigate(SharedQrCodeRoutes.SPOTIFY_CONNECTION)
             },
             modifier = Modifier.padding(padding)
         )

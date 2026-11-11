@@ -26,6 +26,7 @@ import com.vfdeginformatica.mysuperapp.nfc.presentation.screen.nfc.NfcRoute
 import com.vfdeginformatica.mysuperapp.notification.QrCodeDeepLinkEffect
 import com.vfdeginformatica.mysuperapp.notification.QrCodeDeepLinkViewModel
 import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.NotificationsRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.spotify_connection.SpotifyConnectionRoute
 import com.vfdeginformatica.qrcodemanager.profile.ProfileRoute
 
 @Composable
@@ -145,6 +146,11 @@ fun QrCodeManagerNavGraph(
             // ── NFC ──────────────────────────────────────────────────────
             composable(route = QrCodeManagerScreen.Nfc.route) {
                 NfcRoute(onNavigateUp = { navController.navigateUp() })
+            }
+
+            // ── Spotify ──────────────────────────────────────────────────
+            composable(route = QrCodeManagerScreen.SpotifyConnection.route) {
+                SpotifyConnectionRoute(onNavigateUp = { navController.navigateUp() })
             }
         }
     }

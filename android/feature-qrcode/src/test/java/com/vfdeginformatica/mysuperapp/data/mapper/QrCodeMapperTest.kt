@@ -3,9 +3,12 @@ package com.vfdeginformatica.mysuperapp.data.mapper
 import com.vfdeginformatica.mysuperapp.data.remote.dto.QrCodeDto
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.domain.model.SpotifyTarget
 import com.vfdeginformatica.mysuperapp.domain.model.toDto
+import com.vfdeginformatica.mysuperapp.domain.model.withSpotifyTarget
 import com.vfdeginformatica.mysuperapp.testutil.NoopQrCodeGenerator
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class QrCodeMapperTest {
@@ -57,5 +60,37 @@ class QrCodeMapperTest {
         assertEquals(QrCodeType.REDIRECT, model.type)
         assertEquals("", model.imageUrl)
         assertEquals("", model.imagePath)
+    }
+
+    @Test
+    fun `SPOTIFY round trip keeps the target and shuffle`() {
+        val target = SpotifyTarget(
+            uri = "spotify:playlist:abc",
+            name = "Chill",
+            subtitle = "Vitor",
+            imageUrl = "https://i.scdn.co/cover.jpg",
+            deviceId = "dev1",
+            deviceName = "Todo lugar",
+            shuffle = true
+        )
+        val model = QrCode(id = "qr1", redirectUrl = "", type = QrCodeType.SPOTIFY)
+            .withSpotifyTarget(target)
+
+        val dto = model.toDto()
+        val restored = dto.toModel(generator)
+
+        assertEquals("SPOTIFY", dto.type)
+        assertEquals("spotify:playlist:abc", dto.spotifyUri)
+        assertEquals(true, dto.spotifyShuffle)
+        assertEquals(QrCodeType.SPOTIFY, restored.type)
+        assertEquals(target, restored.spotifyTarget)
+    }
+
+    @Test
+    fun `SPOTIFY without uri has no target`() {
+        val model = QrCodeDto(id = "qr1", type = "SPOTIFY", spotifyDeviceName = "Todo lugar").toModel(generator)
+
+        assertEquals(QrCodeType.SPOTIFY, model.type)
+        assertNull(model.spotifyTarget)
     }
 }

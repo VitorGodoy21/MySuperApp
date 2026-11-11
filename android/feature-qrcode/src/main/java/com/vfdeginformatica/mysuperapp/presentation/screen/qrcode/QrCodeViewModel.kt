@@ -6,6 +6,7 @@ import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.local.ImageCompressor
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.domain.model.withSpotifyTarget
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.DeleteQrImageUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UploadQrImageUseCase
@@ -95,6 +96,12 @@ class QrCodeViewModel(
                 _uiState.value = _uiState.value.copy(pendingImageUri = event.uri)
             }
 
+            is QrCodeEvent.OnSpotifyTargetChanged -> {
+                _uiState.value = _uiState.value.copy(
+                    qrCode = _uiState.value.qrCode?.withSpotifyTarget(event.target)
+                )
+            }
+
             is QrCodeEvent.OnSaveQrCode -> saveQrCode()
         }
     }
@@ -121,7 +128,7 @@ class QrCodeViewModel(
                     returningToImage -> state.pendingDeletePath
                     else -> current.imagePath
                 }
-            ),
+            ).let { if (type == QrCodeType.SPOTIFY) it else it.withSpotifyTarget(null) },
             // Keep the file until the save succeeds; restore it if the user comes back to IMAGE.
             pendingDeletePath = when {
                 leavingImage -> current.imagePath
@@ -143,6 +150,11 @@ class QrCodeViewModel(
 
         if (qrCode.type == QrCodeType.IMAGE && qrCode.imageUrl.isBlank() && state.pendingImageUri == null) {
             sendEffect(QrCodeEffect.ShowToast("Selecione uma imagem para o QR Code"))
+            return
+        }
+
+        if (qrCode.type == QrCodeType.SPOTIFY && qrCode.spotifyTarget == null) {
+            sendEffect(QrCodeEffect.ShowToast("Escolha a playlist ou música e o dispositivo"))
             return
         }
 

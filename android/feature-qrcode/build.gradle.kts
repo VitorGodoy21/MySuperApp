@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.storage)
+    implementation(libs.firebase.functions)
     implementation(libs.firebase.appcheck.playintegrity)
     implementation(libs.google.firebase.appcheck.debug)
 

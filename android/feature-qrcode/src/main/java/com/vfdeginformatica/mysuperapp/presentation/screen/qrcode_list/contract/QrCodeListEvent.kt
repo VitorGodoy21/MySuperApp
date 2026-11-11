@@ -3,6 +3,7 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract
 import android.net.Uri
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.domain.model.SpotifyTarget
 
 sealed interface QrCodeListEvent {
     data class OnSelectQrCode(val qrCode: QrCode) : QrCodeListEvent
@@ -11,6 +12,7 @@ sealed interface QrCodeListEvent {
         val identifier: String,
         val redirectUrl: String = "",
         val text: String = "",
-        val imageUri: Uri? = null
+        val imageUri: Uri? = null,
+        val spotifyTarget: SpotifyTarget? = null
     ) : QrCodeListEvent
 }

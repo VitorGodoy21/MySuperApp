@@ -12,6 +12,7 @@ object SharedQrCodeRoutes {
     const val QR_CODE_DETAIL = "qr_code_screen/{$QR_CODE_DATA}"
     const val ACCESS_LOG_MAP = "access_log_map/{$QR_CODE_ID}"
     const val MURAL_COMMENTS = "mural_comments/{$QR_CODE_ID}/{$QR_CODE_IDENTIFIER}"
+    const val SPOTIFY_CONNECTION = "spotify_connection_screen"
 
     fun createQrCodeDetailRoute(qrCode: QrCode): String {
         val json = Gson().toJson(qrCode.copy(qrcodeBitmap = null))

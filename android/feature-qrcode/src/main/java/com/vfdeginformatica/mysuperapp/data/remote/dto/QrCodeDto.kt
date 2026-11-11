@@ -13,5 +13,12 @@ data class QrCodeDto(
     var text: String = "",
     var userId: String = "",
     var imageUrl: String = "",
-    var imagePath: String = ""
+    var imagePath: String = "",
+    var spotifyUri: String = "",
+    var spotifyName: String = "",
+    var spotifySubtitle: String = "",
+    var spotifyImageUrl: String = "",
+    var spotifyDeviceId: String = "",
+    var spotifyDeviceName: String = "",
+    var spotifyShuffle: Boolean = false
 )

@@ -52,6 +52,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.mural_comments.muralC
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_card.NewCardRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.NewTransactionRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.NotificationsRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.spotify_connection.SpotifyConnectionRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.QrCodeViewModel
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.QrCodeListRoute
@@ -466,6 +467,10 @@ fun MySuperApp(
 
                 composable(route = Screen.NotificationsScreen.route) {
                     NotificationsRoute(onNavigateUp = { navController.navigateUp() })
+                }
+
+                composable(route = Screen.SpotifyConnectionScreen.route) {
+                    SpotifyConnectionRoute(onNavigateUp = { navController.navigateUp() })
                 }
             }
 

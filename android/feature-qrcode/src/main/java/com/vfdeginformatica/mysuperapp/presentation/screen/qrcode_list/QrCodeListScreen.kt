@@ -35,7 +35,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.domain.model.SpotifyTarget
 import com.vfdeginformatica.mysuperapp.presentation.components.QrImagePickerField
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.spotify.SpotifyPickerDialog
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.spotify.SpotifyTargetField
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.components.QrCodeListItem
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListUiState
@@ -49,7 +52,8 @@ fun QrCodeListScreen(
     innerPadding: PaddingValues,
     showCreateDialog: Boolean = false,
     onDismissCreateDialog: () -> Unit = {},
-    onConfirmCreateQrCode: (QrCodeType, String, String, String, Uri?) -> Unit = { _, _, _, _, _ -> }
+    onConfirmCreateQrCode: (QrCodeType, String, String, String, Uri?, SpotifyTarget?) -> Unit = { _, _, _, _, _, _ -> },
+    onOpenSpotifyConnection: () -> Unit = {}
 ) {
     var typeDropdownExpanded by remember(showCreateDialog) { mutableStateOf(false) }
     var selectedType by remember(showCreateDialog) { mutableStateOf(QrCodeType.REDIRECT) }
@@ -57,6 +61,8 @@ fun QrCodeListScreen(
     var redirectUrl by remember(showCreateDialog) { mutableStateOf("") }
     var text by remember(showCreateDialog) { mutableStateOf("") }
     var imageUri by remember(showCreateDialog) { mutableStateOf<Uri?>(null) }
+    var spotifyTarget by remember(showCreateDialog) { mutableStateOf<SpotifyTarget?>(null) }
+    var showSpotifyPicker by remember(showCreateDialog) { mutableStateOf(false) }
     val trimmedIdentifier = identifier.trim()
     val trimmedRedirectUrl = redirectUrl.trim()
     val trimmedText = text.trim()
@@ -65,6 +71,23 @@ fun QrCodeListScreen(
         QrCodeType.TEXT -> trimmedText.isNotEmpty()
         QrCodeType.MURAL -> true
         QrCodeType.IMAGE -> imageUri != null
+        QrCodeType.SPOTIFY -> spotifyTarget != null
+    }
+
+    if (showSpotifyPicker) {
+        SpotifyPickerDialog(
+            initialTarget = spotifyTarget,
+            onDismiss = { showSpotifyPicker = false },
+            onConfirm = { target ->
+                spotifyTarget = target
+                showSpotifyPicker = false
+            },
+            onOpenConnection = {
+                showSpotifyPicker = false
+                onDismissCreateDialog()
+                onOpenSpotifyConnection()
+            }
+        )
     }
 
     if (showCreateDialog) {
@@ -158,6 +181,19 @@ fun QrCodeListScreen(
                                     minLines = 2
                                 )
                             }
+
+                            QrCodeType.SPOTIFY -> {
+                                Text(
+                                    text = "Ao ler a tag, a playlist ou música escolhida toca no dispositivo Spotify Connect selecionado (ex.: grupo de Alexas).",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                SpotifyTargetField(
+                                    target = spotifyTarget,
+                                    onClick = { showSpotifyPicker = true },
+                                    enabled = !uiState.isCreating
+                                )
+                            }
                         }
                     }
                 }
@@ -170,7 +206,8 @@ fun QrCodeListScreen(
                             trimmedIdentifier,
                             trimmedRedirectUrl,
                             trimmedText,
-                            imageUri
+                            imageUri,
+                            spotifyTarget
                         )
                     },
                     enabled = !uiState.isCreating && trimmedIdentifier.isNotEmpty() && isTypeValueValid
@@ -233,6 +270,7 @@ private fun QrCodeType.toLabel(): String = when (this) {
     QrCodeType.TEXT -> "Texto"
     QrCodeType.MURAL -> "Mural"
     QrCodeType.IMAGE -> "Imagem"
+    QrCodeType.SPOTIFY -> "Spotify"
 }
 
 @Preview(showBackground = true)

@@ -8,6 +8,16 @@ const { createHash } = require('crypto');
 admin.initializeApp();
 const messaging = admin.messaging();
 
+// Smart Tag SPOTIFY (OAuth, biblioteca e disparo /api/play-spotify)
+const spotify = require('./spotify');
+exports.spotifyAuthStart = spotify.spotifyAuthStart;
+exports.spotifyAuthCallback = spotify.spotifyAuthCallback;
+exports.spotifyDisconnect = spotify.spotifyDisconnect;
+exports.spotifyMyPlaylists = spotify.spotifyMyPlaylists;
+exports.spotifySearch = spotify.spotifySearch;
+exports.spotifyDevices = spotify.spotifyDevices;
+exports.playSpotify = spotify.playSpotify;
+
 
 function getClientIp(req) {
   const forwardedFor = req.headers['x-forwarded-for'];

@@ -79,6 +79,8 @@ import coil.compose.AsyncImage
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
 import com.vfdeginformatica.mysuperapp.presentation.components.QrImagePickerField
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.spotify.SpotifyPickerDialog
+import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.spotify.SpotifyTargetField
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeEvent
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode.contract.QrCodeUiState
 import java.io.File
@@ -129,6 +131,7 @@ fun QrCodeScreen(
     onEvent: (QrCodeEvent) -> Unit,
     onViewAccessLogs: (qrCodeId: String) -> Unit = {},
     onViewMural: (qrCodeId: String, identifier: String) -> Unit = { _, _ -> },
+    onOpenSpotifyConnection: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -136,6 +139,7 @@ fun QrCodeScreen(
     val qrCode = uiState.qrCode
     val qrCodeBitmap = qrCode?.qrcodeBitmap
     var showEditDialog by remember { mutableStateOf(false) }
+    var showSpotifyPicker by remember { mutableStateOf(false) }
     var typeDropdownExpanded by remember { mutableStateOf(false) }
     var showDownloadDialog by remember { mutableStateOf(false) }
     var showUrlOptionsSheet by remember { mutableStateOf(false) }
@@ -295,6 +299,21 @@ fun QrCodeScreen(
         )
     }
 
+    if (showSpotifyPicker && qrCode != null) {
+        SpotifyPickerDialog(
+            initialTarget = qrCode.spotifyTarget,
+            onDismiss = { showSpotifyPicker = false },
+            onConfirm = { target ->
+                onEvent(QrCodeEvent.OnSpotifyTargetChanged(target))
+                showSpotifyPicker = false
+            },
+            onOpenConnection = {
+                showSpotifyPicker = false
+                onOpenSpotifyConnection()
+            }
+        )
+    }
+
     if (showEditDialog && qrCode != null) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
@@ -327,6 +346,7 @@ fun QrCodeScreen(
                                 QrCodeType.TEXT -> "Texto"
                                 QrCodeType.MURAL -> "Mural"
                                 QrCodeType.IMAGE -> "Imagem"
+                                QrCodeType.SPOTIFY -> "Spotify"
                             },
                             onValueChange = {},
                             readOnly = true,
@@ -367,6 +387,13 @@ fun QrCodeScreen(
                                 text = { Text("Imagem") },
                                 onClick = {
                                     onEvent(QrCodeEvent.OnTypeChanged(QrCodeType.IMAGE))
+                                    typeDropdownExpanded = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Spotify") },
+                                onClick = {
+                                    onEvent(QrCodeEvent.OnTypeChanged(QrCodeType.SPOTIFY))
                                     typeDropdownExpanded = false
                                 }
                             )
@@ -430,6 +457,20 @@ fun QrCodeScreen(
                                 singleLine = false,
                                 maxLines = 4,
                                 shape = RoundedCornerShape(8.dp)
+                            )
+                        }
+
+                        QrCodeType.SPOTIFY -> {
+                            Text(
+                                text = "Ao ler a tag, a playlist ou música escolhida começa a tocar no dispositivo Spotify Connect selecionado (ex.: grupo de Alexas).",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            SpotifyTargetField(
+                                target = qrCode.spotifyTarget,
+                                onClick = { showSpotifyPicker = true }
                             )
                         }
                     }
@@ -551,6 +592,15 @@ fun QrCodeScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            if (qrCode.type == QrCodeType.SPOTIFY) {
+                Spacer(modifier = Modifier.height(8.dp))
+                SpotifyTargetField(
+                    target = qrCode.spotifyTarget,
+                    onClick = { showEditDialog = true }
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
 

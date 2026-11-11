@@ -12,7 +12,8 @@
     "migrate:transaction-type": "node scripts/backfillTransactionType.js",
     "migrate:user-id": "node scripts/backfillUserId.js",
     "copy:workout-data": "node scripts/copyWorkoutData.js",
-    "publish:downloader": "node scripts/publishDownloader.js"
+    "publish:downloader": "node scripts/publishDownloader.js",
+    "spike:spotify": "node scripts/spotifySpike.js"
   },
   "dependencies": {
     "firebase-admin": "^12.2.0",

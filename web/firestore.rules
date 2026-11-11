@@ -39,6 +39,18 @@ service cloud.firestore {
           && (!('recipes' in data.featureFlags) || data.featureFlags.recipes is bool));
     }
 
+    // Smart Tag SPOTIFY (qrcodes.type == 'SPOTIFY'): alvo (playlist/música) e dispositivo
+    // Spotify Connect escolhidos no app. Todos opcionais; tokens nunca passam pelo cliente.
+    function validSpotifyFields(data) {
+      return (!('spotifyUri' in data) || (data.spotifyUri is string && data.spotifyUri.size() <= 120))
+        && (!('spotifyName' in data) || (data.spotifyName is string && data.spotifyName.size() <= 300))
+        && (!('spotifySubtitle' in data) || (data.spotifySubtitle is string && data.spotifySubtitle.size() <= 300))
+        && (!('spotifyImageUrl' in data) || (data.spotifyImageUrl is string && data.spotifyImageUrl.size() <= 1000))
+        && (!('spotifyDeviceId' in data) || (data.spotifyDeviceId is string && data.spotifyDeviceId.size() <= 120))
+        && (!('spotifyDeviceName' in data) || (data.spotifyDeviceName is string && data.spotifyDeviceName.size() <= 200))
+        && (!('spotifyShuffle' in data) || data.spotifyShuffle is bool);
+    }
+
     function validRecipe(data, recipeId) {
       return recipeId.matches('[A-Za-z0-9_-]+')
         && data.keys().hasAll(['userId', 'name', 'description', 'ingredients', 'steps',
@@ -92,7 +104,8 @@ service cloud.firestore {
       // O dono autenticado pode atualizar o próprio QR Code, mas não trocar o userId
       allow update: if isAuthenticated()
         && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == resource.data.userId;
+        && request.resource.data.userId == resource.data.userId
+        && validSpotifyFields(request.resource.data);
 
       // O usuário autenticado pode criar QR Codes próprios com os campos esperados
       // (o campo id é @DocumentId no app e não é gravado no documento)
@@ -105,7 +118,8 @@ service cloud.firestore {
         && request.resource.data.redirectUrl is string
         && request.resource.data.text is string
         && (!('imageUrl' in request.resource.data) || request.resource.data.imageUrl is string)
-        && (!('imagePath' in request.resource.data) || request.resource.data.imagePath is string);
+        && (!('imagePath' in request.resource.data) || request.resource.data.imagePath is string)
+        && validSpotifyFields(request.resource.data);
 
       // O dono autenticado pode excluir o próprio QR Code
       // (subcoleções comments/access_logs não são apagadas automaticamente)
@@ -128,6 +142,16 @@ service cloud.firestore {
 
     // Rate limiting interno — acessado apenas via Admin SDK (Cloud Function)
     match /_rate_limits/{doc} {
+      allow read, write: if false;
+    }
+
+    // Integração Spotify (Smart Tag SPOTIFY): tokens OAuth e states de autorização
+    // ficam exclusivamente no backend (Cloud Functions, Admin SDK).
+    match /spotify_tokens/{userId} {
+      allow read, write: if false;
+    }
+
+    match /spotify_auth_states/{stateId} {
       allow read, write: if false;
     }
 

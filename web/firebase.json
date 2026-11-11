@@ -25,6 +25,16 @@
         "source": "/api/add-mural-comment",
         "function": "addMuralComment",
         "region": "us-central1"
+      },
+      {
+        "source": "/api/play-spotify",
+        "function": "playSpotify",
+        "region": "us-central1"
+      },
+      {
+        "source": "/api/spotify-callback",
+        "function": "spotifyAuthCallback",
+        "region": "us-central1"
       }
     ],
     "headers": [

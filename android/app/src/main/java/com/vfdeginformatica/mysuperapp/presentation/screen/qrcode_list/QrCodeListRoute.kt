@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.vfdeginformatica.mysuperapp.Screen
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
+import com.vfdeginformatica.mysuperapp.navigation.SharedQrCodeRoutes
 import com.vfdeginformatica.mysuperapp.presentation.components.drawermenu.AppDrawerMenuRoute
 import com.vfdeginformatica.mysuperapp.presentation.components.toolbar.AppScaffold
 import com.vfdeginformatica.mysuperapp.presentation.screen.qrcode_list.contract.QrCodeListEffect
@@ -65,11 +66,14 @@ fun QrCodeListRoute(
                 innerPadding = padding,
                 showCreateDialog = showCreateDialog,
                 onDismissCreateDialog = { showCreateDialog = false },
-                onConfirmCreateQrCode = { type, identifier, redirectUrl, text, imageUri ->
+                onConfirmCreateQrCode = { type, identifier, redirectUrl, text, imageUri, spotifyTarget ->
                     showCreateDialog = false
                     viewModel.onEvent(
-                        QrCodeListEvent.OnCreateQrCode(type, identifier, redirectUrl, text, imageUri)
+                        QrCodeListEvent.OnCreateQrCode(type, identifier, redirectUrl, text, imageUri, spotifyTarget)
                     )
+                },
+                onOpenSpotifyConnection = {
+                    navController.navigate(SharedQrCodeRoutes.SPOTIFY_CONNECTION)
                 }
             )
         }

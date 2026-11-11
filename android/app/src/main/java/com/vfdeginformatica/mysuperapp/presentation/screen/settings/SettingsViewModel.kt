@@ -23,6 +23,10 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
             SettingsEvent.OnNotificationsClick -> viewModelScope.launch {
                 _effect.emit(SettingsEffect.Navigate(Screen.NotificationsScreen.route))
             }
+
+            SettingsEvent.OnSpotifyClick -> viewModelScope.launch {
+                _effect.emit(SettingsEffect.Navigate(Screen.SpotifyConnectionScreen.route))
+            }
         }
     }
 }

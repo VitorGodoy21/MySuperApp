@@ -4,6 +4,8 @@ import android.net.Uri
 import com.vfdeginformatica.mysuperapp.data.local.ImageCompressor
 import com.vfdeginformatica.mysuperapp.domain.model.QrCode
 import com.vfdeginformatica.mysuperapp.domain.model.QrCodeType
+import com.vfdeginformatica.mysuperapp.domain.model.SpotifyTarget
+import com.vfdeginformatica.mysuperapp.domain.model.withSpotifyTarget
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.DeleteQrImageUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UpdateQrCodeUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.qrcode.UploadQrImageUseCase
@@ -182,5 +184,50 @@ class QrCodeViewModelTest {
 
         assertEquals(listOf("qr_images/u1/qr1/1.jpg"), imageRepository.deleted)
         assertEquals(imageQr.imageUrl, viewModel.uiState.value.qrCode!!.imageUrl)
+    }
+
+    private val spotifyTarget = SpotifyTarget(
+        uri = "spotify:playlist:abc",
+        name = "Chill",
+        subtitle = "Vitor",
+        imageUrl = "https://i.scdn.co/cover.jpg",
+        deviceId = "dev1",
+        deviceName = "Todo lugar",
+        shuffle = true
+    )
+
+    @Test
+    fun `saving SPOTIFY without a target is blocked`() = runTest(testDispatcher) {
+        load(imageQr.copy(type = QrCodeType.SPOTIFY, imageUrl = "", imagePath = ""))
+
+        viewModel.onEvent(QrCodeEvent.OnSaveQrCode)
+        advanceUntilIdle()
+
+        assertTrue(qrRepository.updates.isEmpty())
+    }
+
+    @Test
+    fun `saving SPOTIFY with a target persists the spotify fields`() = runTest(testDispatcher) {
+        load(imageQr.copy(type = QrCodeType.SPOTIFY, imageUrl = "", imagePath = ""))
+
+        viewModel.onEvent(QrCodeEvent.OnSpotifyTargetChanged(spotifyTarget))
+        viewModel.onEvent(QrCodeEvent.OnSaveQrCode)
+        advanceUntilIdle()
+
+        val saved = qrRepository.updates.single().second
+        assertEquals(spotifyTarget, saved.spotifyTarget)
+    }
+
+    @Test
+    fun `leaving SPOTIFY clears the spotify fields`() = runTest(testDispatcher) {
+        load(imageQr.copy(type = QrCodeType.SPOTIFY, imageUrl = "", imagePath = "").withSpotifyTarget(spotifyTarget))
+
+        viewModel.onEvent(QrCodeEvent.OnTypeChanged(QrCodeType.TEXT))
+        advanceUntilIdle()
+
+        val qr = viewModel.uiState.value.qrCode!!
+        assertEquals(QrCodeType.TEXT, qr.type)
+        assertNull(qr.spotifyTarget)
+        assertEquals("", qr.spotifyDeviceName)
     }
 }
