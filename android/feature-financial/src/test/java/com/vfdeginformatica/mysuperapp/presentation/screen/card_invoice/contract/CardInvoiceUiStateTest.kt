@@ -6,7 +6,9 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contr
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 
 class CardInvoiceUiStateTest {
 
@@ -72,7 +74,7 @@ class CardInvoiceUiStateTest {
     }
 
     @Test
-    fun `items are sorted by date desc with recurring at the end`() {
+    fun `items are sorted by date desc with recurring in chronological position`() {
         val state = base.copy(
             invoiceTransactions = listOf(
                 tx("old", 10.0, epochSeconds = 1_000),
@@ -80,10 +82,30 @@ class CardInvoiceUiStateTest {
                 tx("mid", 20.0, epochSeconds = 2_000)
             ),
             recurringTransactions = listOf(
-                tx("sub", 5.0, isRecurring = true, invoiceMonth = "2026-01", epochSeconds = 9_000)
+                tx("sub", 5.0, isRecurring = true, invoiceMonth = "2026-01", epochSeconds = 2_500)
             )
         )
-        assertEquals(listOf("newest", "mid", "old", "sub"), state.items.map { it.id })
+        assertEquals(listOf("newest", "sub", "mid", "old"), state.items.map { it.id })
+    }
+
+    @Test
+    fun `installments are re-dated to the invoice month keeping the purchase day`() {
+        val zone = ZoneId.systemDefault()
+        fun epoch(year: Int, month: Int, day: Int) =
+            LocalDate.of(year, month, day).atStartOfDay(zone).toEpochSecond()
+        val state = base.copy(
+            invoiceTransactions = listOf(
+                tx("single", 10.0, epochSeconds = epoch(2026, 9, 20)),
+                tx("tv", 300.0, installments = 10, installmentNumber = 3, epochSeconds = epoch(2026, 1, 25)),
+                tx("sofa", 100.0, installments = 3, installmentNumber = 2, epochSeconds = epoch(2026, 8, 31))
+            )
+        )
+        val items = state.items
+        assertEquals(listOf("sofa", "tv", "single"), items.map { it.id })
+        assertEquals(epoch(2026, 10, 25), items.single { it.id == "tv" }.date!!.seconds)
+        // Dia 31 limitado ao tamanho de outubro (31) — e de meses mais curtos quando for o caso
+        assertEquals(epoch(2026, 10, 31), items.single { it.id == "sofa" }.date!!.seconds)
+        assertEquals(epoch(2026, 9, 20), items.single { it.id == "single" }.date!!.seconds)
     }
 
     @Test

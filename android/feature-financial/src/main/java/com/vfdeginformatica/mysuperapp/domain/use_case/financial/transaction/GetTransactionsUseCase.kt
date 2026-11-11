@@ -5,7 +5,9 @@ import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.data.mapper.toModel
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.domain.model.materializeFor
+import com.vfdeginformatica.mysuperapp.domain.model.materializeInstallmentFor
 import com.vfdeginformatica.mysuperapp.domain.model.occursIn
+import com.vfdeginformatica.mysuperapp.domain.model.sortedByDateDesc
 import com.vfdeginformatica.mysuperapp.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -71,7 +73,8 @@ class GetTransactionsUseCase @Inject constructor(
          * Junta as transações do mês (query por data) com as ocorrências virtuais das
          * recorrentes. Recorrentes já vindas pela query de data são descartadas em favor
          * da instância materializada, para que overrides/exclusões valham também no mês
-         * de origem. Ordena por data decrescente.
+         * de origem. Parcelas são re-datadas para o mês exibido (mesmo dia da compra).
+         * Ordena por data decrescente.
          */
         fun mergeWithRecurring(
             month: YearMonth,
@@ -88,8 +91,8 @@ class GetTransactionsUseCase @Inject constructor(
                 .filterNot { it.isRecurring || it.installmentGroupId != null }
             val installments = invoiceInstallments
                 .filter { !it.isRecurring && it.installmentGroupId != null }
-            return (nonRecurring + installments + occurrences)
-                .sortedByDescending { it.date?.toDate()?.time ?: Long.MIN_VALUE }
+                .map { it.materializeInstallmentFor(month) }
+            return (nonRecurring + installments + occurrences).sortedByDateDesc()
         }
     }
 }

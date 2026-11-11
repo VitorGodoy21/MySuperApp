@@ -10,6 +10,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.incomeTotal
 import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals.isInvoicePayment
 import com.vfdeginformatica.mysuperapp.domain.model.PaidInvoice
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
+import com.vfdeginformatica.mysuperapp.domain.model.sortedByDateDesc
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 import java.time.YearMonth
 
@@ -194,9 +195,9 @@ data class FinancialUiState(
                 recurringOnly ||
                 installmentsOnly
 
-    /** Transações do mês com todos os filtros da aba Filtros aplicados. */
+    /** Transações do mês com todos os filtros da aba Filtros aplicados, mais recentes no topo. */
     val filteredTransactions: List<Transaction>
-        get() = transactions.filter { t ->
+        get() = transactions.sortedByDateDesc().filter { t ->
             val matchesType = when (typeFilter) {
                 TransactionTypeFilter.ALL -> true
                 TransactionTypeFilter.INCOME -> t.type == TransactionType.INCOME

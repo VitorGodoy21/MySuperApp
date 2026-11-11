@@ -147,4 +147,25 @@ class GetTransactionsUseCaseTest {
 
         assertEquals(listOf("late", "rec", "early"), list.map { it.id })
     }
+
+    @Test
+    fun `installments from earlier months are re-dated to the selected month and sorted`() = runTest {
+        // Compra em 31/01 parcelada; a parcela de fevereiro deve ficar em 28/02 (mês mais curto)
+        val installment = dto("p2", 100.0, timestampOf(2026, 1, 31)).copy(
+            paymentMethod = "CREDIT", invoiceMonth = "2026-02",
+            installmentGroupId = "g", installments = 3, installmentNumber = 2
+        )
+        val repo = FakeTransactionRepository().apply {
+            monthTransactions = listOf(
+                dto("early", 1.0, timestampOf(2026, 2, 2)),
+                dto("late", 1.0, timestampOf(2026, 2, 10))
+            )
+            invoiceTransactions = listOf(installment)
+        }
+
+        val list = GetTransactionsUseCase(repo)(YearMonth.of(2026, 2)).toList().last().data.orEmpty()
+
+        assertEquals(listOf("p2", "late", "early"), list.map { it.id })
+        assertEquals(timestampOf(2026, 2, 28), list.first().date)
+    }
 }

@@ -1,5 +1,6 @@
 package com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract
 
+import com.google.firebase.Timestamp
 import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
 import com.vfdeginformatica.mysuperapp.domain.model.PaidInvoice
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
@@ -204,6 +205,20 @@ class FinancialUiStateTest {
     }
 
     // ---- Filtros ----
+
+    @Test
+    fun `filtered transactions are sorted by date descending`() {
+        val state = base.copy(
+            transactions = listOf(
+                tx("old", 1.0).copy(date = Timestamp(1_000, 0)),
+                tx("undated", 1.0),
+                tx("newest", 1.0).copy(date = Timestamp(3_000, 0)),
+                tx("mid", 1.0).copy(date = Timestamp(2_000, 0))
+            ),
+            typeFilter = TransactionTypeFilter.EXPENSE
+        )
+        assertEquals(listOf("newest", "mid", "old", "undated"), state.filteredTransactions.map { it.id })
+    }
 
     @Test
     fun `payment method filter excludes incomes`() {

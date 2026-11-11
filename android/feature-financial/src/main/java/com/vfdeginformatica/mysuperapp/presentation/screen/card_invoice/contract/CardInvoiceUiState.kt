@@ -5,6 +5,8 @@ import com.vfdeginformatica.mysuperapp.data.remote.dto.CategoryTransactionDto
 import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals
 import com.vfdeginformatica.mysuperapp.domain.model.PaidInvoice
 import com.vfdeginformatica.mysuperapp.domain.model.Transaction
+import com.vfdeginformatica.mysuperapp.domain.model.materializeInstallmentFor
+import com.vfdeginformatica.mysuperapp.domain.model.sortedByDateDesc
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.contract.PendingRecurringAction
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 import java.time.YearMonth
@@ -37,21 +39,21 @@ data class CardInvoiceUiState(
 
     /**
      * Lançamentos da fatura deste cartão: compras/parcelas com `invoiceMonth` igual ao mês mais
-     * recorrentes de crédito (sem duplicar as que já vieram pela query), ordenados por data da
-     * compra (mais recente primeiro) com as recorrentes ao final.
+     * recorrentes de crédito (sem duplicar as que já vieram pela query). Parcelas são re-datadas
+     * para o mês da fatura (mesmo dia da compra) e tudo é ordenado por data, mais recente primeiro.
      */
     val items: List<Transaction>
         get() {
             val purchases = invoiceTransactions
                 .filter { it.cardId == cardId }
-                .sortedByDescending { it.date?.seconds ?: Long.MIN_VALUE }
+                .map { it.materializeInstallmentFor(invoiceMonth) }
             val recurring = recurringTransactions.filter {
                 it.cardId == cardId &&
                         it.type == TransactionType.EXPENSE &&
                         it.paymentMethod == CREDIT &&
                         it.invoiceMonth != invoiceMonthKey
             }
-            return purchases + recurring
+            return (purchases + recurring).sortedByDateDesc()
         }
 
     val total: Double
