@@ -18,7 +18,7 @@ object FeatureGate {
     private val financeRoutes = listOf(
         Screen.FinancialScreen, Screen.NewTransactionScreen, Screen.NewCardScreen,
         Screen.CardListScreen, Screen.CardDetailScreen, Screen.CardInvoiceScreen,
-        Screen.CategoryListScreen, Screen.CategoryDetailScreen,
+        Screen.CategoryListScreen, Screen.CategoryExpensesScreen, Screen.CategoryDetailScreen,
     ).map { it.route }
 
     private val qrCodeRoutes = listOf(

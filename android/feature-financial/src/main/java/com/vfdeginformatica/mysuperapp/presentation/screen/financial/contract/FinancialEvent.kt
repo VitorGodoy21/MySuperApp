@@ -13,6 +13,8 @@ sealed interface FinancialEvent {
     // Aba Mês: lista item a item recolhível
     data object OnToggleMonthList : FinancialEvent
 
+    data object OnCategoryExpensesClicked : FinancialEvent
+
     // Aba Mês: abre a fatura do cartão no mês selecionado
     data class OnCardInvoiceClicked(val cardId: String) : FinancialEvent
 

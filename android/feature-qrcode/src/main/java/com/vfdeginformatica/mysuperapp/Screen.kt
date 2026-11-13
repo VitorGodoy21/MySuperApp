@@ -29,6 +29,10 @@ sealed class Screen(val route: String) {
             "card_invoice_screen/$cardId/$invoiceMonth"
     }
     object CategoryListScreen : Screen("category_list_screen")
+    object CategoryExpensesScreen : Screen("category_expenses_screen/{month}") {
+        const val MONTH = "month"
+        fun createRoute(month: String): String = "category_expenses_screen/$month"
+    }
     object CategoryDetailScreen : Screen("category_detail_screen?categoryId={categoryId}") {
         const val CATEGORY_ID = "categoryId"
         // Sem categoryId a tela abre em modo "nova categoria"

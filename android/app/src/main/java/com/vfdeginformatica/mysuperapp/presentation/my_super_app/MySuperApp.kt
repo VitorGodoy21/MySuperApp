@@ -29,6 +29,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.access_log_map.access
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_detail.CardDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_invoice.CardInvoiceRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.card_list.CardListRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.category_expenses.CategoryExpensesRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.category_detail.CategoryDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.body_measurement_detail.BodyMeasurementDetailRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.body_measurement_list.BodyMeasurementListRoute
@@ -191,7 +192,25 @@ fun MySuperApp(
                             navController.navigate(
                                 Screen.CardInvoiceScreen.createRoute(cardId, invoiceMonth)
                             )
+                        },
+                        onCategoryExpenses = { month ->
+                            navController.navigate(
+                                Screen.CategoryExpensesScreen.createRoute(month)
+                            )
                         }
+                    )
+                }
+
+                composable(
+                    route = Screen.CategoryExpensesScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.CategoryExpensesScreen.MONTH) {
+                            type = NavType.StringType
+                        }
+                    )
+                ) {
+                    CategoryExpensesRoute(
+                        onNavigateUp = { navController.navigateUp() }
                     )
                 }
 

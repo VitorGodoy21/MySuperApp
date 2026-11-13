@@ -80,6 +80,7 @@ import java.text.SimpleDateFormat
 fun FinancialScreen(
     uiState: FinancialUiState,
     onEvent: (FinancialEvent) -> Unit,
+    onCategoryExpenses: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -92,7 +93,7 @@ fun FinancialScreen(
             TabSelector(uiState, onEvent)
             MonthSelector(uiState, onEvent)
             when (uiState.selectedTab) {
-                FinancialTab.MONTH -> MonthContent(uiState, onEvent)
+                FinancialTab.MONTH -> MonthContent(uiState, onEvent, onCategoryExpenses)
                 FinancialTab.FILTERS -> FiltersContent(uiState, onEvent)
             }
         }
@@ -199,7 +200,8 @@ private fun MonthSelector(
 @Composable
 private fun MonthContent(
     uiState: FinancialUiState,
-    onEvent: (FinancialEvent) -> Unit
+    onEvent: (FinancialEvent) -> Unit,
+    onCategoryExpenses: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -216,7 +218,7 @@ private fun MonthContent(
             item { PaymentMethodBreakdownCard(uiState) }
             item { ExpenseNatureCard(uiState) }
             if (uiState.expenseByCategory.isNotEmpty()) {
-                item { TopCategoriesCard(uiState) }
+                item { TopCategoriesCard(uiState, onCategoryExpenses) }
             }
             if (uiState.expenseByCard.isNotEmpty()) {
                 item { ExpenseByCardCard(uiState) }
@@ -352,9 +354,14 @@ private fun PaidInvoiceRow(
 private fun SectionCard(
     title: String,
     subtitle: String? = null,
+    onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick == null) Modifier else Modifier.clickable { onClick() })
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -514,10 +521,11 @@ private fun ExpenseNatureCard(uiState: FinancialUiState) {
 }
 
 @Composable
-private fun TopCategoriesCard(uiState: FinancialUiState) {
+private fun TopCategoriesCard(uiState: FinancialUiState, onClick: () -> Unit) {
     SectionCard(
         title = "Top categorias de despesa",
-        subtitle = "Transações com várias categorias contam em cada uma"
+        subtitle = "Toque para ver todas • transações com várias categorias contam em cada uma",
+        onClick = onClick
     ) {
         uiState.expenseByCategory.forEach { item ->
             val label = when (item.categoryId) {

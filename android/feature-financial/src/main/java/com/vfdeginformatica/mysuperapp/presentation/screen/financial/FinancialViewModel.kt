@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.vfdeginformatica.mysuperapp.common.Resource
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.card.GetCardsUseCase
 import com.vfdeginformatica.mysuperapp.domain.model.RecurrenceEditScope
+import com.vfdeginformatica.mysuperapp.domain.model.FinancialTotals
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.GetPaidInvoicesUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.invoice.PayInvoiceUseCase
 import com.vfdeginformatica.mysuperapp.domain.use_case.financial.transaction.DeleteRecurringOccurrenceUseCase
@@ -82,6 +83,16 @@ class FinancialViewModel @Inject constructor(
 
             FinancialEvent.OnToggleMonthList -> {
                 _uiState.update { it.copy(isMonthListExpanded = !it.isMonthListExpanded) }
+            }
+
+            FinancialEvent.OnCategoryExpensesClicked -> {
+                viewModelScope.launch {
+                    _effect.emit(
+                        FinancialEffect.NavigateToCategoryExpenses(
+                            month = FinancialTotals.monthKey(_uiState.value.selectedMonth)
+                        )
+                    )
+                }
             }
 
             is FinancialEvent.OnCardInvoiceClicked -> {

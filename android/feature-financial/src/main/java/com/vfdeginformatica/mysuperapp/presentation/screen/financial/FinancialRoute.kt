@@ -21,7 +21,8 @@ fun FinancialRoute(
     viewModel: FinancialViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
     onNewTransaction: (TransactionType) -> Unit,
-    onCardInvoice: (cardId: String, invoiceMonth: String) -> Unit = { _, _ -> }
+    onCardInvoice: (cardId: String, invoiceMonth: String) -> Unit = { _, _ -> },
+    onCategoryExpenses: (month: String) -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -36,6 +37,8 @@ fun FinancialRoute(
                 is FinancialEffect.ShowToast -> snackBarHost.showSnackbar(effect.message)
                 is FinancialEffect.NavigateToCardInvoice ->
                     onCardInvoice(effect.cardId, effect.invoiceMonth)
+                is FinancialEffect.NavigateToCategoryExpenses ->
+                    onCategoryExpenses(effect.month)
             }
         }
     }
@@ -57,6 +60,7 @@ fun FinancialRoute(
         FinancialScreen(
             uiState = state,
             onEvent = viewModel::onEvent,
+            onCategoryExpenses = { viewModel.onEvent(FinancialEvent.OnCategoryExpensesClicked) },
             modifier = Modifier.padding(padding)
         )
     }

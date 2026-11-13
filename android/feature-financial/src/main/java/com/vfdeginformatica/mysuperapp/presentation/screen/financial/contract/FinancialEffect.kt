@@ -5,4 +5,7 @@ sealed interface FinancialEffect {
 
     /** [invoiceMonth] no formato yyyy-MM. */
     data class NavigateToCardInvoice(val cardId: String, val invoiceMonth: String) : FinancialEffect
+
+    /** [month] no formato yyyy-MM. */
+    data class NavigateToCategoryExpenses(val month: String) : FinancialEffect
 }
