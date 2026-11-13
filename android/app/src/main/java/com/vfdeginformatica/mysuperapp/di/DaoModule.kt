@@ -15,6 +15,9 @@ import com.vfdeginformatica.mysuperapp.data.remote.datasource.CategoryTransactio
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CategoryTransactionDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDaoImpl
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.FinancialReportDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.FinancialReportDaoImpl
+import com.google.firebase.functions.FirebaseFunctions
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.BodyMeasurementDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.BodyMeasurementDaoImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.ExerciseDao
@@ -76,6 +79,16 @@ object DaoModule {
         return CategoryTransactionDaoImpl(
             db = FirebaseFirestore.getInstance(),
             auth = FirebaseAuth.getInstance(),
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideFinancialReportDao(): FinancialReportDao {
+        return FinancialReportDaoImpl(
+            db = FirebaseFirestore.getInstance(),
+            auth = FirebaseAuth.getInstance(),
+            functions = FirebaseFunctions.getInstance("us-central1"),
         )
     }
 

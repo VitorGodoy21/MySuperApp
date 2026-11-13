@@ -22,7 +22,8 @@ import androidx.compose.ui.unit.dp
 fun NotificationsScreen(
     uiState: NotificationsUiState,
     onEvent: (NotificationsEvent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showFinancialReports: Boolean = false
 ) {
     Column(
         modifier = modifier
@@ -57,6 +58,16 @@ fun NotificationsScreen(
             enabled = uiState.enabledAll && !uiState.isSaving,
             onCheckedChange = { onEvent(NotificationsEvent.OnToggleMuralComments(it)) }
         )
+
+        if (showFinancialReports) {
+            NotificationToggleRow(
+                title = "Relatório financeiro mensal",
+                subtitle = "Quando o resumo do mês anterior ficar pronto",
+                checked = uiState.enabledFinancialReports,
+                enabled = uiState.enabledAll && !uiState.isSaving,
+                onCheckedChange = { onEvent(NotificationsEvent.OnToggleFinancialReports(it)) }
+            )
+        }
 
         if (uiState.errorMessage.isNotEmpty()) {
             Text(

@@ -6,6 +6,7 @@ data class NotificationsUiState(
     val enabledAll: Boolean = true,
     val enabledAccess: Boolean = true,
     val enabledMuralComments: Boolean = true,
+    val enabledFinancialReports: Boolean = true,
     val errorMessage: String = "",
     val successMessage: String = ""
 )

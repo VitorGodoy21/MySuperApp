@@ -10,8 +10,12 @@ import androidx.core.content.ContextCompat
 
 object NotificationIntents {
     const val EXTRA_QR_CODE_ID = "extra_qr_code_id"
+    const val EXTRA_REPORT_MONTH = "extra_report_month"
 
     fun extractQrCodeId(intent: Intent?): String? = intent?.getStringExtra(EXTRA_QR_CODE_ID)
+
+    /** Mês (`yyyy-MM`) do relatório financeiro cuja notificação foi tocada. */
+    fun extractReportMonth(intent: Intent?): String? = intent?.getStringExtra(EXTRA_REPORT_MONTH)
 }
 
 /** Solicita `POST_NOTIFICATIONS` no Android 13+ quando ainda não concedida. */

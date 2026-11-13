@@ -44,6 +44,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.workout_view.WorkoutV
 import com.vfdeginformatica.mysuperapp.presentation.screen.workout_list.WorkoutListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.category_list.CategoryListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.financial.FinancialRoute
+import com.vfdeginformatica.mysuperapp.presentation.screen.financial_report.FinancialReportRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.home.HomeRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.recipe_list.RecipeListRoute
 import com.vfdeginformatica.mysuperapp.presentation.screen.recipe_view.RecipeViewRoute
@@ -69,6 +70,7 @@ fun MySuperApp(
     val state by sessionViewModel.uiState.collectAsStateWithLifecycle()
     val featureFlags by sessionViewModel.featureFlags.collectAsStateWithLifecycle()
     val pendingQrCodeId by deepLinkViewModel.pendingQrCodeId.collectAsStateWithLifecycle()
+    val pendingReportMonth by deepLinkViewModel.pendingReportMonth.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = (context.getFragmentActivity())
 
@@ -84,6 +86,11 @@ fun MySuperApp(
             LaunchedEffect(pendingQrCodeId, state.isLoggedIn) {
                 if (pendingQrCodeId != null && state.isLoggedIn) {
                     deepLinkViewModel.consumePending(activity)
+                }
+            }
+            LaunchedEffect(pendingReportMonth, state.isLoggedIn) {
+                if (pendingReportMonth != null && state.isLoggedIn) {
+                    deepLinkViewModel.consumePendingReport(activity)
                 }
             }
 
@@ -197,7 +204,25 @@ fun MySuperApp(
                             navController.navigate(
                                 Screen.CategoryExpensesScreen.createRoute(month)
                             )
+                        },
+                        onReport = { month ->
+                            navController.navigate(Screen.FinancialReportScreen.createRoute(month))
                         }
+                    )
+                }
+
+                composable(
+                    route = Screen.FinancialReportScreen.route,
+                    arguments = listOf(
+                        navArgument(Screen.FinancialReportScreen.MONTH) {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) {
+                    FinancialReportRoute(
+                        onNavigateUp = { navController.navigateUp() }
                     )
                 }
 
@@ -485,7 +510,10 @@ fun MySuperApp(
                 }
 
                 composable(route = Screen.NotificationsScreen.route) {
-                    NotificationsRoute(onNavigateUp = { navController.navigateUp() })
+                    NotificationsRoute(
+                        onNavigateUp = { navController.navigateUp() },
+                        showFinancialReports = true,
+                    )
                 }
 
                 composable(route = Screen.SpotifyConnectionScreen.route) {

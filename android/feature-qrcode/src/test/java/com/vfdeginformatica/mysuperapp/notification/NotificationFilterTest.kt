@@ -28,6 +28,13 @@ class NotificationFilterTest {
     }
 
     @Test
+    fun financialReportTypeFollowsFinancialReportsToggle() {
+        assertTrue(NotificationFilter.shouldShow(NotificationSettings(enabledFinancialReports = true), NotificationFilter.TYPE_FINANCIAL_REPORT))
+        assertFalse(NotificationFilter.shouldShow(NotificationSettings(enabledFinancialReports = false), NotificationFilter.TYPE_FINANCIAL_REPORT))
+        assertFalse(NotificationFilter.shouldShow(NotificationSettings(enabledAll = false), NotificationFilter.TYPE_FINANCIAL_REPORT))
+    }
+
+    @Test
     fun unknownTypeIsShownWhenAllEnabled() {
         val settings = NotificationSettings(enabledAccess = false, enabledMuralComments = false)
         assertTrue(NotificationFilter.shouldShow(settings, "unknown"))

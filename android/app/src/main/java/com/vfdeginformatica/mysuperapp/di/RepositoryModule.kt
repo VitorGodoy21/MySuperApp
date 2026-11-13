@@ -23,6 +23,9 @@ import com.vfdeginformatica.mysuperapp.data.local.BiometricRepositoryImpl
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CardDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.CategoryTransactionDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.TransactionDao
+import com.vfdeginformatica.mysuperapp.data.remote.datasource.FinancialReportDao
+import com.vfdeginformatica.mysuperapp.data.remote.repository.FinancialReportRepositoryImpl
+import com.vfdeginformatica.mysuperapp.domain.repository.FinancialReportRepository
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.BodyMeasurementDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.ExerciseDao
 import com.vfdeginformatica.mysuperapp.data.remote.datasource.WorkoutDao
@@ -91,6 +94,12 @@ object RepositoryModule {
     ): TransactionRepository {
         return TransactionRepositoryImpl(transactionDao)
     }
+
+    @Provides
+    @Singleton
+    fun provideFinancialReportRepository(
+        dao: FinancialReportDao
+    ): FinancialReportRepository = FinancialReportRepositoryImpl(dao)
 
     @Provides
     @Singleton

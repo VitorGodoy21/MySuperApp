@@ -5,6 +5,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.NotificationSettings
 object NotificationFilter {
     const val TYPE_ACCESS = "access"
     const val TYPE_MURAL_COMMENT = "mural_comment"
+    const val TYPE_FINANCIAL_REPORT = "financial_report"
 
     fun shouldShow(settings: NotificationSettings, type: String): Boolean {
         if (!settings.enabledAll) return false
@@ -12,6 +13,7 @@ object NotificationFilter {
         return when (type) {
             TYPE_ACCESS -> settings.enabledAccess
             TYPE_MURAL_COMMENT -> settings.enabledMuralComments
+            TYPE_FINANCIAL_REPORT -> settings.enabledFinancialReports
             else -> true
         }
     }

@@ -1,5 +1,6 @@
-const { onRequest } = require('firebase-functions/v2/https');
+const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
 const admin = require('firebase-admin');
@@ -348,23 +349,15 @@ exports.addMuralComment = onRequest(
 
 const NOTIFICATION_TYPE_ACCESS = 'access';
 const NOTIFICATION_TYPE_MURAL_COMMENT = 'mural_comment';
+const NOTIFICATION_TYPE_FINANCIAL_REPORT = 'financial_report';
 
-async function sendToQrOwner({ qrCodeId, title, body, type, data }) {
+/**
+ * Envia um push para todos os dispositivos de `userId` (`fcmTokens` ∪ `fcmToken` legado),
+ * removendo tokens inválidos. Retorna false quando o usuário não tem token.
+ */
+async function sendToUser({ userId, title, body, data }) {
   const db = admin.firestore();
-
-  const qrDoc = await db.collection('qrcodes').doc(qrCodeId).get();
-  if (!qrDoc.exists) {
-    logger.warn('QRCode not found', { qrCodeId });
-    return;
-  }
-
-  const ownerUserId = (qrDoc.data() || {}).userId;
-  if (!ownerUserId) {
-    logger.warn('QRCode without userId', { qrCodeId });
-    return;
-  }
-
-  const userRef = db.collection('users').doc(ownerUserId);
+  const userRef = db.collection('users').doc(userId);
   const userDoc = await userRef.get();
   const userData = userDoc.data() || {};
   // Multi-dispositivo: `fcmTokens` (mapa token -> updatedAt) + `fcmToken` legado.
@@ -374,21 +367,21 @@ async function sendToQrOwner({ qrCodeId, title, body, type, data }) {
   ])].filter(Boolean);
 
   if (tokens.length === 0) {
-    logger.warn('Owner without fcmTokens', { ownerUserId, qrCodeId });
-    return;
+    logger.warn('User without fcmTokens', { userId });
+    return false;
   }
 
   const response = await messaging.sendEachForMulticast({
     tokens,
     notification: { title, body },
-    data: { type, qrCodeId, ...data }
+    data
   });
 
   const invalidTokens = [];
   response.responses.forEach((res, index) => {
     if (res.success) return;
     const code = res.error && res.error.code;
-    logger.warn('FCM send failed', { ownerUserId, qrCodeId, code });
+    logger.warn('FCM send failed', { userId, code });
     if (
       code === 'messaging/registration-token-not-registered' ||
       code === 'messaging/invalid-registration-token' ||
@@ -408,11 +401,30 @@ async function sendToQrOwner({ qrCodeId, title, body, type, data }) {
     }
     try {
       await userRef.update(...batchUpdate);
-      logger.info('Pruned invalid FCM tokens', { ownerUserId, count: invalidTokens.length });
+      logger.info('Pruned invalid FCM tokens', { userId, count: invalidTokens.length });
     } catch (err) {
-      logger.warn('Failed to prune invalid FCM tokens', { ownerUserId, message: err.message });
+      logger.warn('Failed to prune invalid FCM tokens', { userId, message: err.message });
     }
   }
+  return true;
+}
+
+async function sendToQrOwner({ qrCodeId, title, body, type, data }) {
+  const db = admin.firestore();
+
+  const qrDoc = await db.collection('qrcodes').doc(qrCodeId).get();
+  if (!qrDoc.exists) {
+    logger.warn('QRCode not found', { qrCodeId });
+    return;
+  }
+
+  const ownerUserId = (qrDoc.data() || {}).userId;
+  if (!ownerUserId) {
+    logger.warn('QRCode without userId', { qrCodeId });
+    return;
+  }
+
+  await sendToUser({ userId: ownerUserId, title, body, data: { type, qrCodeId, ...data } });
 }
 
 exports.notifyQrCodeAccess = onDocumentCreated(
@@ -463,5 +475,168 @@ exports.notifyMuralComment = onDocumentCreated(
       body: `${text}`,
       type: NOTIFICATION_TYPE_MURAL_COMMENT
     });
+  }
+);
+
+// ─── Relatório financeiro mensal ─────────────────────────────────────────────
+//
+// Gerado no backend (Admin SDK) e gravado em `users/{uid}/financial_reports/{yyyy-MM}`;
+// as regras só permitem leitura pelo próprio dono e nenhuma escrita do cliente. O push não
+// carrega valores — apenas `type` + `reportMonth` para o deep link no app.
+
+const financialReport = require('./financialReport');
+const { buildNarrative } = require('./financialNarrative');
+
+const MONTH_NAMES_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+function monthLabelPt(month) {
+  const [year, m] = month.split('-').map(Number);
+  return `${MONTH_NAMES_PT[m - 1]} de ${year}`;
+}
+
+async function loadFinancialData(db, uid) {
+  const col = async (name) => (await db.collection(name).where('userId', '==', uid).get())
+    .docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  const [transactions, cards, categories] = await Promise.all([
+    col('transactions'), col('cards'), col('transactions_category')
+  ]);
+  return { transactions, cards, categories };
+}
+
+/**
+ * Gera e grava o relatório de `month` para `uid`. Retorna null quando o usuário não tem
+ * nenhuma transação (nada é gravado).
+ */
+async function generateReportFor(db, uid, month, { partial, trigger }) {
+  const data = await loadFinancialData(db, uid);
+  if (data.transactions.length === 0) return null;
+  const report = financialReport.buildReport({ ...data, month, partial });
+  // `set` sem merge: um texto de IA anterior fica obsoleto quando os números mudam.
+  await db.collection('users').doc(uid).collection('financial_reports').doc(month).set({
+    ...report,
+    narrative: buildNarrative(report),
+    trigger,
+    generatedAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+  return report;
+}
+
+exports.generateMonthlyFinancialReports = onSchedule(
+  {
+    schedule: '0 6 1 * *',
+    timeZone: 'America/Sao_Paulo',
+    region: 'us-central1',
+    timeoutSeconds: 540,
+    memory: '512MiB'
+  },
+  async () => {
+    const db = admin.firestore();
+    const month = financialReport.addMonths(financialReport.currentMonth(), -1);
+    const users = await db.collection('users').select().get();
+    let generated = 0, skipped = 0, failed = 0;
+
+    for (const userDoc of users.docs) {
+      const uid = userDoc.id;
+      try {
+        const report = await generateReportFor(db, uid, month, { partial: false, trigger: 'scheduled' });
+        if (!report) { skipped += 1; continue; }
+        generated += 1;
+        await sendToUser({
+          userId: uid,
+          title: 'Relatório financeiro pronto',
+          body: `Seu resumo de ${monthLabelPt(month)} já está disponível.`,
+          data: { type: NOTIFICATION_TYPE_FINANCIAL_REPORT, reportMonth: month }
+        });
+      } catch (error) {
+        failed += 1;
+        logger.error('Monthly financial report failed', { uid, month, message: error.message });
+      }
+    }
+    logger.info('Monthly financial reports done', { month, generated, skipped, failed });
+  }
+);
+
+const REPORT_RATE_LIMIT = { max: 3, windowMs: 60 * 1000 };
+const REPORT_AI_RATE_LIMIT = { max: 2, windowMs: 60 * 60 * 1000 };
+
+async function consumeReportRateLimit(db, uid, scope = 'financial_report', limit = REPORT_RATE_LIMIT) {
+  const key = createHash('sha256').update(`${scope}:${uid}`).digest('hex');
+  const ref = db.collection('_rate_limits').doc(key);
+  const now = Date.now();
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists || now - snap.data().windowStart >= limit.windowMs) {
+      tx.set(ref, { count: 1, windowStart: now });
+      return true;
+    }
+    if (snap.data().count >= limit.max) return false;
+    tx.update(ref, { count: snap.data().count + 1 });
+    return true;
+  });
+}
+
+/** Callable do app: gera/regera o relatório de `{month}` (default: mês atual, parcial). */
+exports.generateFinancialReport = onCall(
+  { region: 'us-central1', timeoutSeconds: 60, memory: '512MiB' },
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) throw new HttpsError('unauthenticated', 'Entre na sua conta.');
+
+    const db = admin.firestore();
+    const current = financialReport.currentMonth();
+    const month = request.data && request.data.month != null ? request.data.month : current;
+    if (!financialReport.isMonthKey(month)) throw new HttpsError('invalid-argument', 'Mês inválido (use yyyy-MM).');
+    if (month > current) throw new HttpsError('invalid-argument', 'Não é possível gerar relatório de um mês futuro.');
+
+    if (!(await consumeReportRateLimit(db, uid))) {
+      throw new HttpsError('resource-exhausted', 'Aguarde um instante antes de gerar outro relatório.');
+    }
+
+    const report = await generateReportFor(db, uid, month, { partial: month === current, trigger: 'manual' });
+    if (!report) throw new HttpsError('failed-precondition', 'Nenhuma transação encontrada para gerar o relatório.');
+    logger.info('Financial report generated on demand', { uid, month });
+    return { ok: true, month, partial: report.partial };
+  }
+);
+
+// ─── Análise com IA (opcional, sob demanda) ──────────────────────────────────
+// Ver inancialAi.js (Gemini via Vertex AI no próprio projeto, sem API key de terceiros).
+
+const financialAi = require('./financialAi');
+
+/** Callable do app: gera a análise com IA do relatório já existente de `{month}`. */
+exports.generateFinancialReportAi = onCall(
+  { region: 'us-central1', timeoutSeconds: 120, memory: '512MiB' },
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) throw new HttpsError('unauthenticated', 'Entre na sua conta.');
+
+    const month = request.data && request.data.month;
+    if (!financialReport.isMonthKey(month)) throw new HttpsError('invalid-argument', 'Mês inválido (use yyyy-MM).');
+
+    const db = admin.firestore();
+    const ref = db.collection('users').doc(uid).collection('financial_reports').doc(month);
+    const snap = await ref.get();
+    if (!snap.exists) throw new HttpsError('failed-precondition', 'Gere o relatório do mês antes de pedir a análise.');
+
+    if (!(await consumeReportRateLimit(db, uid, 'financial_report_ai', REPORT_AI_RATE_LIMIT))) {
+      throw new HttpsError('resource-exhausted', 'Limite de análises por hora atingido. Tente novamente mais tarde.');
+    }
+
+    let aiNarrative;
+    try {
+      aiNarrative = await financialAi.generateAiNarrative(snap.data(), { project: process.env.GCLOUD_PROJECT || admin.app().options.projectId });
+    } catch (error) {
+      logger.error('AI narrative failed', { uid, month, message: error.message, status: error.status });
+      throw new HttpsError('unavailable', 'A análise com IA não está disponível agora. O relatório padrão continua válido.');
+    }
+
+    await ref.set({
+      aiNarrative,
+      aiModel: financialAi.AI_MODEL,
+      aiGeneratedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    logger.info('AI narrative generated', { uid, month, chars: aiNarrative.length });
+    return { ok: true, month };
   }
 );

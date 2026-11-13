@@ -66,13 +66,14 @@ class QrCodeNotificationService : FirebaseMessagingService() {
         val body = message.notification?.body ?: message.data["body"]
         val type = message.data["type"] ?: ""
         val qrCodeId = message.data["qrCodeId"]
+        val reportMonth = message.data["reportMonth"]
 
         if (title.isNullOrBlank() || body.isNullOrBlank()) return
 
         scope.launch {
             val settings = loadNotificationSettings()
             if (NotificationFilter.shouldShow(settings, type)) {
-                showNotification(title, body, qrCodeId)
+                showNotification(title, body, qrCodeId, reportMonth)
             }
         }
     }
@@ -89,7 +90,7 @@ class QrCodeNotificationService : FirebaseMessagingService() {
         }
     }
 
-    private fun showNotification(title: String, body: String, qrCodeId: String?) {
+    private fun showNotification(title: String, body: String, qrCodeId: String?, reportMonth: String?) {
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -105,9 +106,10 @@ class QrCodeNotificationService : FirebaseMessagingService() {
         val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             qrCodeId?.let { putExtra(NotificationIntents.EXTRA_QR_CODE_ID, it) }
+            reportMonth?.let { putExtra(NotificationIntents.EXTRA_REPORT_MONTH, it) }
         }
 
-        val requestCode = qrCodeId?.hashCode() ?: 0
+        val requestCode = (qrCodeId ?: reportMonth)?.hashCode() ?: 0
         val pendingIntent = intent?.let {
             PendingIntent.getActivity(
                 this,

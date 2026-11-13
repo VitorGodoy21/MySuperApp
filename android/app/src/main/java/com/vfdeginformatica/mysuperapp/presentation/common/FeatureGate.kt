@@ -19,6 +19,7 @@ object FeatureGate {
         Screen.FinancialScreen, Screen.NewTransactionScreen, Screen.NewCardScreen,
         Screen.CardListScreen, Screen.CardDetailScreen, Screen.CardInvoiceScreen,
         Screen.CategoryListScreen, Screen.CategoryExpensesScreen, Screen.CategoryDetailScreen,
+        Screen.FinancialReportScreen,
     ).map { it.route }
 
     private val qrCodeRoutes = listOf(

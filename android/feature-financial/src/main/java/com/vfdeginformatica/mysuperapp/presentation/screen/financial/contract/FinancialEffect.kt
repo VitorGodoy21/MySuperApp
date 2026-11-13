@@ -8,4 +8,7 @@ sealed interface FinancialEffect {
 
     /** [month] no formato yyyy-MM. */
     data class NavigateToCategoryExpenses(val month: String) : FinancialEffect
+
+    /** [month] no formato yyyy-MM; abre o relatório mensal do mês selecionado. */
+    data class NavigateToFinancialReport(val month: String) : FinancialEffect
 }

@@ -19,6 +19,7 @@ import com.vfdeginformatica.mysuperapp.presentation.screen.notifications.contrac
 @Composable
 fun NotificationsRoute(
     onNavigateUp: () -> Unit,
+    showFinancialReports: Boolean = false,
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -44,7 +45,8 @@ fun NotificationsRoute(
         NotificationsScreen(
             uiState = uiState,
             onEvent = viewModel::onEvent,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            showFinancialReports = showFinancialReports
         )
     }
 }

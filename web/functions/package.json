@@ -9,6 +9,7 @@
     "serve": "firebase emulators:start --only functions",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
+    "test": "node --test",
     "migrate:transaction-type": "node scripts/backfillTransactionType.js",
     "migrate:user-id": "node scripts/backfillUserId.js",
     "copy:workout-data": "node scripts/copyWorkoutData.js",
@@ -16,6 +17,7 @@
     "spike:spotify": "node scripts/spotifySpike.js"
   },
   "dependencies": {
+    "@google/genai": "^3.3.0",
     "firebase-admin": "^12.2.0",
     "firebase-functions": "^5.0.1"
   }

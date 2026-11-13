@@ -42,9 +42,33 @@ class NotificationDeepLinkViewModel @Inject constructor(
 ) : ViewModel() {
 
     val pendingQrCodeId: StateFlow<String?> = pendingQrCodeNavigation.pendingQrCodeId
+    val pendingReportMonth: StateFlow<String?> = pendingQrCodeNavigation.pendingReportMonth
 
     private val _effect = MutableSharedFlow<NotificationDeepLinkEffect>()
     val effect: SharedFlow<NotificationDeepLinkEffect> = _effect.asSharedFlow()
+
+    /** Toque na notificação de relatório mensal: checa a flag Finanças, exige biometria e abre o mês. */
+    fun consumePendingReport(activity: FragmentActivity?) {
+        val month = pendingQrCodeNavigation.consumeReportMonth() ?: return
+        viewModelScope.launch {
+            if (!observeFeatureFlagsUseCase().first().finance) {
+                _effect.emit(NotificationDeepLinkEffect.ShowToast(FINANCE_DISABLED_MESSAGE))
+                return@launch
+            }
+            val auth = resolveProtectedNavigationUseCase(
+                route = Screen.FinancialReportScreen.createRoute(month),
+                passwordRequired = true,
+                activity = activity
+            ).first()
+            when (auth) {
+                is ProtectedNavigationResult.Denied ->
+                    _effect.emit(NotificationDeepLinkEffect.ShowToast(auth.message))
+
+                is ProtectedNavigationResult.Allowed ->
+                    _effect.emit(NotificationDeepLinkEffect.Navigate(auth.route))
+            }
+        }
+    }
 
     fun consumePending(activity: FragmentActivity?) {
         val qrCodeId = pendingQrCodeNavigation.consume() ?: return
@@ -85,5 +109,6 @@ class NotificationDeepLinkViewModel @Inject constructor(
 
     companion object {
         const val QR_DISABLED_MESSAGE = "QR Code está desativado no painel web"
+        const val FINANCE_DISABLED_MESSAGE = "Finanças está desativado no painel web"
     }
 }

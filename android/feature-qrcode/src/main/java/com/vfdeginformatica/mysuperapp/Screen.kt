@@ -40,6 +40,13 @@ sealed class Screen(val route: String) {
             if (categoryId.isNullOrBlank()) "category_detail_screen"
             else "category_detail_screen?categoryId=$categoryId"
     }
+    object FinancialReportScreen : Screen("financial_report_screen?month={month}") {
+        const val MONTH = "month"
+        // Sem month a tela abre no relatório mais recente disponível
+        fun createRoute(month: String? = null): String =
+            if (month.isNullOrBlank()) "financial_report_screen"
+            else "financial_report_screen?month=$month"
+    }
 
     object RecipeListScreen : Screen("recipe_list_screen")
     object RecipeViewScreen : Screen("recipe_view_screen/{recipeId}") {

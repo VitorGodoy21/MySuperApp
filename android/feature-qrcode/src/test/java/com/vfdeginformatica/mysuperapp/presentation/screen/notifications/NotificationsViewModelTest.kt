@@ -48,7 +48,7 @@ class NotificationsViewModelTest {
 
     @Test
     fun toggleAllOffDisablesEverything() = runTest(testDispatcher) {
-        val expected = NotificationSettings(false, false, false)
+        val expected = NotificationSettings(false, false, false, false)
         `when`(repository.updateNotificationSettings(expected)).thenReturn(Resource.Success(Unit))
 
         viewModel.onEvent(NotificationsEvent.OnToggleAll(false))
@@ -58,12 +58,13 @@ class NotificationsViewModelTest {
         assertFalse(state.enabledAll)
         assertFalse(state.enabledAccess)
         assertFalse(state.enabledMuralComments)
+        assertFalse(state.enabledFinancialReports)
         assertFalse(state.isSaving)
     }
 
     @Test
     fun individualToggleIgnoredWhenAllDisabled() = runTest(testDispatcher) {
-        `when`(repository.updateNotificationSettings(NotificationSettings(false, false, false)))
+        `when`(repository.updateNotificationSettings(NotificationSettings(false, false, false, false)))
             .thenReturn(Resource.Success(Unit))
         viewModel.onEvent(NotificationsEvent.OnToggleAll(false))
         advanceUntilIdle()
@@ -90,8 +91,23 @@ class NotificationsViewModelTest {
     }
 
     @Test
+    fun toggleFinancialReportsPersistsOnlyThatFlag() = runTest(testDispatcher) {
+        val expected = NotificationSettings(enabledFinancialReports = false)
+        `when`(repository.updateNotificationSettings(expected)).thenReturn(Resource.Success(Unit))
+
+        viewModel.onEvent(NotificationsEvent.OnToggleFinancialReports(false))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.enabledAll)
+        assertTrue(state.enabledAccess)
+        assertTrue(state.enabledMuralComments)
+        assertFalse(state.enabledFinancialReports)
+    }
+
+    @Test
     fun saveErrorKeepsPreviousStateAndShowsError() = runTest(testDispatcher) {
-        `when`(repository.updateNotificationSettings(NotificationSettings(false, false, false)))
+        `when`(repository.updateNotificationSettings(NotificationSettings(false, false, false, false)))
             .thenReturn(Resource.Error("falhou"))
 
         viewModel.onEvent(NotificationsEvent.OnToggleAll(false))

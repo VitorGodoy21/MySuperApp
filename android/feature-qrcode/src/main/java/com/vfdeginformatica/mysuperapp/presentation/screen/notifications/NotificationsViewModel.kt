@@ -38,49 +38,40 @@ class NotificationsViewModel @Inject constructor(
     }
 
     fun onEvent(event: NotificationsEvent) {
+        val current = _uiState.value.toSettings()
         when (event) {
-            is NotificationsEvent.OnToggleAll -> {
-                val updated = if (event.enabled) {
-                    NotificationSettings(
-                        enabledAll = true,
-                        enabledAccess = true,
-                        enabledMuralComments = true
-                    )
-                } else {
-                    NotificationSettings(
-                        enabledAll = false,
-                        enabledAccess = false,
-                        enabledMuralComments = false
-                    )
-                }
-                save(updated)
-            }
+            is NotificationsEvent.OnToggleAll -> save(
+                NotificationSettings(
+                    enabledAll = event.enabled,
+                    enabledAccess = event.enabled,
+                    enabledMuralComments = event.enabled,
+                    enabledFinancialReports = event.enabled
+                )
+            )
 
             is NotificationsEvent.OnToggleAccess -> {
-                val state = _uiState.value
-                if (!state.enabledAll) return
-                save(
-                    NotificationSettings(
-                        enabledAll = state.enabledAll,
-                        enabledAccess = event.enabled,
-                        enabledMuralComments = state.enabledMuralComments
-                    )
-                )
+                if (!current.enabledAll) return
+                save(current.copy(enabledAccess = event.enabled))
             }
 
             is NotificationsEvent.OnToggleMuralComments -> {
-                val state = _uiState.value
-                if (!state.enabledAll) return
-                save(
-                    NotificationSettings(
-                        enabledAll = state.enabledAll,
-                        enabledAccess = state.enabledAccess,
-                        enabledMuralComments = event.enabled
-                    )
-                )
+                if (!current.enabledAll) return
+                save(current.copy(enabledMuralComments = event.enabled))
+            }
+
+            is NotificationsEvent.OnToggleFinancialReports -> {
+                if (!current.enabledAll) return
+                save(current.copy(enabledFinancialReports = event.enabled))
             }
         }
     }
+
+    private fun NotificationsUiState.toSettings() = NotificationSettings(
+        enabledAll = enabledAll,
+        enabledAccess = enabledAccess,
+        enabledMuralComments = enabledMuralComments,
+        enabledFinancialReports = enabledFinancialReports
+    )
 
     private fun load() {
         viewModelScope.launch {
@@ -101,6 +92,7 @@ class NotificationsViewModel @Inject constructor(
                                 enabledAll = data.enabledAll,
                                 enabledAccess = data.enabledAccess,
                                 enabledMuralComments = data.enabledMuralComments,
+                                enabledFinancialReports = data.enabledFinancialReports,
                                 errorMessage = ""
                             )
                         }
@@ -132,6 +124,7 @@ class NotificationsViewModel @Inject constructor(
                                 enabledAll = settings.enabledAll,
                                 enabledAccess = settings.enabledAccess,
                                 enabledMuralComments = settings.enabledMuralComments,
+                                enabledFinancialReports = settings.enabledFinancialReports,
                                 successMessage = "Preferências atualizadas"
                             )
                         }

@@ -95,6 +95,16 @@ class FinancialViewModel @Inject constructor(
                 }
             }
 
+            FinancialEvent.OnReportClicked -> {
+                viewModelScope.launch {
+                    _effect.emit(
+                        FinancialEffect.NavigateToFinancialReport(
+                            month = FinancialTotals.monthKey(_uiState.value.selectedMonth)
+                        )
+                    )
+                }
+            }
+
             is FinancialEvent.OnCardInvoiceClicked -> {
                 viewModelScope.launch {
                     _effect.emit(

@@ -74,11 +74,13 @@ class UserRemoteDaoImpl(
         val enabledAll = settings?.get("enabledAll") as? Boolean ?: true
         val enabledAccess = settings?.get("enabledAccess") as? Boolean ?: true
         val enabledMuralComments = settings?.get("enabledMuralComments") as? Boolean ?: true
+        val enabledFinancialReports = settings?.get("enabledFinancialReports") as? Boolean ?: true
 
         return NotificationSettings(
             enabledAll = enabledAll,
             enabledAccess = enabledAccess,
-            enabledMuralComments = enabledMuralComments
+            enabledMuralComments = enabledMuralComments,
+            enabledFinancialReports = enabledFinancialReports
         )
     }
 
@@ -87,7 +89,8 @@ class UserRemoteDaoImpl(
             "notificationSettings" to mapOf(
                 "enabledAll" to settings.enabledAll,
                 "enabledAccess" to settings.enabledAccess,
-                "enabledMuralComments" to settings.enabledMuralComments
+                "enabledMuralComments" to settings.enabledMuralComments,
+                "enabledFinancialReports" to settings.enabledFinancialReports
             )
         )
 

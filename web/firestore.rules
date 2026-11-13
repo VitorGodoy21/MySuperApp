@@ -92,6 +92,13 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, delete: if isSelf(userId);
       allow create, update: if isSelf(userId) && validFeatureFlags(request.resource.data);
+
+      // Relatórios financeiros mensais: escritos só pela Cloud Function (Admin SDK),
+      // lidos apenas pelo próprio dono.
+      match /financial_reports/{month} {
+        allow read: if isSelf(userId);
+        allow write: if false;
+      }
     }
 
     match /qrcodes/{qrId} {

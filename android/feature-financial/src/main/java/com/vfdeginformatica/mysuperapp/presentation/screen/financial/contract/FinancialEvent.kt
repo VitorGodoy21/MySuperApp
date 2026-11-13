@@ -15,6 +15,9 @@ sealed interface FinancialEvent {
 
     data object OnCategoryExpensesClicked : FinancialEvent
 
+    // Toolbar: abre o relatório mensal do mês selecionado
+    data object OnReportClicked : FinancialEvent
+
     // Aba Mês: abre a fatura do cartão no mês selecionado
     data class OnCardInvoiceClicked(val cardId: String) : FinancialEvent
 

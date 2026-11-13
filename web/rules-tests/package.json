@@ -2,7 +2,7 @@
   "name": "mysuperapp-rules-tests",
   "private": true,
   "scripts": {
-    "test": "firebase emulators:exec --config ..\\firebase.rules-tests.json --project demo-mysuperapp-recipes --only firestore,storage \"node --test --test-concurrency=1 recipes.test.cjs spotify.test.cjs\""
+    "test": "firebase emulators:exec --config ..\\firebase.rules-tests.json --project demo-mysuperapp-recipes --only firestore,storage \"node --test --test-concurrency=1 recipes.test.cjs spotify.test.cjs financialReports.test.cjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",

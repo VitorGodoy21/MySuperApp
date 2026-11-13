@@ -2,6 +2,10 @@ package com.vfdeginformatica.mysuperapp.presentation.screen.financial
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,7 +26,8 @@ fun FinancialRoute(
     onNavigateUp: () -> Unit,
     onNewTransaction: (TransactionType) -> Unit,
     onCardInvoice: (cardId: String, invoiceMonth: String) -> Unit = { _, _ -> },
-    onCategoryExpenses: (month: String) -> Unit = {}
+    onCategoryExpenses: (month: String) -> Unit = {},
+    onReport: (month: String) -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHost: SnackbarHostState = remember { SnackbarHostState() }
@@ -39,6 +44,8 @@ fun FinancialRoute(
                     onCardInvoice(effect.cardId, effect.invoiceMonth)
                 is FinancialEffect.NavigateToCategoryExpenses ->
                     onCategoryExpenses(effect.month)
+                is FinancialEffect.NavigateToFinancialReport ->
+                    onReport(effect.month)
             }
         }
     }
@@ -53,6 +60,11 @@ fun FinancialRoute(
         canNavigateUp = true,
         onNavigateUp = onNavigateUp,
         snackBarHostState = snackBarHost,
+        toolbarActions = {
+            IconButton(onClick = { viewModel.onEvent(FinancialEvent.OnReportClicked) }) {
+                Icon(Icons.Default.Assessment, contentDescription = "Relatório mensal")
+            }
+        },
         floatingActionButtonContent = {
             TransactionFabMenu(expanded = fabExpanded, onNewTransaction = onNewTransaction)
         }

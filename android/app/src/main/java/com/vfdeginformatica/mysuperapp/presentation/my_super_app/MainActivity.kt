@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         requestNotificationPermissionIfNeeded(notificationPermissionLauncher)
         pendingQrCodeNavigation.set(NotificationIntents.extractQrCodeId(intent))
+        pendingQrCodeNavigation.setReportMonth(NotificationIntents.extractReportMonth(intent))
         setContent {
             MySuperApp()
         }
@@ -60,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         NfcForegroundDispatcher.extractTag(intent)?.let { tag -> nfcTagBus.tryEmit(tag) }
         pendingQrCodeNavigation.set(NotificationIntents.extractQrCodeId(intent))
+        pendingQrCodeNavigation.setReportMonth(NotificationIntents.extractReportMonth(intent))
     }
 
     // Ao abrir/voltar ao app: registra o token FCM e recarrega as funções habilitadas no painel web.
