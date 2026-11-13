@@ -13,6 +13,7 @@ import com.vfdeginformatica.mysuperapp.domain.model.Transaction
 import com.vfdeginformatica.mysuperapp.domain.model.sortedByDateDesc
 import com.vfdeginformatica.mysuperapp.presentation.screen.new_transaction.contract.TransactionType
 import java.time.YearMonth
+import java.util.Locale
 
 /** Total agrupado na aba Filtros. `key` nulo = "sem categoria"/"sem cartão". */
 data class GroupTotal(val key: String?, val total: Double, val count: Int)
@@ -41,6 +42,8 @@ data class FinancialUiState(
     val payingInvoice: PaidInvoice? = null,
     val isPayingInvoice: Boolean = false,
     // Aba Filtros
+    val searchQuery: String = "",
+    val isCategoryFilterExpanded: Boolean = false,
     val typeFilter: TransactionTypeFilter = TransactionTypeFilter.ALL,
     val paymentMethodFilter: PaymentMethodFilter = PaymentMethodFilter.ALL,
     val categoryFilterIds: Set<String> = emptySet(),
@@ -188,7 +191,8 @@ data class FinancialUiState(
         }
 
     val hasActiveFilters: Boolean
-        get() = typeFilter != TransactionTypeFilter.ALL ||
+        get() = searchQuery.isNotBlank() ||
+                typeFilter != TransactionTypeFilter.ALL ||
                 paymentMethodFilter != PaymentMethodFilter.ALL ||
                 categoryFilterIds.isNotEmpty() ||
                 cardFilterId != null ||
@@ -197,27 +201,35 @@ data class FinancialUiState(
 
     /** Transações do mês com todos os filtros da aba Filtros aplicados, mais recentes no topo. */
     val filteredTransactions: List<Transaction>
-        get() = transactions.sortedByDateDesc().filter { t ->
-            val matchesType = when (typeFilter) {
-                TransactionTypeFilter.ALL -> true
-                TransactionTypeFilter.INCOME -> t.type == TransactionType.INCOME
-                TransactionTypeFilter.EXPENSE -> t.type == TransactionType.EXPENSE
+        get() {
+            val query = searchQuery.trim()
+            val amountQuery = query.replace(',', '.')
+            val searchesAmount = amountQuery.toBigDecimalOrNull() != null
+            return transactions.sortedByDateDesc().filter { t ->
+                val matchesSearch = query.isEmpty() ||
+                        t.title.contains(query, ignoreCase = true) ||
+                        (searchesAmount && String.format(Locale.ROOT, "%.2f", t.amount).contains(amountQuery))
+                val matchesType = when (typeFilter) {
+                    TransactionTypeFilter.ALL -> true
+                    TransactionTypeFilter.INCOME -> t.type == TransactionType.INCOME
+                    TransactionTypeFilter.EXPENSE -> t.type == TransactionType.EXPENSE
+                }
+                // Receitas não têm forma de pagamento: só casam com "Todas"
+                val matchesPayment = when (paymentMethodFilter) {
+                    PaymentMethodFilter.ALL -> true
+                    PaymentMethodFilter.CREDIT ->
+                        t.type == TransactionType.EXPENSE && t.paymentMethod == CREDIT
+                    PaymentMethodFilter.DEBIT ->
+                        t.type == TransactionType.EXPENSE && t.paymentMethod != CREDIT && !t.isInvoicePayment
+                }
+                val matchesCategory = categoryFilterIds.isEmpty() ||
+                        t.categoryIds.any { it in categoryFilterIds }
+                val matchesCard = cardFilterId == null || t.cardId == cardFilterId
+                val matchesRecurring = !recurringOnly || t.isRecurring
+                val matchesInstallments = !installmentsOnly || t.isInstallment
+                matchesSearch && matchesType && matchesPayment && matchesCategory &&
+                        matchesCard && matchesRecurring && matchesInstallments
             }
-            // Receitas não têm forma de pagamento: só casam com "Todas"
-            val matchesPayment = when (paymentMethodFilter) {
-                PaymentMethodFilter.ALL -> true
-                PaymentMethodFilter.CREDIT ->
-                    t.type == TransactionType.EXPENSE && t.paymentMethod == CREDIT
-                PaymentMethodFilter.DEBIT ->
-                    t.type == TransactionType.EXPENSE && t.paymentMethod != CREDIT && !t.isInvoicePayment
-            }
-            val matchesCategory = categoryFilterIds.isEmpty() ||
-                    t.categoryIds.any { it in categoryFilterIds }
-            val matchesCard = cardFilterId == null || t.cardId == cardFilterId
-            val matchesRecurring = !recurringOnly || t.isRecurring
-            val matchesInstallments = !installmentsOnly || t.isInstallment
-            matchesType && matchesPayment && matchesCategory &&
-                    matchesCard && matchesRecurring && matchesInstallments
         }
 
     val filteredIncome: Double

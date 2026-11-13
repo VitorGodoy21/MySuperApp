@@ -18,6 +18,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,6 +47,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -575,6 +581,24 @@ private fun FiltersContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 96.dp)
     ) {
+        item {
+            OutlinedTextField(
+                value = uiState.searchQuery,
+                onValueChange = { onEvent(FinancialEvent.OnSearchQueryChanged(it)) },
+                label = { Text("Pesquisar por nome ou preço") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (uiState.searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { onEvent(FinancialEvent.OnSearchQueryChanged("")) }) {
+                            Icon(Icons.Default.Close, contentDescription = "Limpar pesquisa")
+                        }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         item { TypeFilterChips(uiState, onEvent) }
 
         item {
@@ -608,20 +632,45 @@ private fun FiltersContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FilterLabel("Categorias")
+                TextButton(
+                    onClick = { onEvent(FinancialEvent.OnToggleCategoryFilter) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics {
+                            stateDescription = if (uiState.isCategoryFilterExpanded) "Expandido" else "Recolhido"
+                        }
+                ) {
+                    Text(
+                        text = if (uiState.categoryFilterIds.isEmpty()) {
+                            "Categorias"
+                        } else {
+                            "Categorias (${uiState.categoryFilterIds.size} selecionadas)"
+                        },
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Start
+                    )
+                    Icon(
+                        imageVector = if (uiState.isCategoryFilterExpanded) {
+                            Icons.Default.ExpandLess
+                        } else {
+                            Icons.Default.ExpandMore
+                        },
+                        contentDescription = null
+                    )
+                }
                 if (uiState.categoryFilterIds.isNotEmpty()) {
                     TextButton(onClick = { onEvent(FinancialEvent.OnCategoryFilterCleared) }) {
                         Text("Limpar")
                     }
                 }
             }
-            if (uiState.categoriesForFilter.isEmpty()) {
+            if (uiState.isCategoryFilterExpanded && uiState.categoriesForFilter.isEmpty()) {
                 Text(
                     text = "Nenhuma categoria para o tipo selecionado",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            } else {
+            } else if (uiState.isCategoryFilterExpanded) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)

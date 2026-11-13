@@ -171,6 +171,14 @@ class FinancialViewModel @Inject constructor(
                 _uiState.update { it.copy(pendingRecurringAction = null) }
             }
 
+            is FinancialEvent.OnSearchQueryChanged -> {
+                _uiState.update { it.copy(searchQuery = event.query) }
+            }
+
+            FinancialEvent.OnToggleCategoryFilter -> {
+                _uiState.update { it.copy(isCategoryFilterExpanded = !it.isCategoryFilterExpanded) }
+            }
+
             is FinancialEvent.OnTypeFilterChanged -> {
                 _uiState.update { state ->
                     val next = state.copy(typeFilter = event.filter)
@@ -218,6 +226,7 @@ class FinancialViewModel @Inject constructor(
             FinancialEvent.OnClearFilters -> {
                 _uiState.update {
                     it.copy(
+                        searchQuery = "",
                         typeFilter = TransactionTypeFilter.ALL,
                         paymentMethodFilter = PaymentMethodFilter.ALL,
                         categoryFilterIds = emptySet(),

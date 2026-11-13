@@ -236,6 +236,62 @@ class FinancialUiStateTest {
     }
 
     @Test
+    fun `search matches partial titles ignoring case and surrounding spaces`() {
+        val state = base.copy(searchQuery = "  NET  ")
+        assertEquals(listOf("netflix"), state.filteredTransactions.map { it.id })
+        assertTrue(state.hasActiveFilters)
+        assertEquals(850.0, state.totalExpense, 0.001)
+    }
+
+    @Test
+    fun `price search matches partial reais with comma or dot decimals`() {
+        val state = base.copy(
+            transactions = listOf(
+                tx("small", 50.0),
+                tx("larger", 150.25),
+                tx("thousand", 1050.25),
+                tx("other", 25.0),
+                tx("50 tickets", 10.0)
+            )
+        )
+        assertEquals(
+            listOf("small", "larger", "thousand", "50 tickets"),
+            state.copy(searchQuery = "50").filteredTransactions.map { it.id }
+        )
+        for (query in listOf("50,25", "50.25")) {
+            assertEquals(
+                listOf("larger", "thousand"),
+                state.copy(searchQuery = query).filteredTransactions.map { it.id }
+            )
+        }
+        assertEquals(
+            listOf("small"),
+            state.copy(searchQuery = "50,00").filteredTransactions.map { it.id }
+        )
+    }
+
+    @Test
+    fun `search combines with filters and updates totals and groups`() {
+        val state = base.copy(
+            searchQuery = "50",
+            paymentMethodFilter = PaymentMethodFilter.CREDIT,
+            categoryFilterIds = setOf("stream"),
+            groupBy = FilterGroupBy.CATEGORY
+        )
+        assertEquals(listOf("netflix"), state.filteredTransactions.map { it.id })
+        assertEquals(50.0, state.filteredExpense, 0.001)
+        assertEquals(-50.0, state.filteredBalance, 0.001)
+        assertEquals(listOf(GroupTotal("stream", 50.0, 1)), state.groupedTotals)
+        assertTrue(state.copy(searchQuery = "no match").filteredTransactions.isEmpty())
+    }
+
+    @Test
+    fun `blank search preserves results and does not activate filters`() {
+        assertEquals(base.filteredTransactions, base.copy(searchQuery = "  ").filteredTransactions)
+        assertFalse(base.copy(searchQuery = "  ").hasActiveFilters)
+    }
+
+    @Test
     fun `recurring only includes recurring incomes`() {
         val state = base.copy(recurringOnly = true)
         assertEquals(setOf("salary", "netflix"), state.filteredTransactions.map { it.id }.toSet())

@@ -25,6 +25,8 @@ sealed interface FinancialEvent {
     data object OnPayInvoiceDismiss : FinancialEvent
 
     // Aba Filtros
+    data class OnSearchQueryChanged(val query: String) : FinancialEvent
+    data object OnToggleCategoryFilter : FinancialEvent
     data class OnTypeFilterChanged(val filter: TransactionTypeFilter) : FinancialEvent
     data class OnPaymentMethodFilterChanged(val filter: PaymentMethodFilter) : FinancialEvent
     data class OnCategoryFilterToggled(val categoryId: String) : FinancialEvent

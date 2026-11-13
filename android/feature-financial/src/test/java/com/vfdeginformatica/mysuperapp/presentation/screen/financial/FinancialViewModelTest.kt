@@ -256,6 +256,7 @@ class FinancialViewModelTest {
         val vm = buildViewModel(CountingTransactionRepository())
         advanceUntilIdle()
 
+        vm.onEvent(FinancialEvent.OnSearchQueryChanged("Mercado"))
         vm.onEvent(FinancialEvent.OnTypeFilterChanged(TransactionTypeFilter.EXPENSE))
         vm.onEvent(FinancialEvent.OnPaymentMethodFilterChanged(PaymentMethodFilter.CREDIT))
         vm.onEvent(FinancialEvent.OnCategoryFilterToggled("food"))
@@ -267,6 +268,7 @@ class FinancialViewModelTest {
 
         vm.onEvent(FinancialEvent.OnClearFilters)
         val state = vm.uiState.value
+        assertEquals("", state.searchQuery)
         assertFalse(state.hasActiveFilters)
         assertEquals(TransactionTypeFilter.ALL, state.typeFilter)
         assertEquals(PaymentMethodFilter.ALL, state.paymentMethodFilter)
@@ -275,6 +277,39 @@ class FinancialViewModelTest {
         assertFalse(state.recurringOnly)
         assertFalse(state.installmentsOnly)
         assertEquals(FilterGroupBy.NONE, state.groupBy)
+    }
+
+    @Test
+    fun `search changes do not reload transactions`() = runTest {
+        val repo = CountingTransactionRepository()
+        val vm = buildViewModel(repo)
+        advanceUntilIdle()
+
+        vm.onEvent(FinancialEvent.OnSearchQueryChanged("50,25"))
+        assertEquals("50,25", vm.uiState.value.searchQuery)
+        assertTrue(vm.uiState.value.hasActiveFilters)
+        vm.onEvent(FinancialEvent.OnSearchQueryChanged(""))
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.hasActiveFilters)
+        assertEquals(1, repo.monthQueries)
+        assertEquals(3, repo.invoiceQueries)
+    }
+
+    @Test
+    fun `categories start collapsed and keep selection when collapsed again`() = runTest {
+        val vm = buildViewModel(CountingTransactionRepository())
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.isCategoryFilterExpanded)
+        vm.onEvent(FinancialEvent.OnToggleCategoryFilter)
+        assertTrue(vm.uiState.value.isCategoryFilterExpanded)
+        vm.onEvent(FinancialEvent.OnCategoryFilterToggled("food"))
+        vm.onEvent(FinancialEvent.OnToggleCategoryFilter)
+
+        assertFalse(vm.uiState.value.isCategoryFilterExpanded)
+        assertEquals(setOf("food"), vm.uiState.value.categoryFilterIds)
+        assertTrue(vm.uiState.value.hasActiveFilters)
     }
 
     @Test
